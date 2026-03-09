@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="84" y1="58" x2="520" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#355B94"/>
+      <stop offset="1" stop-color="#08101D"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="190" y1="180" x2="420" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E5EFFD"/>
+      <stop offset="1" stop-color="#7BA6DE"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" rx="44" fill="url(#bg)"/>
+  <circle cx="125" cy="120" r="95" fill="#60A5FA" fill-opacity=".14"/>
+  <circle cx="475" cy="480" r="135" fill="#2563EB" fill-opacity=".12"/>
+  <rect x="82" y="82" width="436" height="436" rx="34" stroke="rgba(255,255,255,.20)" stroke-width="4"/>
+  <path d="M168 388c31-57 95-111 186-153l44 42c-67 91-135 150-205 175l-25-64Z" fill="#D7E8FF" fill-opacity=".22"/>
+  <path d="M213 398c44-44 88-91 132-142 16-18 34-28 55-32l29 28c-5 22-16 40-34 56-48 43-94 84-139 123l-43-33Z" fill="url(#steel)"/>
+  <path d="M168 388l45 10 43 33-20 23c-14 16-38 18-55 4l-19-15c-15-13-20-33-13-51l19-4Z" fill="#163A63"/>
+  <path d="M429 252l34-41 28 28-40 33-22-20Z" fill="#F4C76B"/>
+  <path d="M299 283l62 61" stroke="#90B8F5" stroke-width="10" stroke-linecap="round"/>
+</svg>
