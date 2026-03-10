@@ -1471,13 +1471,8 @@ export function App() {
 
  
   function mapProductPayload(payload: Partial<Product>) {
-    const mapped: any = { ...payload };
-    // Siempre mapear 'active' a 'is_active' para el backend
-    if (Object.prototype.hasOwnProperty.call(payload, "active")) {
-      mapped.is_active = Boolean(payload.active);
-      delete mapped.active;
-    }
-    return mapped;
+    // No renombrar 'active', solo retornar el payload tal cual
+    return { ...payload };
   }
 
   async function createProduct(event: FormEvent<HTMLFormElement>) {
