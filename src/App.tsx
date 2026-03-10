@@ -1558,7 +1558,7 @@ export function App() {
       const response = await apiRequest(apiBase, `/products?actor_id=${actorId}`);
       const productsList = response.data as Product[];
       setProducts(productsList);
-      // Filtra productos según el rol ACTUALIZADO del usuario
+      // Admin ve todos, los demás solo activos
       if (sessionUser && sessionUser.role === "admin") {
         setPublicData((current) => ({ ...current, products: productsList }));
       } else {
@@ -2929,7 +2929,7 @@ export function App() {
                               <div className="actions-inline actions-inline--wrap">
                                 {sessionUser && sessionUser.role === "admin" && (
                                   <>
-                                    {product.active ? (
+                                    {product.active && (
                                       <button
                                         className="button button--ghost button--small"
                                         onClick={async () => {
@@ -2946,7 +2946,8 @@ export function App() {
                                         {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
                                         {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
                                       </button>
-                                    ) : (
+                                    )}
+                                    {!product.active && (
                                       <button
                                         className="button button--success button--small"
                                         onClick={async () => {
