@@ -18,10 +18,10 @@ if (!str_contains($uriPath, '/uploads/')) {
 
 return [
     'db' => [
-        'host' => '127.0.0.1',
-        'port' => 5432,
-        'dbname' => 'barberpro360',
-        'user' => 'postgres',
-        'password' => 'password',
+        'host' => getenv('DB_HOST') ?: '127.0.0.1',
+        'port' => getenv('DB_PORT') ? (int)getenv('DB_PORT') : 5432,
+        'dbname' => getenv('DB_NAME') ?: 'barberpro360',
+        'user' => getenv('DB_USER') ?: 'postgres',
+        'password' => getenv('DB_PASS') ?: 'password',
     ],
 ];
