@@ -2888,11 +2888,11 @@ export function App() {
                               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                                 <img src={product.image} alt={product.name} style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8 }} />
                                 <div style={{ display: "flex", gap: 2 }}>
-                                  <label className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px", cursor: "pointer" }}>
+                                  <label className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px", cursor: loading ? "not-allowed" : "pointer" }}>
                                     📁
-                                    <input hidden accept="image/*" type="file" onChange={(e) => void uploadProductImage(product.id, e)} />
+                                    <input hidden accept="image/*" type="file" disabled={loading} onChange={(e) => void uploadProductImage(product.id, e)} />
                                   </label>
-                                  <button className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px" }} onClick={() => {
+                                  <button className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px" }} disabled={loading} onClick={() => {
                                     const newUrl = prompt("Nueva URL de imagen:", product.image);
                                     if (newUrl && newUrl !== product.image) void patchProduct(product.id, { image: newUrl });
                                   }} type="button">🔗</button>
@@ -2905,14 +2905,15 @@ export function App() {
                             <td>
                               {sessionUser && sessionUser.role === "admin" ? (
                                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                  <button className="button button--ghost button--small" onClick={() => patchProduct(product.id, { stock: product.stock - 1 })} disabled={product.stock <= 0 || loading} type="button">-1</button>
+                                  <button className="button button--ghost button--small" onClick={() => patchProduct(product.id, { stock: Math.max(0, product.stock - 1) })} disabled={product.stock <= 0 || loading} type="button">-1</button>
                                   <input
                                     type="number"
                                     min={0}
                                     value={product.stock}
                                     style={{ width: 60 }}
+                                    disabled={loading}
                                     onChange={e => {
-                                      const newStock = Number(e.target.value);
+                                      const newStock = Math.max(0, Number(e.target.value));
                                       patchProduct(product.id, { stock: newStock });
                                     }}
                                   />
@@ -2935,6 +2936,7 @@ export function App() {
                                           setError("");
                                           setSuccess("");
                                           await patchProduct(product.id, { active: false });
+                                          await refreshProducts();
                                         }}
                                         type="button"
                                         disabled={loading}
@@ -2951,6 +2953,7 @@ export function App() {
                                           setError("");
                                           setSuccess("");
                                           await patchProduct(product.id, { active: true });
+                                          await refreshProducts();
                                         }}
                                         type="button"
                                         disabled={loading}
@@ -2961,7 +2964,7 @@ export function App() {
                                         {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
                                       </button>
                                     )}
-                                    <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} type="button">🗑️</button>
+                                    <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} disabled={loading} type="button">🗑️</button>
                                   </>
                                 )}
                               </div>
