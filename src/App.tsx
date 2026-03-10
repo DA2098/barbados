@@ -820,7 +820,9 @@ export function App() {
       setPublicData({
         services: payload.services,
         barbers: payload.users.filter((user) => user.role === "barber" && user.active && user.approved),
-        products: payload.products.filter((p) => p.active),
+        products: sessionUser && sessionUser.role === "admin"
+          ? payload.products
+          : payload.products.filter((p) => p.active),
       });
       setBookingForm((current) => ({
         ...current,
@@ -1560,7 +1562,12 @@ export function App() {
       const actorId = sessionUser ? sessionUser.id : "";
       const response = await apiRequest(apiBase, `/products?actor_id=${actorId}`);
       setProducts(response.data as Product[]);
-      setPublicData((current) => ({ ...current, products: response.data as Product[] }));
+      setPublicData((current) => ({
+        ...current,
+        products: sessionUser && sessionUser.role === "admin"
+          ? (response.data as Product[])
+          : (response.data as Product[]).filter((p) => p.active),
+      }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo refrescar productos.");
     } finally {
@@ -2494,7 +2501,7 @@ export function App() {
           <section className="panel panel--full">
             <SectionHeader title="🛍️ Tienda de productos" subtitle="Geles, pómadas, champús y accesorios para el cuidado de tu cabello y barba. ¡Compra ahora!" />
             <div className="cards-grid">
-              {publicData.products.filter((product) => product.active).map((product) => {
+              {publicData.products.map((product) => {
                 const categoryImages: Record<string, string> = {
                   "Styling": "https://images.unsplash.com/photo-1552821206-e4a8b71c87d5?w=500&h=500&fit=crop",
                   "Shampoo": "https://images.unsplash.com/photo-1587854692152-cbe660dbde0e?w=500&h=500&fit=crop",
