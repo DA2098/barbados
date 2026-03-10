@@ -1556,7 +1556,9 @@ export function App() {
     try {
       const actorId = sessionUser ? sessionUser.id : "";
       const response = await apiRequest(apiBase, `/products?actor_id=${actorId}`);
-      const productsList = response.data as Product[];
+      let productsList = response.data as Product[];
+      // Nunca mostrar stock negativo
+      productsList = productsList.map(p => ({ ...p, stock: p.stock < 0 ? 0 : p.stock }));
       setProducts(productsList);
       // Admin ve todos, los demás solo activos
       if (sessionUser && sessionUser.role === "admin") {
