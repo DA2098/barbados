@@ -2,8 +2,11 @@ FROM php:8.2-cli
 
 WORKDIR /app
 
-# Instala Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Instala dependencias para PostgreSQL y Composer
+RUN apt-get update && apt-get install -y libpq-dev \
+	&& docker-php-ext-install pdo pdo_pgsql \
+	&& curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copia el código fuente
 COPY . .
