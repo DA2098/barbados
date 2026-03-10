@@ -1,17 +1,18 @@
-// Detectar IP del host dinámicamente para acceso desde red local (Android, otros dispositivos)
+
+// Usar variable de entorno en producción, candidatos dinámicos en desarrollo/local
+const PROD_API_BASE = import.meta.env.VITE_API_BASE;
 function getApiCandidates(): string[] {
+  if (PROD_API_BASE) {
+    return [PROD_API_BASE];
+  }
   const candidates = ["/api"];
-  
-  // Si estamos en localhost, agregar localhost con diferentes puertos
   if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
     candidates.push("http://localhost:8001/api");
     candidates.push("http://localhost:8000/api");
   } else {
-    // Si estamos en otra IP (ej: 192.168.x.x), usar esa misma IP para el backend
     candidates.push(`http://${window.location.hostname}:8001/api`);
     candidates.push(`http://${window.location.hostname}:8000/api`);
   }
-  
   return candidates;
 }
 
