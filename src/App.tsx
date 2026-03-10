@@ -1328,9 +1328,27 @@ export function App() {
   async function sendMessage() {
     if (!apiBase || !sessionUser || !selectedConversation) return;
     if (!messageDraft.trim() && !attachment) return;
-    setLoading(true);
     setError("");
-
+    // Optimistic UI: mostrar mensaje instantáneo en la conversación seleccionada
+    if (messageDraft.trim()) {
+      const tempId = `temp-${Date.now()}`;
+      setConversations((prev: any[]) => prev.map(conv =>
+        conv.id === selectedConversationId
+          ? { ...conv, messages: [...(conv.messages || []), { id: tempId, senderId: sessionUser.id, kind: "text", text: messageDraft.trim(), createdAt: new Date().toISOString() }] }
+          : conv
+      ));
+    }
+    if (attachment) {
+      const tempId = `temp-${Date.now()}-att`;
+      setConversations((prev: any[]) => prev.map(conv =>
+        conv.id === selectedConversationId
+          ? { ...conv, messages: [...(conv.messages || []), { id: tempId, senderId: sessionUser.id, kind: attachment.kind, text: attachment.kind === "image" ? "Imagen enviada por el usuario." : "Nota de voz enviada por el usuario.", createdAt: new Date().toISOString() }] }
+          : conv
+      ));
+    }
+    setMessageDraft("");
+    setAttachment(null);
+    setLoading(true);
     try {
       if (messageDraft.trim()) {
         await apiRequest(apiBase, `/conversations/${selectedConversation.id}/messages`, {
@@ -1338,9 +1356,7 @@ export function App() {
           ...jsonBody({ sender_id: sessionUser.id, kind: "text", text: messageDraft.trim() }),
         });
       }
-
       if (attachment) {
-        // Convertir archivo a base64 para envío más confiable
         const fileToBase64 = (file: Blob): Promise<string> => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1349,9 +1365,7 @@ export function App() {
             reader.readAsDataURL(file);
           });
         };
-
         const base64Data = await fileToBase64(attachment.file);
-        
         await apiRequest(apiBase, `/conversations/${selectedConversation.id}/messages`, {
           method: "POST",
           ...jsonBody({
@@ -1364,12 +1378,10 @@ export function App() {
           }),
         });
       }
-
-      setMessageDraft("");
-      setAttachment(null);
       await refreshSession();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo enviar el mensaje.");
+      await refreshSession();
     } finally {
       setLoading(false);
     }
@@ -1531,23 +1543,25 @@ export function App() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    setLoading(true);
     setError("");
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
-        reader.readAsDataURL(file);
-      });
-      await patchProduct(productId, { image: base64 });
-      await refreshProducts(); // Refresca productos tras cambio de imagen
-      setSuccess("Imagen del producto actualizada.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
-    } finally {
-      setLoading(false);
-    }
+    // Optimistic UI: mostrar preview instantáneo
+    const reader = new FileReader();
+    reader.onload = async () => {
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, image: reader.result as string } : p));
+      setLoading(true);
+      try {
+        await patchProduct(productId, { image: reader.result as string });
+        await refreshProducts();
+        setSuccess("Imagen del producto actualizada.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
+        await refreshProducts();
+      } finally {
+        setLoading(false);
+      }
+    };
+    reader.onerror = () => setError("No se pudo leer el archivo");
+    reader.readAsDataURL(file);
   }
   // Nueva función para refrescar productos
   async function refreshProducts() {
@@ -2910,7 +2924,12 @@ export function App() {
                                   <button
                                     className="button button--ghost button--small"
                                     onClick={() => {
-                                      if (product.stock > 0) patchProduct(product.id, { stock: product.stock - 1 });
+                                      if (product.stock > 0) {
+                                        // Optimistic UI
+                                        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock - 1 } : p));
+                                        patchProduct(product.id, { stock: product.stock - 1 })
+                                          .catch(() => refreshProducts());
+                                      }
                                     }}
                                     disabled={product.stock <= 0 || loading}
                                     type="button"
@@ -2924,11 +2943,23 @@ export function App() {
                                     onChange={e => {
                                       let newStock = Number(e.target.value);
                                       if (isNaN(newStock) || newStock < 0) newStock = 0;
-                                      patchProduct(product.id, { stock: newStock });
+                                      // Optimistic UI
+                                      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
+                                      patchProduct(product.id, { stock: newStock })
+                                        .catch(() => refreshProducts());
                                     }}
                                   />
-                                  <button className="button button--success button--small" onClick={() => patchProduct(product.id, { stock: product.stock + 1 })} disabled={loading} type="button">+1</button>
-                                  <button className="button button--success button--small" onClick={() => patchProduct(product.id, { stock: product.stock + 5 })} disabled={loading} type="button">+5</button>
+                                  <button className="button button--success button--small" onClick={() => {
+                                    // Optimistic UI
+                                    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 1 } : p));
+                                    patchProduct(product.id, { stock: product.stock + 1 })
+                                      .catch(() => refreshProducts());
+                                  }} disabled={loading} type="button">+1</button>
+                                  <button className="button button--success button--small" onClick={() => {
+                                    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 5 } : p));
+                                    patchProduct(product.id, { stock: product.stock + 5 })
+                                      .catch(() => refreshProducts());
+                                  }} disabled={loading} type="button">+5</button>
                                 </div>
                               ) : (
                                 product.stock < 0 ? 0 : product.stock
@@ -2945,8 +2976,14 @@ export function App() {
                                         onClick={async () => {
                                           setError("");
                                           setSuccess("");
-                                          await patchProduct(product.id, { active: false });
-                                          await refreshProducts();
+                                          // Optimistic UI
+                                          setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
+                                          try {
+                                            await patchProduct(product.id, { active: false });
+                                            await refreshProducts();
+                                          } catch {
+                                            await refreshProducts();
+                                          }
                                         }}
                                         type="button"
                                         disabled={loading}
@@ -2963,8 +3000,13 @@ export function App() {
                                         onClick={async () => {
                                           setError("");
                                           setSuccess("");
-                                          await patchProduct(product.id, { active: true });
-                                          await refreshProducts();
+                                          setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
+                                          try {
+                                            await patchProduct(product.id, { active: true });
+                                            await refreshProducts();
+                                          } catch {
+                                            await refreshProducts();
+                                          }
                                         }}
                                         type="button"
                                         disabled={loading}
