@@ -18,10 +18,10 @@ if (!str_contains($uriPath, '/uploads/')) {
 
 return [
     'db' => [
-        'host' => getenv('DB_HOST') ?: '127.0.0.1',
+        'host' => getenv('DB_HOST') ?: 'dpg-d6notdfkijhs739phn50-a.oregon-postgres.render.com',
         'port' => getenv('DB_PORT') ? (int)getenv('DB_PORT') : 5432,
         'dbname' => getenv('DB_NAME') ?: 'barberpro360',
-        'user' => getenv('DB_USER') ?: 'postgres',
-        'password' => getenv('DB_PASS') ?: 'password',
+        'user' => getenv('DB_USER') ?: 'barberpro360_user',
+        'password' => getenv('DB_PASS') ?: 'xasf6xIgcqNjXfneYKciEi6xMgosAy07',
     ],
 ];
