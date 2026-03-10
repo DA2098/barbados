@@ -740,29 +740,42 @@ if ($resource === 'products') {
                     ]
                 );
             } else {
-                execute_statement(
-                    $pdo,
-                    'UPDATE products SET
-                        name = :name,
-                        category = :category,
-                        description = :description,
-                        price = :price,
-                        stock = :stock,
-                        image_url = :image_url,
-                        is_active = :is_active,
-                        updated_at = NOW()
-                     WHERE id = :id',
-                    [
-                        ':id' => $id,
-                        ':name' => $input['name'] ?? $current['name'],
-                        ':category' => $input['category'] ?? $current['category'],
-                        ':description' => $input['description'] ?? $current['description'],
-                        ':price' => (float) ($input['price'] ?? $current['price']),
-                        ':stock' => (int) ($input['stock'] ?? $current['stock']),
-                        ':image_url' => $input['image'] ?? $current['image_url'],
-                        ':is_active' => array_key_exists('active', $input) ? (bool) $input['active'] : (bool) $current['is_active'],
-                    ]
-                );
+                // Solo actualizar los campos enviados
+                $fields = [];
+                $params = [':id' => $id];
+                if (array_key_exists('name', $input)) {
+                    $fields[] = 'name = :name';
+                    $params[':name'] = $input['name'];
+                }
+                if (array_key_exists('category', $input)) {
+                    $fields[] = 'category = :category';
+                    $params[':category'] = $input['category'];
+                }
+                if (array_key_exists('description', $input)) {
+                    $fields[] = 'description = :description';
+                    $params[':description'] = $input['description'];
+                }
+                if (array_key_exists('price', $input)) {
+                    $fields[] = 'price = :price';
+                    $params[':price'] = (float) $input['price'];
+                }
+                if (array_key_exists('stock', $input)) {
+                    $fields[] = 'stock = :stock';
+                    $params[':stock'] = (int) $input['stock'];
+                }
+                if (array_key_exists('image', $input)) {
+                    $fields[] = 'image_url = :image_url';
+                    $params[':image_url'] = $input['image'];
+                }
+                if (array_key_exists('active', $input)) {
+                    $fields[] = 'is_active = :is_active';
+                    $params[':is_active'] = (bool) $input['active'];
+                }
+                if (empty($fields)) {
+                    respond(['ok' => false, 'message' => 'No hay campos válidos para actualizar.'], 400);
+                }
+                $sql = 'UPDATE products SET ' . implode(', ', $fields) . ', updated_at = NOW() WHERE id = :id';
+                execute_statement($pdo, $sql, $params);
             }
             respond(['ok' => true, 'message' => 'Producto actualizado.']);
         } catch (Throwable $e) {
