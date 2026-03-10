@@ -359,7 +359,7 @@ function AccordionItem({ icon, title, children, defaultOpen = false }: { icon: s
 
 export function App() {
     // Estado manual para activación/desactivación de productos
-    const [manualProductState, setManualProductState] = useState<Record<string, boolean>>({});
+    // Eliminado: manualProductState no se usa
   const [route, setRoute] = useState<Route>("home");
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>("overview");
   const [apiBase, setApiBase] = useState<string | null>(null);
@@ -815,20 +815,12 @@ export function App() {
       setAccountProfile(normalizeAccountProfile(profileResponse.data ?? null));
       // Actualiza productos, pero respeta el estado manual
       setProducts(payload.products.map((p) => {
-        if (manualProductState[p.id] !== undefined) {
-          return { ...p, active: manualProductState[p.id] };
-        }
         return p;
       }));
       setPublicData({
         services: payload.services,
         barbers: payload.users.filter((user) => user.role === "barber" && user.active && user.approved),
-        products: payload.products.filter((p) => {
-          if (manualProductState[p.id] !== undefined) {
-            return manualProductState[p.id];
-          }
-          return p.active;
-        }),
+        products: payload.products.filter((p) => p.active),
       });
       setBookingForm((current) => ({
         ...current,
@@ -1509,34 +1501,13 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
     try {
-      // Mapeo correcto para backend: active -> is_active
       const mappedPayload = mapProductPayload(payload);
       await apiRequest(apiBase, `/products/${productId}`, {
         method: "PATCH",
         ...jsonBody(mappedPayload),
       });
-      // Actualiza el estado local de productos y la tienda inmediatamente
-      setProducts((prev) => {
-        const updated = prev.map((p) => p.id === productId ? { ...p, ...payload } : p);
-        setPublicData((current) => ({
-          ...current,
-          products: updated.filter((p) => p.active),
-        }));
-        return updated;
-      });
-      // Guarda el estado manual de activación/desactivación
-      if (typeof payload.active === "boolean") {
-        setManualProductState((current) => {
-          const next = { ...current };
-          if (payload.active === true || payload.active === false) {
-            next[productId] = payload.active;
-          } else {
-            delete next[productId];
-          }
-          return next;
-        });
-      }
-      // No refrescar la sesión aquí para evitar sobrescribir el estado local
+      await refreshProducts(); // Refresca productos tras cada cambio
+      setSuccess("Producto actualizado correctamente.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
     } finally {
@@ -1563,7 +1534,6 @@ export function App() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !apiBase || !sessionUser || sessionUser.role !== "admin") return;
-
     setLoading(true);
     setError("");
     try {
@@ -1573,12 +1543,26 @@ export function App() {
         reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
         reader.readAsDataURL(file);
       });
-
-      // El base64 incluye el prefijo data:image/...;base64, - lo usamos como URL directa
       await patchProduct(productId, { image: base64 });
+      await refreshProducts(); // Refresca productos tras cambio de imagen
       setSuccess("Imagen del producto actualizada.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  // Nueva función para refrescar productos
+  async function refreshProducts() {
+    if (!apiBase) return;
+    setLoading(true);
+    try {
+      const actorId = sessionUser ? sessionUser.id : "";
+      const response = await apiRequest(apiBase, `/products?actor_id=${actorId}`);
+      setProducts(response.data as Product[]);
+      setPublicData((current) => ({ ...current, products: response.data as Product[] }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo refrescar productos.");
     } finally {
       setLoading(false);
     }
