@@ -2902,8 +2902,10 @@ export function App() {
                             <td><strong>{product.name}</strong></td>
                             <td>{product.category}</td>
                             <td>{money.format(product.price)}</td>
-                              <td>
-                                {sessionUser && sessionUser.role === "admin" ? (
+                            <td>
+                              {sessionUser && sessionUser.role === "admin" ? (
+                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                  <button className="button button--ghost button--small" onClick={() => patchProduct(product.id, { stock: product.stock - 1 })} disabled={product.stock <= 0 || loading} type="button">-1</button>
                                   <input
                                     type="number"
                                     min={0}
@@ -2914,30 +2916,54 @@ export function App() {
                                       patchProduct(product.id, { stock: newStock });
                                     }}
                                   />
-                                ) : (
-                                  product.stock
-                                )}
-                              </td>
+                                  <button className="button button--success button--small" onClick={() => patchProduct(product.id, { stock: product.stock + 1 })} disabled={loading} type="button">+1</button>
+                                  <button className="button button--success button--small" onClick={() => patchProduct(product.id, { stock: product.stock + 5 })} disabled={loading} type="button">+5</button>
+                                </div>
+                              ) : (
+                                product.stock
+                              )}
+                            </td>
                             <td><Badge label={product.active ? "Activo" : "Oculto"} variant={product.active ? "success" : "danger"} /></td>
                             <td>
                               <div className="actions-inline actions-inline--wrap">
-                                <button
-                                  className={`button button--ghost button--small ${product.active ? '' : 'button--success'}`}
-                                  onClick={async () => {
-                                    setError("");
-                                    setSuccess("");
-                                    await patchProduct(product.id, { active: !product.active });
-                                  }}
-                                  type="button"
-                                  disabled={loading}
-                                  style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                                >
-                                  {product.active ? "Desactivar" : "Activar"}
-                                  {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
-                                  {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
-                                </button>
-                                <button className="button button--success button--small" onClick={() => void patchProduct(product.id, { stock: product.stock + 5 })} type="button">+5</button>
-                                <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} type="button">🗑️</button>
+                                {sessionUser && sessionUser.role === "admin" && (
+                                  <>
+                                    {product.active ? (
+                                      <button
+                                        className="button button--ghost button--small"
+                                        onClick={async () => {
+                                          setError("");
+                                          setSuccess("");
+                                          await patchProduct(product.id, { active: false });
+                                        }}
+                                        type="button"
+                                        disabled={loading}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                      >
+                                        Desactivar
+                                        {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                        {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
+                                      </button>
+                                    ) : (
+                                      <button
+                                        className="button button--success button--small"
+                                        onClick={async () => {
+                                          setError("");
+                                          setSuccess("");
+                                          await patchProduct(product.id, { active: true });
+                                        }}
+                                        type="button"
+                                        disabled={loading}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                      >
+                                        Activar
+                                        {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                        {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
+                                      </button>
+                                    )}
+                                    <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} type="button">🗑️</button>
+                                  </>
+                                )}
                               </div>
                             </td>
                           </tr>
