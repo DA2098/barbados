@@ -1934,18 +1934,12 @@ export function App() {
 
   if (booting) {
     return (
-      <div className="loading-shell">
-        <div className="loading-card">
-          <div className="loading-logo">
-            <div className="loading-scissors">✂</div>
-            <div className="loading-pulse"></div>
-          </div>
-          <h1 className="loading-title">Barbados</h1>
-          <p className="loading-subtitle">Preparando tu experiencia premium</p>
-          <div className="loading-bar">
-            <div className="loading-bar__fill"></div>
-          </div>
-          <span className="loading-hint">Un momento por favor...</span>
+      <div className="loading-shell" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'radial-gradient(circle, #2d2320 60%, #181818 100%)' }}>
+        <img src={barbadosLogo} alt="Barbados Logo" style={{ width: 120, height: 120, marginBottom: 24, borderRadius: 16, boxShadow: '0 2px 16px #0008' }} />
+        <h1 style={{ color: '#ffcc99', marginBottom: 8, fontWeight: 700, letterSpacing: 1 }}>Barbados</h1>
+        <div style={{ color: '#ccc', marginBottom: 16, fontSize: 18 }}>Cargando...</div>
+        <div style={{ width: 80, height: 4, background: '#222', borderRadius: 2, overflow: 'hidden', marginBottom: 16 }}>
+          <div style={{ width: '60%', height: '100%', background: 'linear-gradient(90deg, #ffcc99 40%, #fff0 100%)', borderRadius: 2, animation: 'loaderBar 1.2s infinite linear' }} />
         </div>
       </div>
     );
