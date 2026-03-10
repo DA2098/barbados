@@ -24,7 +24,7 @@ export default defineConfig({
         target: "http://localhost:8001",
         changeOrigin: true,
         configure: (proxy) => {
-          proxy.on("proxyReq", (proxyReq, req) => {
+          proxy.on("proxyReq", (_proxyReq, req) => {
             // Permitir que el proxy maneje correctamente el body del request
             if (req.headers["content-type"]?.includes("multipart/form-data")) {
               // No modificar nada para multipart
