@@ -47,7 +47,7 @@ if (empty($segments)) {
 $input = json_input();
 
 // Endpoint de salud para Render y frontend
-if ($segments[0] === 'api' && ($segments[1] ?? null) === 'health') {
+if (($segments[0] === 'api' && ($segments[1] ?? null) === 'health') || $segments[0] === 'health') {
     header('Content-Type: application/json');
     echo json_encode(['ok' => true, 'data' => ['status' => 'ok']]);
     exit;
