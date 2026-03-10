@@ -2905,15 +2905,23 @@ export function App() {
                             <td>
                               {sessionUser && sessionUser.role === "admin" ? (
                                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                  <button className="button button--ghost button--small" onClick={() => patchProduct(product.id, { stock: Math.max(0, product.stock - 1) })} disabled={product.stock <= 0 || loading} type="button">-1</button>
+                                  <button
+                                    className="button button--ghost button--small"
+                                    onClick={() => {
+                                      if (product.stock > 0) patchProduct(product.id, { stock: product.stock - 1 });
+                                    }}
+                                    disabled={product.stock <= 0 || loading}
+                                    type="button"
+                                  >-1</button>
                                   <input
                                     type="number"
                                     min={0}
-                                    value={product.stock}
+                                    value={product.stock < 0 ? 0 : product.stock}
                                     style={{ width: 60 }}
                                     disabled={loading}
                                     onChange={e => {
-                                      const newStock = Math.max(0, Number(e.target.value));
+                                      let newStock = Number(e.target.value);
+                                      if (isNaN(newStock) || newStock < 0) newStock = 0;
                                       patchProduct(product.id, { stock: newStock });
                                     }}
                                   />
@@ -2921,7 +2929,7 @@ export function App() {
                                   <button className="button button--success button--small" onClick={() => patchProduct(product.id, { stock: product.stock + 5 })} disabled={loading} type="button">+5</button>
                                 </div>
                               ) : (
-                                product.stock
+                                product.stock < 0 ? 0 : product.stock
                               )}
                             </td>
                             <td><Badge label={product.active ? "Activo" : "Oculto"} variant={product.active ? "success" : "danger"} /></td>
