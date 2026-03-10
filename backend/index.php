@@ -726,6 +726,8 @@ if ($resource === 'products') {
         if (!$current) {
             respond(['ok' => false, 'message' => 'Producto no encontrado.'], 404);
         }
+        // Logging de depuración (solo para desarrollo)
+        file_put_contents(__DIR__ . '/patch_product_debug.log', date('c') . " PATCH id=$id\n" . json_encode($input, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND);
         try {
             // Si solo se quiere actualizar el estado activo
             if (count($input) === 1 && array_key_exists('active', $input)) {
