@@ -1,3 +1,43 @@
+// --- App form types and enums for App.tsx ---
+export type Route = "home" | "login" | "register" | "dashboard" | "services" | "shop" | "apply";
+export type DashboardTab = "overview" | "appointments" | "products" | "users" | "api" | "barbers" | "applications" | "chat" | "orders" | "notifications" | "account" | "testimonials" | "cuts";
+
+export interface LoginForm {
+  email: string;
+  password: string;
+}
+
+export interface RegisterForm {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: Role;
+}
+
+export interface BookingForm {
+  barberId: string;
+  serviceId: string;
+  date: string;
+  notes: string;
+}
+
+export interface ProductForm {
+  name: string;
+  category: string;
+  description: string;
+  price: number;
+  stock: number;
+  image: string;
+}
+
+export interface UserForm {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: Role;
+}
 export type Role = "admin" | "barber" | "client";
 export type AppointmentStatus = "pending" | "accepted" | "completed" | "cancelled";
 export type ApplicationStatus = "pending" | "approved" | "rejected";

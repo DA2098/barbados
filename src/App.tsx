@@ -1,79 +1,59 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import type {
+  ChangeEvent,
+  FormEvent
+} from "react";
+import type {
+  User,
+  Product,
+  Appointment,
+  BarberApplication,
+  AppointmentStatus,
+  Message,
+  Conversation,
+  NotificationItem,
+  Order,
+  DashboardSummary,
+  AccountProfile,
+  PublicHomeData,
+  CartItem,
+  PendingAttachment,
+  Testimonial,
+  BarberCut,
+  BarberCutsSummary,
+  Role,
+  Route,
+  DashboardTab,
+  LoginForm,
+  RegisterForm,
+  BookingForm,
+  ProductForm,
+  UserForm,
+  BootstrapData,
+  Service
+} from "./types";
+// Add missing normalizeApplication function if not present
+function normalizeApplication(raw: Record<string, unknown>): BarberApplication {
+  return {
+    id: String(raw.id ?? ""),
+    name: String(raw.name ?? ""),
+    email: String(raw.email ?? ""),
+    phone: String(raw.phone ?? ""),
+    specialty: String(raw.specialty ?? ""),
+    experience: Number(raw.experience ?? 0),
+    note: String(raw.note ?? ""),
+    status: String(raw.status ?? "pending") as any,
+    submittedAt: String(raw.submittedAt ?? raw.submitted_at ?? ""),
+  };
+}
 import { absoluteApiUrl, apiRequest, discoverApiBase, jsonBody } from "./api";
-// Logo de Barbados
 import barbadosLogo from "./assets/barbados-logo.jpeg";
-// Imágenes locales de la barbería
 import barbershop1 from "./assets/barbershop-1.jpeg";
 import barbershop2 from "./assets/barbershop-2.jpeg";
-// Imágenes de barbería (fotos de pexels)
 const showcaseHaircut = "https://images.pexels.com/photos/1813272/pexels-photo-1813272.jpeg?auto=compress&cs=tinysrgb&w=800";
 const showcaseStyle = "https://images.pexels.com/photos/1805600/pexels-photo-1805600.jpeg?auto=compress&cs=tinysrgb&w=800";
 const showcaseBeard = "https://images.pexels.com/photos/2881253/pexels-photo-2881253.jpeg?auto=compress&cs=tinysrgb&w=800";
-// Imagen de respaldo si el video no carga
 const heroFallbackImage = "https://images.pexels.com/photos/1805600/pexels-photo-1805600.jpeg?auto=compress&cs=tinysrgb&w=1920";
-
-import type {
-  AccountProfile,
-  Appointment,
-  AppointmentStatus,
-  BarberApplication,
-  BootstrapData,
-  CartItem,
-  Conversation,
-  DashboardSummary,
-  Message,
-  NotificationItem,
-  Order,
-  PendingAttachment,
-  Product,
-  PublicHomeData,
-  Role,
-  Service,
-  Testimonial,
-  User,
-  BarberCut,
-  BarberCutsSummary,
-} from "./types";
-
-type Route = "home" | "services" | "shop" | "apply" | "login" | "register" | "dashboard";
-type DashboardTab = "overview" | "users" | "applications" | "appointments" | "chat" | "products" | "orders" | "notifications" | "testimonials" | "account" | "cuts";
-
-type RegisterForm = {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  role: Extract<Role, "client">;
-};
-
-type LoginForm = {
-  email: string;
-  password: string;
-};
-
-type BookingForm = {
-  barberId: string;
-  serviceId: string;
-  date: string;
-  notes: string;
-};
-
-type ProductForm = {
-  name: string;
-  category: string;
-  description: string;
-  price: number;
-  stock: number;
-  image: string;
-};
-
-type UserForm = {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-  role: Exclude<Role, "admin">;
-};
 
 const money = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -163,24 +143,8 @@ function normalizeProduct(raw: Record<string, unknown>): Product {
     description: String(raw.description ?? ""),
     price: Number(raw.price ?? 0),
     stock: Number(raw.stock ?? 0),
-    image:
-      String(raw.image ?? raw.image_url ?? "") ||
-      "https://images.unsplash.com/photo-1621607512022-6aecc4fed814?auto=format&fit=crop&w=800&q=80",
-    active: Boolean(raw.active ?? raw.is_active ?? true),
-  };
-}
-
-function normalizeApplication(raw: Record<string, unknown>): BarberApplication {
-  return {
-    id: String(raw.id ?? ""),
-    name: String(raw.name ?? raw.full_name ?? ""),
-    email: String(raw.email ?? ""),
-    phone: String(raw.phone ?? ""),
-    specialty: String(raw.specialty ?? ""),
-    experience: Number(raw.experience ?? raw.years_experience ?? 0),
-    note: String(raw.note ?? ""),
-    status: String(raw.status ?? "pending") as BarberApplication["status"],
-    submittedAt: String(raw.submittedAt ?? raw.submitted_at ?? new Date().toISOString()),
+    image: String(raw.image ?? ""),
+	active: Boolean(raw.active ?? true)
   };
 }
 
@@ -372,6 +336,15 @@ export function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  // Inline editing state for products
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editProductForm, setEditProductForm] = useState({
+    name: "",
+    category: "",
+    price: 0,
+    description: "",
+    stock: 0
+  });
   const [applications, setApplications] = useState<BarberApplication[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -754,6 +727,7 @@ export function App() {
       const barber = userList.find((user) => user.role === "barber" && user.active && user.approved);
       const service = serviceList[0];
       setBookingForm((current) => ({ ...current, barberId: barber?.id ?? "", serviceId: service?.id ?? "" }));
+      setBookingForm((current: BookingForm) => ({ ...current, barberId: barber?.id ?? "", serviceId: service?.id ?? "" }));
     }
   }
 
@@ -1248,6 +1222,7 @@ export function App() {
       setSuccess("Tu cita fue creada correctamente.");
       setDashboardTab("appointments");
       setBookingForm((current) => ({ ...current, notes: "", date: toInputDate(new Date(Date.now() + 86400000)) }));
+      setBookingForm((current: BookingForm) => ({ ...current, notes: "", date: toInputDate(new Date(Date.now() + 86400000)) }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear la cita.");
     } finally {
@@ -2098,6 +2073,8 @@ export function App() {
                       if (!sessionUser) setRoute("register");
                       else {
                         setBookingForm(f => ({ ...f, serviceId: service.id }));
+                          setBookingForm((f: BookingForm) => ({ ...f, serviceId: service.id }));
+                          setBookingForm((f: BookingForm) => ({ ...f, serviceId: service.id }));
                         setDashboardTab("appointments");
                         setRoute("dashboard");
                       }
@@ -2605,7 +2582,9 @@ export function App() {
               <span className="eyebrow">Bienvenido</span>
               <h2>Inicia sesión en tu cuenta</h2>
               <input className="input" placeholder="Correo" value={loginForm.email} onChange={(event) => setLoginForm((current) => ({ ...current, email: event.target.value }))} />
+                            <input className="input" placeholder="Correo" value={loginForm.email} onChange={(event) => setLoginForm((current: LoginForm) => ({ ...current, email: event.target.value }))} />
               <input className="input" type="password" placeholder="Contraseña" value={loginForm.password} onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))} />
+                            <input className="input" type="password" placeholder="Contraseña" value={loginForm.password} onChange={(event) => setLoginForm((current: LoginForm) => ({ ...current, password: event.target.value }))} />
               <button className="button button--primary" disabled={loading} type="submit">Entrar</button>
               <button className="button button--ghost" onClick={() => setRoute("register")} type="button">Ir a registro</button>
             </form>
@@ -2614,9 +2593,13 @@ export function App() {
               <span className="eyebrow">Únete a nosotros</span>
               <h2>Crea tu cuenta</h2>
               <input className="input" placeholder="Nombre completo" value={registerForm.name} onChange={(event) => setRegisterForm((current) => ({ ...current, name: event.target.value }))} />
+                            <input className="input" placeholder="Nombre completo" value={registerForm.name} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, name: event.target.value }))} />
               <input className="input" type="email" placeholder="Correo electrónico" value={registerForm.email} onChange={(event) => setRegisterForm((current) => ({ ...current, email: event.target.value }))} />
+                            <input className="input" type="email" placeholder="Correo electrónico" value={registerForm.email} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, email: event.target.value }))} />
               <input className="input" type="tel" placeholder="Teléfono (opcional)" value={registerForm.phone} onChange={(event) => setRegisterForm((current) => ({ ...current, phone: event.target.value }))} />
+                            <input className="input" type="tel" placeholder="Teléfono (opcional)" value={registerForm.phone} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, phone: event.target.value }))} />
               <input className="input" type="password" placeholder="Contraseña" value={registerForm.password} onChange={(event) => setRegisterForm((current) => ({ ...current, password: event.target.value }))} />
+                            <input className="input" type="password" placeholder="Contraseña" value={registerForm.password} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, password: event.target.value }))} />
               <button className="button button--primary" disabled={loading} type="submit">Registrar cuenta</button>
               <button className="button button--ghost" onClick={() => setRoute("login")} type="button">Ya tengo cuenta</button>
             </form>
@@ -2790,15 +2773,16 @@ export function App() {
                   <SectionHeader title="Crear usuarios" subtitle="Alta de clientes y barberos." />
                   <form className="form-grid" onSubmit={(event) => void createUser(event)}>
                     <input className="input" placeholder="Nombre" value={userForm.name} onChange={(event) => setUserForm((current) => ({ ...current, name: event.target.value }))} />
-                    <input className="input" placeholder="Correo" value={userForm.email} onChange={(event) => setUserForm((current) => ({ ...current, email: event.target.value }))} />
-                    <input className="input" placeholder="Teléfono" value={userForm.phone} onChange={(event) => setUserForm((current) => ({ ...current, phone: event.target.value }))} />
-                    <input className="input" type="password" placeholder="Contraseña" value={userForm.password} onChange={(event) => setUserForm((current) => ({ ...current, password: event.target.value }))} />
-                    <select className="select" value={userForm.role} onChange={(event) => setUserForm((current) => ({ ...current, role: event.target.value as UserForm["role"] }))}>
-                      <option value="client">Cliente</option>
-                      <option value="barber">Barbero</option>
-                    </select>
-                    <div className="field-actions"><button className="button button--primary" type="submit">Crear usuario</button></div>
-                  </form>
+                                        <input className="input" placeholder="Nombre" value={userForm.name} onChange={(event) => setUserForm((current: UserForm) => ({ ...current, name: event.target.value }))} />
+                                        <input className="input" placeholder="Correo" value={userForm.email} onChange={(event) => setUserForm((current: UserForm) => ({ ...current, email: event.target.value }))} />
+                                        <input className="input" placeholder="Teléfono" value={userForm.phone} onChange={(event) => setUserForm((current: UserForm) => ({ ...current, phone: event.target.value }))} />
+                                        <input className="input" type="password" placeholder="Contraseña" value={userForm.password} onChange={(event) => setUserForm((current: UserForm) => ({ ...current, password: event.target.value }))} />
+                                        <select className="select" value={userForm.role} onChange={(event) => setUserForm((current: UserForm) => ({ ...current, role: event.target.value as UserForm["role"] }))}>
+                                          <option value="client">Cliente</option>
+                                          <option value="barber">Barbero</option>
+                                        </select>
+                                        <div className="field-actions"><button className="button button--primary" type="submit">Crear usuario</button></div>
+                                      </form>
                 </div>
                 <div className="panel panel--span-3">
                   <SectionHeader title="Usuarios del sistema" subtitle="Activar, desactivar o eliminar usuarios." />
@@ -2868,11 +2852,17 @@ export function App() {
                   <SectionHeader title="Crear producto" subtitle="Agregar nueva mercancía al inventario." />
                   <form className="form-grid" onSubmit={(event) => void createProduct(event)}>
                     <input className="input" placeholder="Nombre" value={productForm.name} onChange={(event) => setProductForm((current) => ({ ...current, name: event.target.value }))} />
+                                        <input className="input" placeholder="Nombre" value={productForm.name} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, name: event.target.value }))} />
                     <input className="input" placeholder="Categoría" value={productForm.category} onChange={(event) => setProductForm((current) => ({ ...current, category: event.target.value }))} />
+                                        <input className="input" placeholder="Categoría" value={productForm.category} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, category: event.target.value }))} />
                     <input className="input" type="number" placeholder="Precio" value={productForm.price} onChange={(event) => setProductForm((current) => ({ ...current, price: Number(event.target.value) }))} />
+                                        <input className="input" type="number" placeholder="Precio" value={productForm.price} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, price: Number(event.target.value) }))} />
                     <input className="input" type="number" placeholder="Stock" value={productForm.stock} onChange={(event) => setProductForm((current) => ({ ...current, stock: Number(event.target.value) }))} />
+                                        <input className="input" type="number" placeholder="Stock" value={productForm.stock} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, stock: Number(event.target.value) }))} />
                     <input className="input field--full" placeholder="URL de imagen" value={productForm.image} onChange={(event) => setProductForm((current) => ({ ...current, image: event.target.value }))} />
+                                        <input className="input field--full" placeholder="URL de imagen" value={productForm.image} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, image: event.target.value }))} />
                     <textarea className="textarea field--full" placeholder="Descripción" value={productForm.description} onChange={(event) => setProductForm((current) => ({ ...current, description: event.target.value }))} />
+                                        <textarea className="textarea field--full" placeholder="Descripción" value={productForm.description} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, description: event.target.value }))} />
                     <div className="field-actions"><button className="button button--primary" type="submit">Guardar producto</button></div>
                   </form>
                 </div>
@@ -2909,9 +2899,46 @@ export function App() {
                                 </div>
                               </div>
                             </td>
-                            <td><strong>{product.name}</strong></td>
-                            <td>{product.category}</td>
-                            <td>{money.format(product.price)}</td>
+                            <td>
+                              {editingProductId === product.id ? (
+                                <input
+                                  className="input"
+                                  value={editProductForm.name}
+                                  onChange={e => setEditProductForm(f => ({ ...f, name: e.target.value }))}
+                                  style={{ width: 120 }}
+                                  disabled={loading}
+                                />
+                              ) : (
+                                <strong>{product.name}</strong>
+                              )}
+                            </td>
+                            <td>
+                              {editingProductId === product.id ? (
+                                <input
+                                  className="input"
+                                  value={editProductForm.category}
+                                  onChange={e => setEditProductForm(f => ({ ...f, category: e.target.value }))}
+                                  style={{ width: 100 }}
+                                  disabled={loading}
+                                />
+                              ) : (
+                                product.category
+                              )}
+                            </td>
+                            <td>
+                              {editingProductId === product.id ? (
+                                <input
+                                  className="input"
+                                  type="number"
+                                  value={editProductForm.price}
+                                  onChange={e => setEditProductForm(f => ({ ...f, price: Number(e.target.value) }))}
+                                  style={{ width: 80 }}
+                                  disabled={loading}
+                                />
+                              ) : (
+                                money.format(product.price)
+                              )}
+                            </td>
                             <td>
                               {sessionUser && sessionUser.role === "admin" ? (
                                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -2919,7 +2946,6 @@ export function App() {
                                     className="button button--ghost button--small"
                                     onClick={() => {
                                       if (product.stock > 0) {
-                                        // Optimistic UI
                                         setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock - 1 } : p));
                                         patchProduct(product.id, { stock: product.stock - 1 })
                                           .catch(() => refreshProducts());
@@ -2931,20 +2957,22 @@ export function App() {
                                   <input
                                     type="number"
                                     min={0}
-                                    value={product.stock < 0 ? 0 : product.stock}
+                                    value={editingProductId === product.id ? editProductForm.stock : (product.stock < 0 ? 0 : product.stock)}
                                     style={{ width: 60 }}
                                     disabled={loading}
                                     onChange={e => {
                                       let newStock = Number(e.target.value);
                                       if (isNaN(newStock) || newStock < 0) newStock = 0;
-                                      // Optimistic UI
-                                      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
-                                      patchProduct(product.id, { stock: newStock })
-                                        .catch(() => refreshProducts());
+                                      if (editingProductId === product.id) {
+                                        setEditProductForm(f => ({ ...f, stock: newStock }));
+                                      } else {
+                                        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
+                                        patchProduct(product.id, { stock: newStock })
+                                          .catch(() => refreshProducts());
+                                      }
                                     }}
                                   />
                                   <button className="button button--success button--small" onClick={() => {
-                                    // Optimistic UI
                                     setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 1 } : p));
                                     patchProduct(product.id, { stock: product.stock + 1 })
                                       .catch(() => refreshProducts());
@@ -2959,59 +2987,123 @@ export function App() {
                                 product.stock < 0 ? 0 : product.stock
                               )}
                             </td>
+                            <td>
+                              {editingProductId === product.id ? (
+                                <textarea
+                                  className="textarea"
+                                  value={editProductForm.description}
+                                  onChange={e => setEditProductForm(f => ({ ...f, description: e.target.value }))}
+                                  style={{ width: 140, minHeight: 30 }}
+                                  disabled={loading}
+                                />
+                              ) : (
+                                <span style={{ fontSize: 12, color: '#666' }}>{product.description?.slice(0, 40) || ''}{product.description?.length > 40 ? '…' : ''}</span>
+                              )}
+                            </td>
                             <td><Badge label={product.active ? "Activo" : "Oculto"} variant={product.active ? "success" : "danger"} /></td>
                             <td>
                               <div className="actions-inline actions-inline--wrap">
                                 {sessionUser && sessionUser.role === "admin" && (
                                   <>
-                                    {product.active && (
-                                      <button
-                                        className="button button--ghost button--small"
-                                        onClick={async () => {
-                                          setError("");
-                                          setSuccess("");
-                                          // Optimistic UI
-                                          setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
-                                          try {
-                                            await patchProduct(product.id, { active: false });
-                                            await refreshProducts();
-                                          } catch {
-                                            await refreshProducts();
-                                          }
-                                        }}
-                                        type="button"
-                                        disabled={loading}
-                                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                                      >
-                                        Desactivar
-                                        {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
-                                        {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
-                                      </button>
+                                    {editingProductId === product.id ? (
+                                      <>
+                                        <button
+                                          className="button button--primary button--small"
+                                          onClick={async () => {
+                                            setError("");
+                                            setSuccess("");
+                                            try {
+                                              await patchProduct(product.id, {
+                                                name: editProductForm.name,
+                                                category: editProductForm.category,
+                                                price: editProductForm.price,
+                                                description: editProductForm.description,
+                                                stock: editProductForm.stock
+                                              });
+                                              setEditingProductId(null);
+                                              await refreshProducts();
+                                              setSuccess("Guardado");
+                                            } catch {
+                                              setError("Error al guardar");
+                                              await refreshProducts();
+                                            }
+                                          }}
+                                          type="button"
+                                          disabled={loading}
+                                        >Guardar</button>
+                                        <button
+                                          className="button button--ghost button--small"
+                                          onClick={() => setEditingProductId(null)}
+                                          type="button"
+                                          disabled={loading}
+                                        >Cancelar</button>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <button
+                                          className="button button--ghost button--small"
+                                          onClick={() => {
+                                            setEditProductForm({
+                                              name: product.name,
+                                              category: product.category,
+                                              price: product.price,
+                                              description: product.description || "",
+                                              stock: product.stock
+                                            });
+                                            setEditingProductId(product.id);
+                                          }}
+                                          type="button"
+                                          disabled={loading}
+                                        >Editar</button>
+                                        {product.active && (
+                                          <button
+                                            className="button button--ghost button--small"
+                                            onClick={async () => {
+                                              setError("");
+                                              setSuccess("");
+                                              setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
+                                              try {
+                                                await patchProduct(product.id, { active: false });
+                                                await refreshProducts();
+                                              } catch {
+                                                await refreshProducts();
+                                              }
+                                            }}
+                                            type="button"
+                                            disabled={loading}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                          >
+                                            Desactivar
+                                            {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                            {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
+                                          </button>
+                                        )}
+                                        {!product.active && (
+                                          <button
+                                            className="button button--success button--small"
+                                            onClick={async () => {
+                                              setError("");
+                                              setSuccess("");
+                                              setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
+                                              try {
+                                                await patchProduct(product.id, { active: true });
+                                                await refreshProducts();
+                                              } catch {
+                                                await refreshProducts();
+                                              }
+                                            }}
+                                            type="button"
+                                            disabled={loading}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                          >
+                                            Activar
+                                            {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                            {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
+                                          </button>
+                                        )}
+                                        <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} disabled={loading} type="button">🗑️</button>
+                                      </>
                                     )}
-                                    {!product.active && (
-                                      <button
-                                        className="button button--success button--small"
-                                        onClick={async () => {
-                                          setError("");
-                                          setSuccess("");
-                                          setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
-                                          try {
-                                            await patchProduct(product.id, { active: true });
-                                            await refreshProducts();
-                                          } catch {
-                                            await refreshProducts();
-                                          }
-                                        }}
-                                        type="button"
-                                        disabled={loading}
-                                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                                      >
-                                        Activar
-                                        {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
-                                        {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
-                                      </button>
-                                    )}
-                                    <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} disabled={loading} type="button">🗑️</button>
                                   </>
                                 )}
                               </div>
@@ -3031,14 +3123,14 @@ export function App() {
                   <div className="panel panel--span-2">
                     <SectionHeader title="Reservar cita" subtitle="Al agendar se habilita la conversación con el barbero." />
                     <form className="form-grid" onSubmit={(event) => void createAppointment(event)}>
-                      <select className="select" value={bookingForm.barberId} onChange={(event) => setBookingForm((current) => ({ ...current, barberId: event.target.value }))}>
+                      <select className="select" value={bookingForm.barberId} onChange={(event) => setBookingForm((current: BookingForm) => ({ ...current, barberId: event.target.value }))}>
                         {activeBarbers.map((barber) => <option key={barber.id} value={barber.id}>{barber.name}</option>)}
                       </select>
-                      <select className="select" value={bookingForm.serviceId} onChange={(event) => setBookingForm((current) => ({ ...current, serviceId: event.target.value }))}>
+                      <select className="select" value={bookingForm.serviceId} onChange={(event) => setBookingForm((current: BookingForm) => ({ ...current, serviceId: event.target.value }))}>
                         {services.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}
                       </select>
-                      <input className="input" type="datetime-local" value={bookingForm.date} onChange={(event) => setBookingForm((current) => ({ ...current, date: event.target.value }))} />
-                      <textarea className="textarea field--full" placeholder="Describe el servicio" value={bookingForm.notes} onChange={(event) => setBookingForm((current) => ({ ...current, notes: event.target.value }))} />
+                      <input className="input" type="datetime-local" value={bookingForm.date} onChange={(event) => setBookingForm((current: BookingForm) => ({ ...current, date: event.target.value }))} />
+                      <textarea className="textarea field--full" placeholder="Describe el servicio" value={bookingForm.notes} onChange={(event) => setBookingForm((current: BookingForm) => ({ ...current, notes: event.target.value }))} />
                       <div className="field-actions"><button className="button button--primary" type="submit">Agendar</button></div>
                     </form>
                   </div>
