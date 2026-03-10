@@ -2526,7 +2526,7 @@ export function App() {
                         ) : (
                           <button 
                             className="button button--primary button--large" 
-                            onClick={() => setRoute("register")} 
+                            onClick={() => setRoute("register")}
                             type="button"
                           >
                             Registrarse para comprar
