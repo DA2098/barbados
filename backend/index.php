@@ -37,10 +37,18 @@ try {
     ], 500);
 }
 
+
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
 $segments = array_values(array_filter(explode('/', trim($uri, '/'))));
 $input = json_input();
+
+// Endpoint de salud para Render y frontend
+if ($segments[0] === 'api' && ($segments[1] ?? null) === 'health') {
+    header('Content-Type: application/json');
+    echo json_encode(['ok' => true, 'data' => ['status' => 'ok']]);
+    exit;
+}
 
 if (($segments[0] ?? null) === 'uploads') {
     $file = basename((string) ($segments[1] ?? ''));
