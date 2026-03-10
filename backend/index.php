@@ -690,9 +690,15 @@ if ($resource === 'applications') {
 
 if ($resource === 'products') {
     if ($method === 'GET') {
+        $actorId = (string) ($_GET['actor_id'] ?? '');
+        $actor = $actorId ? fetch_one($pdo, 'SELECT role FROM users WHERE id = :id', [':id' => $actorId]) : null;
+        $isAdmin = $actor && $actor['role'] === 'admin';
+        $query = $isAdmin
+            ? 'SELECT id, name, category, description, price, stock, image_url AS image, is_active AS active, created_at FROM products ORDER BY created_at DESC'
+            : 'SELECT id, name, category, description, price, stock, image_url AS image, is_active AS active, created_at FROM products WHERE is_active = true ORDER BY created_at DESC';
         respond([
             'ok' => true,
-            'data' => fetch_all($pdo, 'SELECT id, name, category, description, price, stock, image_url AS image, is_active AS active, created_at FROM products ORDER BY created_at DESC'),
+            'data' => fetch_all($pdo, $query),
         ]);
     }
 
