@@ -1556,13 +1556,14 @@ export function App() {
     try {
       const actorId = sessionUser ? sessionUser.id : "";
       const response = await apiRequest(apiBase, `/products?actor_id=${actorId}`);
-      setProducts(response.data as Product[]);
-      setPublicData((current) => ({
-        ...current,
-        products: sessionUser && sessionUser.role === "admin"
-          ? (response.data as Product[])
-          : (response.data as Product[]).filter((p) => p.active),
-      }));
+      const productsList = response.data as Product[];
+      setProducts(productsList);
+      // Filtra productos según el rol ACTUALIZADO del usuario
+      if (sessionUser && sessionUser.role === "admin") {
+        setPublicData((current) => ({ ...current, products: productsList }));
+      } else {
+        setPublicData((current) => ({ ...current, products: productsList.filter((p) => p.active) }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo refrescar productos.");
     } finally {
