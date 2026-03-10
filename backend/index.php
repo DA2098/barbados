@@ -727,29 +727,41 @@ if ($resource === 'products') {
             respond(['ok' => false, 'message' => 'Producto no encontrado.'], 404);
         }
         try {
-            execute_statement(
-                $pdo,
-                'UPDATE products SET
-                    name = :name,
-                    category = :category,
-                    description = :description,
-                    price = :price,
-                    stock = :stock,
-                    image_url = :image_url,
-                    is_active = :is_active,
-                    updated_at = NOW()
-                 WHERE id = :id',
-                [
-                    ':id' => $id,
-                    ':name' => $input['name'] ?? $current['name'],
-                    ':category' => $input['category'] ?? $current['category'],
-                    ':description' => $input['description'] ?? $current['description'],
-                    ':price' => (float) ($input['price'] ?? $current['price']),
-                    ':stock' => (int) ($input['stock'] ?? $current['stock']),
-                    ':image_url' => $input['image'] ?? $current['image_url'],
-                    ':is_active' => array_key_exists('active', $input) ? (bool) $input['active'] : (bool) $current['is_active'],
-                ]
-            );
+            // Si solo se quiere actualizar el estado activo
+            if (count($input) === 1 && array_key_exists('active', $input)) {
+                execute_statement(
+                    $pdo,
+                    'UPDATE products SET is_active = :is_active, updated_at = NOW() WHERE id = :id',
+                    [
+                        ':id' => $id,
+                        ':is_active' => (bool) $input['active'],
+                    ]
+                );
+            } else {
+                execute_statement(
+                    $pdo,
+                    'UPDATE products SET
+                        name = :name,
+                        category = :category,
+                        description = :description,
+                        price = :price,
+                        stock = :stock,
+                        image_url = :image_url,
+                        is_active = :is_active,
+                        updated_at = NOW()
+                     WHERE id = :id',
+                    [
+                        ':id' => $id,
+                        ':name' => $input['name'] ?? $current['name'],
+                        ':category' => $input['category'] ?? $current['category'],
+                        ':description' => $input['description'] ?? $current['description'],
+                        ':price' => (float) ($input['price'] ?? $current['price']),
+                        ':stock' => (int) ($input['stock'] ?? $current['stock']),
+                        ':image_url' => $input['image'] ?? $current['image_url'],
+                        ':is_active' => array_key_exists('active', $input) ? (bool) $input['active'] : (bool) $current['is_active'],
+                    ]
+                );
+            }
             respond(['ok' => true, 'message' => 'Producto actualizado.']);
         } catch (Throwable $e) {
             respond([
