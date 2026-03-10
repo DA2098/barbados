@@ -2902,7 +2902,22 @@ export function App() {
                             <td><strong>{product.name}</strong></td>
                             <td>{product.category}</td>
                             <td>{money.format(product.price)}</td>
-                            <td>{product.stock}</td>
+                              <td>
+                                {sessionUser && sessionUser.role === "admin" ? (
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={product.stock}
+                                    style={{ width: 60 }}
+                                    onChange={e => {
+                                      const newStock = Number(e.target.value);
+                                      patchProduct(product.id, { stock: newStock });
+                                    }}
+                                  />
+                                ) : (
+                                  product.stock
+                                )}
+                              </td>
                             <td><Badge label={product.active ? "Activo" : "Oculto"} variant={product.active ? "success" : "danger"} /></td>
                             <td>
                               <div className="actions-inline actions-inline--wrap">
