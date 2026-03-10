@@ -2908,11 +2908,17 @@ export function App() {
                                 <button
                                   className={`button button--ghost button--small ${product.active ? '' : 'button--success'}`}
                                   onClick={async () => {
+                                    setError("");
+                                    setSuccess("");
                                     await patchProduct(product.id, { active: !product.active });
                                   }}
                                   type="button"
+                                  disabled={loading}
+                                  style={{ display: 'flex', alignItems: 'center', gap: 4 }}
                                 >
                                   {product.active ? "Desactivar" : "Activar"}
+                                  {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                  {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
                                 </button>
                                 <button className="button button--success button--small" onClick={() => void patchProduct(product.id, { stock: product.stock + 5 })} type="button">+5</button>
                                 <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} type="button">🗑️</button>
