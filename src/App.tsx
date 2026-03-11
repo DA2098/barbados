@@ -110,6 +110,23 @@ function roleLabel(role: Role) {
 }
 
 function normalizeUser(raw: Record<string, unknown>): User {
+  // Avatar: si no existe o da error de carga, usar avatar por defecto
+  let avatarUrl = String(raw.avatar ?? raw.avatar_url ?? "");
+  const defaultAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80";
+  // Si está vacío o es un nombre de archivo que no existe, usar el default
+  if (!avatarUrl || avatarUrl === "null" || avatarUrl === "undefined") {
+    avatarUrl = defaultAvatar;
+  } else if (avatarUrl.match(/^avatar-[a-z0-9]+\.(jpg|jpeg|png)$/i)) {
+    // Verificar si el archivo existe en uploads (solo en producción, no localhost)
+    if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+      const testImg = new window.Image();
+      testImg.src = `/uploads/${avatarUrl}`;
+      testImg.onerror = () => {
+        avatarUrl = defaultAvatar;
+      };
+    }
+    avatarUrl = `/uploads/${avatarUrl}`;
+  }
   return {
     id: String(raw.id ?? ""),
     name: String(raw.name ?? raw.full_name ?? ""),
@@ -118,9 +135,7 @@ function normalizeUser(raw: Record<string, unknown>): User {
     role: String(raw.role ?? "client") as Role,
     active: Boolean(raw.active ?? raw.is_active ?? true),
     approved: Boolean(raw.approved ?? raw.is_approved ?? true),
-    avatar:
-      String(raw.avatar ?? raw.avatar_url ?? "") ||
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+    avatar: avatarUrl,
     createdAt: raw.created_at ? String(raw.created_at) : undefined,
   };
 }
