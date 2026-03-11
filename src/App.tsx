@@ -698,8 +698,8 @@ export function App() {
       setLiveAlert({ kind: "message", text: `¡Bienvenido! Tienes ${parts.join(" y ")}.` });
       setInitialAlertShownStorage(sessionUser.id, true);
       
-      // Auto-ocultar el banner después de 10 segundos
-      const bannerTimeout = window.setTimeout(() => setShowUnreadBanner(false), 10000);
+      // Auto-ocultar el banner después de 3 segundos
+      const bannerTimeout = window.setTimeout(() => setShowUnreadBanner(false), 3000);
       return () => window.clearTimeout(bannerTimeout);
     }
     
@@ -708,20 +708,20 @@ export function App() {
 
   useEffect(() => {
     if (!liveAlert) return;
-    const timeout = window.setTimeout(() => setLiveAlert(null), 4500);
+    const timeout = window.setTimeout(() => setLiveAlert(null), 1500);
     return () => window.clearTimeout(timeout);
   }, [liveAlert]);
 
   // Auto-limpiar mensajes de error y success después de 2.5 segundos
   useEffect(() => {
     if (!error) return;
-    const timeout = window.setTimeout(() => setError(""), 2500);
+    const timeout = window.setTimeout(() => setError(""), 1500);
     return () => window.clearTimeout(timeout);
   }, [error]);
 
   useEffect(() => {
     if (!success) return;
-    const timeout = window.setTimeout(() => setSuccess(""), 2500);
+    const timeout = window.setTimeout(() => setSuccess(""), 1500);
     return () => window.clearTimeout(timeout);
   }, [success]);
 
