@@ -982,23 +982,12 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        // Actualizar sessionUser al instante con datos mínimos
-        setSessionUser({
-          id: userId,
-          name: loginForm.email.split("@")[0],
-          email: loginForm.email,
-          phone: "",
-          role: "client",
-          active: true,
-          approved: true,
-          avatar: "",
-          createdAt: undefined,
+        // Solo navegar al dashboard cuando los datos estén listos
+        bootstrapSession(apiBase, userId).then(() => {
+          setRoute("dashboard");
+          setDashboardTab("overview");
         });
-        setRoute("dashboard");
-        setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
-        // Cargar datos completos en background
-        bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
