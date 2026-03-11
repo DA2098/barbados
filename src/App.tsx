@@ -2572,9 +2572,7 @@ export function App() {
               <span className="eyebrow">Bienvenido</span>
               <h2>Inicia sesión en tu cuenta</h2>
               <input className="input" placeholder="Correo" value={loginForm.email} onChange={(event) => setLoginForm((current) => ({ ...current, email: event.target.value }))} />
-                            <input className="input" placeholder="Correo" value={loginForm.email} onChange={(event) => setLoginForm((current: LoginForm) => ({ ...current, email: event.target.value }))} />
               <input className="input" type="password" placeholder="Contraseña" value={loginForm.password} onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))} />
-                            <input className="input" type="password" placeholder="Contraseña" value={loginForm.password} onChange={(event) => setLoginForm((current: LoginForm) => ({ ...current, password: event.target.value }))} />
               <button className="button button--primary" disabled={loading} type="submit">Entrar</button>
               <button className="button button--ghost" onClick={() => setRoute("register")} type="button">Ir a registro</button>
             </form>
@@ -2583,13 +2581,9 @@ export function App() {
               <span className="eyebrow">Únete a nosotros</span>
               <h2>Crea tu cuenta</h2>
               <input className="input" placeholder="Nombre completo" value={registerForm.name} onChange={(event) => setRegisterForm((current) => ({ ...current, name: event.target.value }))} />
-                            <input className="input" placeholder="Nombre completo" value={registerForm.name} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, name: event.target.value }))} />
               <input className="input" type="email" placeholder="Correo electrónico" value={registerForm.email} onChange={(event) => setRegisterForm((current) => ({ ...current, email: event.target.value }))} />
-                            <input className="input" type="email" placeholder="Correo electrónico" value={registerForm.email} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, email: event.target.value }))} />
               <input className="input" type="tel" placeholder="Teléfono (opcional)" value={registerForm.phone} onChange={(event) => setRegisterForm((current) => ({ ...current, phone: event.target.value }))} />
-                            <input className="input" type="tel" placeholder="Teléfono (opcional)" value={registerForm.phone} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, phone: event.target.value }))} />
               <input className="input" type="password" placeholder="Contraseña" value={registerForm.password} onChange={(event) => setRegisterForm((current) => ({ ...current, password: event.target.value }))} />
-                            <input className="input" type="password" placeholder="Contraseña" value={registerForm.password} onChange={(event) => setRegisterForm((current: RegisterForm) => ({ ...current, password: event.target.value }))} />
               <button className="button button--primary" disabled={loading} type="submit">Registrar cuenta</button>
               <button className="button button--ghost" onClick={() => setRoute("login")} type="button">Ya tengo cuenta</button>
             </form>
