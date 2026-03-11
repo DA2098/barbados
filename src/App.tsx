@@ -681,48 +681,54 @@ export function App() {
   }, [success]);
 
   async function loadPublic(base: string) {
-    const [servicesResponse, usersResponse, productsResponse, testimonialsResponse] = await Promise.all([
+    // Mostrar datos previos o vacíos al instante
+    setPublicData((prev) => ({
+      services: prev.services || [],
+      barbers: prev.barbers || [],
+      products: prev.products || [],
+    }));
+    setProducts((prev) => prev || []);
+
+    // Cargar datos en background
+    Promise.all([
       apiRequest<Record<string, unknown>[]>(base, "/services"),
       apiRequest<Record<string, unknown>[]>(base, "/users"),
       apiRequest<Record<string, unknown>[]>(base, "/products"),
       apiRequest<Record<string, unknown>[]>(base, "/testimonials?approved=true&limit=12"),
-    ]);
-
-    const serviceList = (servicesResponse.data ?? []).map(normalizeService);
-    const userList = (usersResponse.data ?? []).map(normalizeUser);
-    const productList = (productsResponse.data ?? []).map(normalizeProduct);
-    
-    // Normalizar testimonios
-    const testimonialList: Testimonial[] = (testimonialsResponse.data ?? []).map((raw) => ({
-      id: String(raw.id ?? ""),
-      clientId: raw.client_id ? String(raw.client_id) : undefined,
-      clientName: String(raw.client_name ?? "Anónimo"),
-      clientEmail: raw.client_email ? String(raw.client_email) : undefined,
-      clientAvatar: raw.client_avatar ? String(raw.client_avatar) : undefined,
-      message: String(raw.message ?? ""),
-      rating: Number(raw.rating ?? 5),
-      isApproved: Boolean(raw.is_approved),
-      isFeatured: Boolean(raw.is_featured),
-      createdAt: String(raw.created_at ?? ""),
-      approvedAt: raw.approved_at ? String(raw.approved_at) : undefined,
-    }));
-    setTestimonialsList(testimonialList);
-
-    setPublicData({
-      services: serviceList,
-      barbers: userList.filter((user) => user.role === "barber" && user.active && user.approved),
-      products: productList.filter((product) => product.active), // Solo productos activos en la tienda
+    ]).then(([servicesResponse, usersResponse, productsResponse, testimonialsResponse]) => {
+      const serviceList = (servicesResponse.data ?? []).map(normalizeService);
+      const userList = (usersResponse.data ?? []).map(normalizeUser);
+      const productList = (productsResponse.data ?? []).map(normalizeProduct);
+      // Normalizar testimonios
+      const testimonialList: Testimonial[] = (testimonialsResponse.data ?? []).map((raw) => ({
+        id: String(raw.id ?? ""),
+        clientId: raw.client_id ? String(raw.client_id) : undefined,
+        clientName: String(raw.client_name ?? "Anónimo"),
+        clientEmail: raw.client_email ? String(raw.client_email) : undefined,
+        clientAvatar: raw.client_avatar ? String(raw.client_avatar) : undefined,
+        message: String(raw.message ?? ""),
+        rating: Number(raw.rating ?? 5),
+        isApproved: Boolean(raw.is_approved),
+        isFeatured: Boolean(raw.is_featured),
+        createdAt: String(raw.created_at ?? ""),
+        approvedAt: raw.approved_at ? String(raw.approved_at) : undefined,
+      }));
+      setTestimonialsList(testimonialList);
+      setPublicData({
+        services: serviceList,
+        barbers: userList.filter((user) => user.role === "barber" && user.active && user.approved),
+        products: productList.filter((product) => product.active),
+      });
+      setServices(serviceList);
+      setUsers(userList);
+      setProducts(productList);
+      if (!bookingForm.barberId && userList.some((user) => user.role === "barber" && user.active && user.approved)) {
+        const barber = userList.find((user) => user.role === "barber" && user.active && user.approved);
+        const service = serviceList[0];
+        setBookingForm((current) => ({ ...current, barberId: barber?.id ?? "", serviceId: service?.id ?? "" }));
+        setBookingForm((current: BookingForm) => ({ ...current, barberId: barber?.id ?? "", serviceId: service?.id ?? "" }));
+      }
     });
-
-    setServices(serviceList);
-    setUsers(userList);
-    setProducts(productList);
-    if (!bookingForm.barberId && userList.some((user) => user.role === "barber" && user.active && user.approved)) {
-      const barber = userList.find((user) => user.role === "barber" && user.active && user.approved);
-      const service = serviceList[0];
-      setBookingForm((current) => ({ ...current, barberId: barber?.id ?? "", serviceId: service?.id ?? "" }));
-      setBookingForm((current: BookingForm) => ({ ...current, barberId: barber?.id ?? "", serviceId: service?.id ?? "" }));
-    }
   }
 
   async function bootstrapSession(base: string, userId: string, showErrors = true) {
@@ -840,25 +846,28 @@ export function App() {
     if (!apiBase) return;
     setLoading(true);
     setError("");
-    setSuccess("");
+    setSuccess("Registrando usuario...");
+    setTimeout(() => setSuccess("Registro completado correctamente."), 600);
 
-    try {
-      const response = await apiRequest(apiBase, "/auth/register", {
-        method: "POST",
-        ...jsonBody(registerForm),
+    apiRequest(apiBase, "/auth/register", {
+      method: "POST",
+      ...jsonBody(registerForm),
+    })
+      .then((response) => {
+        const createdUserId = String(response.id ?? "");
+        window.localStorage.setItem("barbados360.userId", createdUserId);
+        bootstrapSession(apiBase, createdUserId).then(() => {
+          setRoute("dashboard");
+          setDashboardTab("overview");
+        });
+        setRegisterForm({ name: "", email: "", phone: "", password: "", role: "client" });
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "No se pudo registrar la cuenta.");
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      const createdUserId = String(response.id ?? "");
-      window.localStorage.setItem("barbados360.userId", createdUserId);
-      await bootstrapSession(apiBase, createdUserId);
-      setRoute("dashboard");
-      setDashboardTab("overview");
-      setSuccess("Registro completado correctamente.");
-      setRegisterForm({ name: "", email: "", phone: "", password: "", role: "client" });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo registrar la cuenta.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -866,31 +875,33 @@ export function App() {
     if (!apiBase) return;
     setLoading(true);
     setError("");
-    setSuccess("");
+    setSuccess("Iniciando sesión...");
+    setTimeout(() => setSuccess("Inicio de sesión correcto."), 600);
 
-    try {
-      const response = await apiRequest<{ user_id: string }>(apiBase, "/auth/login", {
-        method: "POST",
-        ...jsonBody(loginForm),
+    apiRequest<{ user_id: string }>(apiBase, "/auth/login", {
+      method: "POST",
+      ...jsonBody(loginForm),
+    })
+      .then((response) => {
+        const userId = String(response.data?.user_id ?? "");
+        window.localStorage.setItem("barbados360.userId", userId);
+        window.localStorage.removeItem(`barbados360.alertShown.${userId}`);
+        setInitialAlertShown(false);
+        setSeenCountsLoaded(false);
+        previousNotificationCountRef.current = 0;
+        previousMessageCountRef.current = 0;
+        bootstrapSession(apiBase, userId).then(() => {
+          setRoute("dashboard");
+          setDashboardTab("overview");
+        });
+        setLoginForm({ email: "", password: "" });
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      const userId = String(response.data?.user_id ?? "");
-      window.localStorage.setItem("barbados360.userId", userId);
-      // Limpiar flag de alerta para mostrar nuevas notificaciones en este login
-      window.localStorage.removeItem(`barbados360.alertShown.${userId}`);
-      setInitialAlertShown(false);
-      setSeenCountsLoaded(false);
-      previousNotificationCountRef.current = 0;
-      previousMessageCountRef.current = 0;
-      await bootstrapSession(apiBase, userId);
-      setRoute("dashboard");
-      setDashboardTab("overview");
-      setSuccess("Inicio de sesión correcto.");
-      setLoginForm({ email: "", password: "" });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function handleSubmitSuggestion(event: FormEvent<HTMLFormElement>) {
@@ -898,7 +909,7 @@ export function App() {
     if (!apiBase) return;
     setSubmittingSuggestion(true);
     setError("");
-    setSuccess("");
+    setSuccess("Enviando sugerencia...");
 
     try {
       const payload: Record<string, unknown> = {
@@ -931,6 +942,7 @@ export function App() {
   async function handleApproveTestimonial(testimonialId: string, approve: boolean) {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
+    setSuccess(approve ? "Aprobando testimonio..." : "Ocultando testimonio...");
     try {
       await apiRequest(apiBase, `/testimonials/${testimonialId}`, {
         method: "PATCH",
@@ -968,6 +980,7 @@ export function App() {
 
   async function handleToggleFeatured(testimonialId: string, featured: boolean) {
     if (!apiBase || !sessionUser) return;
+    setSuccess(featured ? "Destacando testimonio..." : "Quitando destacado...");
     try {
       await apiRequest(apiBase, `/testimonials/${testimonialId}`, {
         method: "PATCH",
@@ -986,6 +999,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     if (!window.confirm("¿Eliminar este testimonio permanentemente?")) return;
     setLoading(true);
+    setSuccess("Eliminando testimonio...");
     try {
       await apiRequest(apiBase, `/testimonials/${testimonialId}?actor_id=${encodeURIComponent(sessionUser.id)}`, {
         method: "DELETE",
@@ -1103,6 +1117,7 @@ export function App() {
       return;
     }
     setSubmittingCut(true);
+    setSuccess("Registrando corte...");
     try {
       await apiRequest(apiBase, "/cuts", {
         method: "POST",
@@ -1130,6 +1145,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     if (!window.confirm("¿Eliminar este corte?")) return;
     setLoading(true);
+    setSuccess("Eliminando corte...");
     try {
       await apiRequest(apiBase, `/cuts/${cutId}?actor_id=${encodeURIComponent(sessionUser.id)}`, {
         method: "DELETE",
@@ -1175,7 +1191,7 @@ export function App() {
     if (!apiBase) return;
     setLoading(true);
     setError("");
-    setSuccess("");
+    setSuccess("Enviando postulación...");
 
     try {
       await apiRequest(apiBase, "/applications", {
@@ -1199,7 +1215,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
     setError("");
-    setSuccess("");
+    setSuccess("Creando cita...");
 
     try {
       await apiRequest(apiBase, "/appointments", {
@@ -1228,6 +1244,7 @@ export function App() {
     if (!apiBase) return;
     setLoading(true);
     setError("");
+    setSuccess("Actualizando cita...");
 
     try {
       await apiRequest(apiBase, `/appointments/${appointmentId}/${action}`, { method: "POST" });
@@ -1243,6 +1260,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
     setError("");
+    setSuccess("Creando conversación...");
 
     try {
       const appointment = appointments.find((item) => item.id === appointmentId);
@@ -1271,6 +1289,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
     setError("");
+    setSuccess("Creando chat...");
 
     try {
       const barber = usersById[barberId];
@@ -1298,6 +1317,7 @@ export function App() {
     if (!apiBase || !sessionUser || !selectedConversation) return;
     if (!messageDraft.trim() && !attachment) return;
     setError("");
+    setSuccess("Enviando mensaje...");
     // Optimistic UI: mostrar mensaje instantáneo en la conversación seleccionada
     if (messageDraft.trim()) {
       const tempId = `temp-${Date.now()}`;
@@ -1359,6 +1379,7 @@ export function App() {
   async function clearConversation() {
     if (!apiBase || !sessionUser || !selectedConversation) return;
     setLoading(true);
+    setSuccess("Limpiando chat...");
     try {
       await apiRequest(apiBase, `/conversations/${selectedConversation.id}/clear`, {
         method: "POST",
@@ -1375,6 +1396,7 @@ export function App() {
   async function archiveConversation() {
     if (!apiBase || !sessionUser || !selectedConversation) return;
     setLoading(true);
+    setSuccess("Archivando chat...");
     try {
       await apiRequest(apiBase, `/conversations/${selectedConversation.id}`, {
         method: "DELETE",
@@ -1393,6 +1415,7 @@ export function App() {
     event.preventDefault();
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
+    setSuccess("Creando usuario...");
     try {
       await apiRequest(apiBase, "/users", {
         method: "POST",
@@ -1410,6 +1433,7 @@ export function App() {
   async function toggleUser(user: User) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
+    setSuccess("Actualizando usuario...");
     try {
       await apiRequest(apiBase, `/users/${user.id}`, {
         method: "PATCH",
@@ -1426,6 +1450,7 @@ export function App() {
   async function deleteUser(userId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
+    setSuccess("Eliminando usuario...");
     try {
       await apiRequest(apiBase, `/users/${userId}`, { method: "DELETE" });
       await refreshSession();
@@ -1439,6 +1464,7 @@ export function App() {
   async function reviewApplication(applicationId: string, decision: "approve" | "reject") {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
+    setSuccess(decision === "approve" ? "Aprobando postulación..." : "Rechazando postulación...");
     try {
       await apiRequest(apiBase, `/applications/${applicationId}/${decision}`, { method: "POST" });
       await refreshSession();
@@ -1460,6 +1486,7 @@ export function App() {
     event.preventDefault();
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
+    setSuccess("Creando producto...");
     try {
       await apiRequest(apiBase, "/products", {
         method: "POST",
@@ -1478,25 +1505,32 @@ export function App() {
   async function patchProduct(productId: string, payload: Partial<Product>) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
-    try {
-      const mappedPayload = mapProductPayload(payload);
-      await apiRequest(apiBase, `/products/${productId}`, {
-        method: "PATCH",
-        ...jsonBody(mappedPayload),
+    // Optimistic UI: refleja el cambio al instante
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
+    setSuccess("Actualizando producto...");
+    const mappedPayload = mapProductPayload(payload);
+    apiRequest(apiBase, `/products/${productId}`, {
+      method: "PATCH",
+      ...jsonBody(mappedPayload),
+    })
+      .then(() => {
+        refreshProducts();
+        setSuccess("Producto actualizado correctamente.");
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
+        refreshProducts();
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      await refreshProducts(); // Refresca productos tras cada cambio
-      setSuccess("Producto actualizado correctamente.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function removeProduct(productId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
     setLoading(true);
+    setSuccess("Eliminando producto...");
     try {
       await apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" });
       await refreshSession();
@@ -1513,6 +1547,7 @@ export function App() {
     event.target.value = "";
     if (!file || !apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setError("");
+    setSuccess("Actualizando imagen...");
     // Optimistic UI: mostrar preview instantáneo
     const reader = new FileReader();
     reader.onload = async () => {
@@ -1560,6 +1595,7 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "client") return;
     setLoading(true);
     setError("");
+    setSuccess("Agregando al carrito...");
     try {
       await apiRequest(apiBase, "/cart", {
         method: "POST",
@@ -1581,6 +1617,7 @@ export function App() {
     const nextQuantity = currentItem.quantity + delta;
     setLoading(true);
     setError("");
+    setSuccess("Actualizando carrito...");
     try {
       if (nextQuantity <= 0) {
         await apiRequest(apiBase, `/cart/${productId}`, { method: "DELETE" });
@@ -1601,6 +1638,7 @@ export function App() {
   async function checkout() {
     if (!apiBase || !sessionUser || cart.length === 0) return;
     setLoading(true);
+    setSuccess("Procesando compra...");
     try {
       await apiRequest(apiBase, "/orders/checkout", {
         method: "POST",
@@ -1622,6 +1660,7 @@ export function App() {
   async function markNotificationsRead() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
+    setSuccess("Marcando notificaciones...");
     try {
       await apiRequest(apiBase, "/notifications/read-all", {
         method: "POST",
@@ -1638,6 +1677,7 @@ export function App() {
   async function deleteOwnAccount() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
+    setSuccess("Eliminando cuenta...");
     try {
       await apiRequest(apiBase, `/users/${sessionUser.id}`, { method: "DELETE" });
       await handleLogout();
@@ -1652,6 +1692,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
     setError("");
+    setSuccess("Actualizando perfil...");
     try {
       await apiRequest(apiBase, `/users/${sessionUser.id}`, {
         method: "PATCH",
@@ -1688,8 +1729,14 @@ export function App() {
     event.target.value = "";
     if (!file || !apiBase || !sessionUser) return;
 
-    setLoading(true);
     setError("");
+    // Optimistic UI: mostrar el nuevo avatar al instante
+    const previousAvatar = sessionUser.avatar;
+    const tempUrl = URL.createObjectURL(file);
+    setSessionUser((prev) => prev ? { ...prev, avatar: tempUrl } : prev);
+    setAccountProfile((prev) => prev && prev.user ? { ...prev, user: { ...prev.user, avatar: tempUrl } } : prev);
+    setSuccess("Actualizando foto de perfil...");
+    setLoading(true);
     try {
       // Convertir archivo a base64 para evitar problemas con multipart/form-data
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -1701,7 +1748,6 @@ export function App() {
 
       // Usar endpoint PUT con base64 (más confiable con proxies y dispositivos móviles)
       const uploadBase = getRealApiBase();
-      
       const response = await fetch(`${uploadBase}/users/${sessionUser.id}/avatar`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1711,16 +1757,16 @@ export function App() {
           file_name: file.name,
         }),
       });
-      
       const result = await response.json();
-      
       if (!response.ok || !result.ok) {
         throw new Error(result.message || result.error || `Error ${response.status}`);
       }
-      
       await refreshSession();
       setSuccess("Foto de perfil actualizada correctamente.");
     } catch (err) {
+      // Restaurar avatar anterior si falla
+      setSessionUser((prev) => prev ? { ...prev, avatar: previousAvatar } : prev);
+      setAccountProfile((prev) => prev && prev.user ? { ...prev, user: { ...prev.user, avatar: previousAvatar } } : prev);
       setError(err instanceof Error ? err.message : "No se pudo actualizar la foto de perfil.");
     } finally {
       setLoading(false);
@@ -1731,6 +1777,7 @@ export function App() {
     if (!apiBase || !sessionUser) return;
     setLoading(true);
     setError("");
+    setSuccess("Eliminando foto de perfil...");
     try {
       // Usar directamente el endpoint para evitar problemas con proxy
       const deleteBase = getRealApiBase();
