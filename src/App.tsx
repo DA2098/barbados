@@ -970,11 +970,22 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        // Navegar al dashboard al instante
+        // Actualizar sessionUser al instante con datos mínimos
+        setSessionUser({
+          id: userId,
+          name: loginForm.email.split("@")[0],
+          email: loginForm.email,
+          phone: "",
+          role: "client",
+          active: true,
+          approved: true,
+          avatar: "",
+          createdAt: undefined,
+        });
         setRoute("dashboard");
         setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
-        // Cargar datos en background
+        // Cargar datos completos en background
         bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
