@@ -914,7 +914,6 @@ export function App() {
     setLoading(true);
     setError("");
     setSuccess("Registrando usuario...");
-    setTimeout(() => setSuccess("Registro completado correctamente."), 600);
 
     apiRequest(apiBase, "/auth/register", {
       method: "POST",
@@ -943,7 +942,6 @@ export function App() {
     setLoading(true);
     setError("");
     setSuccess("Iniciando sesión...");
-    setTimeout(() => setSuccess("Inicio de sesión correcto."), 600);
 
     apiRequest<{ user_id: string }>(apiBase, "/auth/login", {
       method: "POST",
