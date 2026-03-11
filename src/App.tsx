@@ -327,7 +327,7 @@ export function App() {
   const [route, setRoute] = useState<Route>("home");
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>("overview");
   const [apiBase, setApiBase] = useState<string | null>(null);
-  const [booting, setBooting] = useState(true);
+  // const [booting, setBooting] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -487,13 +487,12 @@ export function App() {
     let mounted = true;
 
     async function init() {
-      setBooting(true);
+      // setBooting(true);
       try {
         const discovered = await discoverApiBase();
         if (!mounted) return;
         if (!discovered) {
           setError("No se detectó el backend PHP. Debes levantar la API para usar el sistema real.");
-          setBooting(false);
           return;
         }
 
@@ -507,7 +506,7 @@ export function App() {
       } catch (err) {
         setError(err instanceof Error ? err.message : "No se pudo inicializar el sistema.");
       } finally {
-        if (mounted) setBooting(false);
+        // if (mounted) setBooting(false);
       }
     }
 
@@ -1907,18 +1906,9 @@ export function App() {
         ? appointments.filter((appointment) => appointment.barberId === sessionUser.id)
         : appointments.filter((appointment) => appointment.clientId === sessionUser?.id);
 
-  if (booting) {
-    return (
-      <div className="loading-shell" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'radial-gradient(circle, #2d2320 60%, #181818 100%)' }}>
-        <img src={barbadosLogo} alt="Barbados Logo" style={{ width: 120, height: 120, marginBottom: 24, borderRadius: 16, boxShadow: '0 2px 16px #0008' }} />
-        <h1 style={{ color: '#ffcc99', marginBottom: 8, fontWeight: 700, letterSpacing: 1 }}>Barbados</h1>
-        <div style={{ color: '#ccc', marginBottom: 16, fontSize: 18 }}>Cargando...</div>
-        <div style={{ width: 80, height: 4, background: '#222', borderRadius: 2, overflow: 'hidden', marginBottom: 16 }}>
-          <div style={{ width: '60%', height: '100%', background: 'linear-gradient(90deg, #ffcc99 40%, #fff0 100%)', borderRadius: 2, animation: 'loaderBar 1.2s infinite linear' }} />
-        </div>
-      </div>
-    );
-  }
+
+  // Si la API no está lista, muestra un banner de error pero renderiza la app igual
+  // Esto permite máxima fluidez y feedback inmediato
 
   return (
     <div className="site-shell">
