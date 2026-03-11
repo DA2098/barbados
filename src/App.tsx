@@ -2911,7 +2911,16 @@ export function App() {
                         ) : (
                           users.map((user) => (
                             <tr key={user.id}>
-                              <td>{user.name}</td>
+                              <td>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <img
+                                    src={apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar}
+                                    alt={user.name}
+                                    style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }}
+                                  />
+                                  <span>{user.name}</span>
+                                </div>
+                              </td>
                               <td>{roleLabel(user.role)}</td>
                               <td>{user.email}</td>
                               <td><Badge label={user.active ? "Activo" : "Inactivo"} variant={user.active ? "success" : "danger"} /></td>
