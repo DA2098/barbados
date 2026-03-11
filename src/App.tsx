@@ -970,11 +970,12 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        bootstrapSession(apiBase, userId).then(() => {
-          setRoute("dashboard");
-          setDashboardTab("overview");
-        });
+        // Navegar al dashboard al instante
+        setRoute("dashboard");
+        setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
+        // Cargar datos en background
+        bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
