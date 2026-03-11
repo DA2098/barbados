@@ -1601,10 +1601,8 @@ export function App() {
   // PATCH para ocultar/mostrar producto (no borra, solo cambia visibilidad)
   async function patchProduct(productId: string, payload: Partial<Product>) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    setLoading(true);
-    // Optimistic UI: refleja el cambio al instante
+    // Optimistic UI: refleja el cambio al instante, sin loader
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
-    setSuccess("Actualizando producto...");
     const mappedPayload = mapProductPayload(payload);
     apiRequest(apiBase, `/products/${productId}`, {
       method: "PATCH",
@@ -1612,31 +1610,26 @@ export function App() {
     })
       .then(() => {
         refreshProducts();
-        setSuccess("Producto actualizado correctamente.");
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
         refreshProducts();
-      })
-      .finally(() => {
-        setLoading(false);
       });
   }
 
   async function removeProduct(productId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
-    setLoading(true);
-    setSuccess("Eliminando producto...");
-    try {
-      await apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" });
-      await refreshSession();
-      setSuccess("Producto eliminado correctamente.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
-    } finally {
-      setLoading(false);
-    }
+    // Optimistic UI: elimina el producto localmente al instante
+    setProducts(prev => prev.filter(p => p.id !== productId));
+    apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" })
+      .then(() => {
+        refreshProducts();
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
+        refreshProducts();
+      });
   }
 
   async function uploadProductImage(productId: string, event: ChangeEvent<HTMLInputElement>) {
