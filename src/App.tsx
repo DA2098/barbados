@@ -937,11 +937,23 @@ export function App() {
       .then((response) => {
         const createdUserId = String(response.id ?? "");
         window.localStorage.setItem("barbados360.userId", createdUserId);
-        bootstrapSession(apiBase, createdUserId).then(() => {
-          setRoute("dashboard");
-          setDashboardTab("overview");
+        // Activar sesión y navegar al dashboard al instante
+        setSessionUser({
+          id: createdUserId,
+          name: registerForm.name,
+          email: registerForm.email,
+          phone: registerForm.phone,
+          role: registerForm.role,
+          active: true,
+          approved: true,
+          avatar: "",
+          createdAt: undefined,
         });
+        setRoute("dashboard");
+        setDashboardTab("overview");
         setRegisterForm({ name: "", email: "", phone: "", password: "", role: "client" });
+        // Cargar datos completos en background
+        bootstrapSession(apiBase, createdUserId);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo registrar la cuenta.");
