@@ -364,10 +364,18 @@ export function App() {
 
   // (Variables instant* eliminadas, ya no se usan)
   const [sessionUser, setSessionUser] = useState<User | null>(null);
+  // Siempre usar cache localStorage para render instantáneo de usuarios/barberos
   const [users, setUsers] = useState<User[]>(() => {
     try {
       const cached = window.localStorage.getItem("barbados360.users");
-      return cached ? JSON.parse(cached) : [];
+      if (cached) {
+        // Normalizar para asegurar que todos tengan avatar correcto
+        return JSON.parse(cached).map((u: any) => ({
+          ...u,
+          avatar: u.avatar || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80"
+        }));
+      }
+      return [];
     } catch {
       return [];
     }
@@ -2717,7 +2725,17 @@ export function App() {
           )}
           <aside className="dashboard-sidebar">
             <div className="profile-card">
-              <img className="avatar avatar--large" src={(accountProfile?.user.avatar || sessionUser.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile?.user.avatar ?? sessionUser.avatar) : (accountProfile?.user.avatar ?? sessionUser.avatar)) : barbadosLogo} alt={sessionUser.name} />
+              <img className="avatar avatar--large" src={(() => {
+                // Mostrar avatar instantáneo desde cache/localStorage
+                const cached = window.localStorage.getItem("barbados360.users");
+                if (cached) {
+                  const user = JSON.parse(cached).find((u: any) => u.id === sessionUser.id);
+                  if (user && user.avatar) {
+                    return apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar;
+                  }
+                }
+                return (accountProfile?.user.avatar || sessionUser.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile?.user.avatar ?? sessionUser.avatar) : (accountProfile?.user.avatar ?? sessionUser.avatar)) : barbadosLogo;
+              })()} alt={sessionUser.name} />
               <strong>{accountProfile?.user.name ?? sessionUser.name}</strong>
               <span>{roleLabel(sessionUser.role)}</span>
               <small>{accountProfile?.user.phone ?? sessionUser.phone}</small>
