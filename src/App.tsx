@@ -966,6 +966,7 @@ export function App() {
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!apiBase) return;
+    if (loading) return; // Evitar doble envío
     setLoading(true);
     setError("");
     setSuccess("Iniciando sesión...");
@@ -982,11 +983,9 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        // Navegar al dashboard al instante
         setRoute("dashboard");
         setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
-        // Cargar datos en background
         bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
