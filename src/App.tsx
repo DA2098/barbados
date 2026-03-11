@@ -988,7 +988,7 @@ export function App() {
             setRoute("dashboard");
             setDashboardTab("overview");
           })
-          .catch((err) => {
+          .catch(() => {
             setError("No se pudo cargar la sesión. Verifica tu cuenta o intenta de nuevo.");
           });
         setLoginForm({ email: "", password: "" });
