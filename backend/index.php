@@ -26,15 +26,20 @@ $config = require __DIR__ . '/config.php';
 require __DIR__ . '/Database.php';
 require __DIR__ . '/helpers.php';
 
+
 try {
     $database = new Database($config);
     $pdo = $database->pdo();
 } catch (Throwable $exception) {
-    respond([
+    // Responde rápido y claro si la base de datos está desconectada
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(503); // Servicio no disponible
+    echo json_encode([
         'ok' => false,
-        'message' => 'No se pudo conectar a la base de datos.',
+        'message' => 'No se pudo conectar a la base de datos. Intenta de nuevo en unos segundos.',
         'error' => $exception->getMessage(),
-    ], 500);
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
 
