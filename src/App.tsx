@@ -2712,6 +2712,9 @@ export function App() {
 
       {route === "dashboard" && sessionUser && (
         <main className="dashboard-shell">
+          {loading && (
+            <div className="sync-banner">🔄 Sincronizando datos...</div>
+          )}
           <aside className="dashboard-sidebar">
             <div className="profile-card">
               <img className="avatar avatar--large" src={(accountProfile?.user.avatar || sessionUser.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile?.user.avatar ?? sessionUser.avatar) : (accountProfile?.user.avatar ?? sessionUser.avatar)) : barbadosLogo} alt={sessionUser.name} />
