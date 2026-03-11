@@ -486,31 +486,26 @@ export function App() {
   useEffect(() => {
     let mounted = true;
 
-    async function init() {
-      // setBooting(true);
-      try {
-        const discovered = await discoverApiBase();
-        if (!mounted) return;
-        if (!discovered) {
-          setError("No se detectó el backend PHP. Debes levantar la API para usar el sistema real.");
-          return;
-        }
-
-        setApiBase(discovered);
-        await loadPublic(discovered);
-        const savedUserId = window.localStorage.getItem("barbados360.userId");
-        if (savedUserId) {
-          await bootstrapSession(discovered, savedUserId);
-          setRoute("dashboard");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "No se pudo inicializar el sistema.");
-      } finally {
-        // if (mounted) setBooting(false);
+    // Mostrar UI al instante, cargar datos en background
+    discoverApiBase().then((discovered) => {
+      if (!mounted) return;
+      if (!discovered) {
+        setError("No se detectó el backend PHP. Debes levantar la API para usar el sistema real.");
+        return;
       }
-    }
+      setApiBase(discovered);
+      // Cargar datos en background, pero la UI ya se muestra
+      loadPublic(discovered);
+      const savedUserId = window.localStorage.getItem("barbados360.userId");
+      if (savedUserId) {
+        bootstrapSession(discovered, savedUserId).then(() => {
+          setRoute("dashboard");
+        });
+      }
+    }).catch((err) => {
+      setError(err instanceof Error ? err.message : "No se pudo inicializar el sistema.");
+    });
 
-    void init();
     return () => {
       mounted = false;
     };
