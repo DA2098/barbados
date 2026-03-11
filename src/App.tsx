@@ -982,11 +982,15 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        // Solo navegar al dashboard cuando los datos estén listos
-        bootstrapSession(apiBase, userId).then(() => {
-          setRoute("dashboard");
-          setDashboardTab("overview");
-        });
+        // Navegar al dashboard solo si la sesión se carga correctamente
+        bootstrapSession(apiBase, userId)
+          .then(() => {
+            setRoute("dashboard");
+            setDashboardTab("overview");
+          })
+          .catch((err) => {
+            setError("No se pudo cargar la sesión. Verifica tu cuenta o intenta de nuevo.");
+          });
         setLoginForm({ email: "", password: "" });
       })
       .catch((err) => {
