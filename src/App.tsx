@@ -982,16 +982,12 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        // Navegar al dashboard solo si la sesión se carga correctamente
-        bootstrapSession(apiBase, userId)
-          .then(() => {
-            setRoute("dashboard");
-            setDashboardTab("overview");
-          })
-          .catch(() => {
-            setError("No se pudo cargar la sesión. Verifica tu cuenta o intenta de nuevo.");
-          });
+        // Navegar al dashboard al instante
+        setRoute("dashboard");
+        setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
+        // Cargar datos en background
+        bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
