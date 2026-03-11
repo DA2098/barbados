@@ -2898,22 +2898,34 @@ export function App() {
                         <tr><th>Usuario</th><th>Rol</th><th>Email</th><th>Estado</th><th>Acciones</th></tr>
                       </thead>
                       <tbody>
-                        {users.map((user) => (
-                          <tr key={user.id}>
-                            <td>{user.name}</td>
-                            <td>{roleLabel(user.role)}</td>
-                            <td>{user.email}</td>
-                            <td><Badge label={user.active ? "Activo" : "Inactivo"} variant={user.active ? "success" : "danger"} /></td>
-                            <td>
-                              {user.role !== "admin" && (
-                                <div className="actions-inline actions-inline--wrap">
-                                  <button className="button button--ghost button--small" onClick={() => void toggleUser(user)} type="button">{user.active ? "Desactivar" : "Activar"}</button>
-                                  <button className="button button--danger button--small" onClick={() => void deleteUser(user.id)} type="button">Eliminar</button>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                        {loading && users.length === 0 ? (
+                          Array.from({ length: 6 }).map((_, i) => (
+                            <tr key={i}>
+                              <td><div className="skeleton skeleton--text" style={{ width: 80 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 60 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 120 }} /></td>
+                              <td><div className="skeleton skeleton--badge" style={{ width: 60, height: 24 }} /></td>
+                              <td><div className="skeleton skeleton--button" style={{ width: 90, height: 28 }} /></td>
+                            </tr>
+                          ))
+                        ) : (
+                          users.map((user) => (
+                            <tr key={user.id}>
+                              <td>{user.name}</td>
+                              <td>{roleLabel(user.role)}</td>
+                              <td>{user.email}</td>
+                              <td><Badge label={user.active ? "Activo" : "Inactivo"} variant={user.active ? "success" : "danger"} /></td>
+                              <td>
+                                {user.role !== "admin" && (
+                                  <div className="actions-inline actions-inline--wrap">
+                                    <button className="button button--ghost button--small" onClick={() => void toggleUser(user)} type="button">{user.active ? "Desactivar" : "Activar"}</button>
+                                    <button className="button button--danger button--small" onClick={() => void deleteUser(user.id)} type="button">Eliminar</button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -2988,234 +3000,248 @@ export function App() {
                         </tr>
                       </thead>
                       <tbody>
-                        {products.map((product) => (
-                          <tr key={product.id}>
-                            <td>
-                              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                <img src={product.image} alt={product.name} style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8 }} />
-                                <div style={{ display: "flex", gap: 2 }}>
-                                  <label className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px", cursor: loading ? "not-allowed" : "pointer" }}>
-                                    📁
-                                    <input hidden accept="image/*" type="file" disabled={loading} onChange={(e) => void uploadProductImage(product.id, e)} />
-                                  </label>
-                                  <button className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px" }} disabled={loading} onClick={() => {
-                                    const newUrl = prompt("Nueva URL de imagen:", product.image);
-                                    if (newUrl && newUrl !== product.image) void patchProduct(product.id, { image: newUrl });
-                                  }} type="button">🔗</button>
+                        {loading && products.length === 0 ? (
+                          Array.from({ length: 6 }).map((_, i) => (
+                            <tr key={i}>
+                              <td><div className="skeleton skeleton--avatar" style={{ width: 50, height: 50, borderRadius: 8 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 100 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 80 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 60 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 40 }} /></td>
+                              <td><div className="skeleton skeleton--badge" style={{ width: 60, height: 24 }} /></td>
+                              <td><div className="skeleton skeleton--button" style={{ width: 90, height: 28 }} /></td>
+                            </tr>
+                          ))
+                        ) : (
+                          products.map((product) => (
+                            <tr key={product.id}>
+                              <td>
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                  <img src={product.image} alt={product.name} style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8 }} />
+                                  <div style={{ display: "flex", gap: 2 }}>
+                                    <label className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px", cursor: loading ? "not-allowed" : "pointer" }}>
+                                      📁
+                                      <input hidden accept="image/*" type="file" disabled={loading} onChange={(e) => void uploadProductImage(product.id, e)} />
+                                    </label>
+                                    <button className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px" }} disabled={loading} onClick={() => {
+                                      const newUrl = prompt("Nueva URL de imagen:", product.image);
+                                      if (newUrl && newUrl !== product.image) void patchProduct(product.id, { image: newUrl });
+                                    }} type="button">🔗</button>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td>
-                              {editingProductId === product.id ? (
-                                <input
-                                  className="input"
-                                  value={editProductForm.name}
-                                  onChange={e => setEditProductForm(f => ({ ...f, name: e.target.value }))}
-                                  style={{ width: 120 }}
-                                  disabled={loading}
-                                />
-                              ) : (
-                                <strong>{product.name}</strong>
-                              )}
-                            </td>
-                            <td>
-                              {editingProductId === product.id ? (
-                                <input
-                                  className="input"
-                                  value={editProductForm.category}
-                                  onChange={e => setEditProductForm(f => ({ ...f, category: e.target.value }))}
-                                  style={{ width: 100 }}
-                                  disabled={loading}
-                                />
-                              ) : (
-                                product.category
-                              )}
-                            </td>
-                            <td>
-                              {editingProductId === product.id ? (
-                                <input
-                                  className="input"
-                                  type="number"
-                                  value={editProductForm.price}
-                                  onChange={e => setEditProductForm(f => ({ ...f, price: Number(e.target.value) }))}
-                                  style={{ width: 80 }}
-                                  disabled={loading}
-                                />
-                              ) : (
-                                money.format(product.price)
-                              )}
-                            </td>
-                            <td>
-                              {sessionUser && sessionUser.role === "admin" ? (
-                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                  <button
-                                    className="button button--ghost button--small"
-                                    onClick={() => {
-                                      if (product.stock > 0) {
-                                        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock - 1 } : p));
-                                        patchProduct(product.id, { stock: product.stock - 1 })
-                                          .catch(() => refreshProducts());
-                                      }
-                                    }}
-                                    disabled={product.stock <= 0 || loading}
-                                    type="button"
-                                  >-1</button>
+                              </td>
+                              <td>
+                                {editingProductId === product.id ? (
                                   <input
-                                    type="number"
-                                    min={0}
-                                    value={editingProductId === product.id ? editProductForm.stock : (product.stock < 0 ? 0 : product.stock)}
-                                    style={{ width: 60 }}
+                                    className="input"
+                                    value={editProductForm.name}
+                                    onChange={e => setEditProductForm(f => ({ ...f, name: e.target.value }))}
+                                    style={{ width: 120 }}
                                     disabled={loading}
-                                    onChange={e => {
-                                      let newStock = Number(e.target.value);
-                                      if (isNaN(newStock) || newStock < 0) newStock = 0;
-                                      if (editingProductId === product.id) {
-                                        setEditProductForm(f => ({ ...f, stock: newStock }));
-                                      } else {
-                                        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
-                                        patchProduct(product.id, { stock: newStock })
-                                          .catch(() => refreshProducts());
-                                      }
-                                    }}
                                   />
-                                  <button className="button button--success button--small" onClick={() => {
-                                    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 1 } : p));
-                                    patchProduct(product.id, { stock: product.stock + 1 })
-                                      .catch(() => refreshProducts());
-                                  }} disabled={loading} type="button">+1</button>
-                                  <button className="button button--success button--small" onClick={() => {
-                                    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 5 } : p));
-                                    patchProduct(product.id, { stock: product.stock + 5 })
-                                      .catch(() => refreshProducts());
-                                  }} disabled={loading} type="button">+5</button>
-                                </div>
-                              ) : (
-                                product.stock < 0 ? 0 : product.stock
-                              )}
-                            </td>
-                            <td>
-                              {editingProductId === product.id ? (
-                                <textarea
-                                  className="textarea"
-                                  value={editProductForm.description}
-                                  onChange={e => setEditProductForm(f => ({ ...f, description: e.target.value }))}
-                                  style={{ width: 140, minHeight: 30 }}
-                                  disabled={loading}
-                                />
-                              ) : (
-                                <span style={{ fontSize: 12, color: '#666' }}>{product.description?.slice(0, 40) || ''}{product.description?.length > 40 ? '…' : ''}</span>
-                              )}
-                            </td>
-                            <td><Badge label={product.active ? "Activo" : "Oculto"} variant={product.active ? "success" : "danger"} /></td>
-                            <td>
-                              <div className="actions-inline actions-inline--wrap">
-                                {sessionUser && sessionUser.role === "admin" && (
-                                  <>
-                                    {editingProductId === product.id ? (
-                                      <>
-                                        <button
-                                          className="button button--primary button--small"
-                                          onClick={async () => {
-                                            setError("");
-                                            setSuccess("");
-                                            try {
-                                              await patchProduct(product.id, {
-                                                name: editProductForm.name,
-                                                category: editProductForm.category,
-                                                price: editProductForm.price,
-                                                description: editProductForm.description,
-                                                stock: editProductForm.stock
-                                              });
-                                              setEditingProductId(null);
-                                              await refreshProducts();
-                                              setSuccess("Guardado");
-                                            } catch {
-                                              setError("Error al guardar");
-                                              await refreshProducts();
-                                            }
-                                          }}
-                                          type="button"
-                                          disabled={loading}
-                                        >Guardar</button>
-                                        <button
-                                          className="button button--ghost button--small"
-                                          onClick={() => setEditingProductId(null)}
-                                          type="button"
-                                          disabled={loading}
-                                        >Cancelar</button>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <button
-                                          className="button button--ghost button--small"
-                                          onClick={() => {
-                                            setEditProductForm({
-                                              name: product.name,
-                                              category: product.category,
-                                              price: product.price,
-                                              description: product.description || "",
-                                              stock: product.stock
-                                            });
-                                            setEditingProductId(product.id);
-                                          }}
-                                          type="button"
-                                          disabled={loading}
-                                        >Editar</button>
-                                        {product.active && (
+                                ) : (
+                                  <strong>{product.name}</strong>
+                                )}
+                              </td>
+                              <td>
+                                {editingProductId === product.id ? (
+                                  <input
+                                    className="input"
+                                    value={editProductForm.category}
+                                    onChange={e => setEditProductForm(f => ({ ...f, category: e.target.value }))}
+                                    style={{ width: 100 }}
+                                    disabled={loading}
+                                  />
+                                ) : (
+                                  product.category
+                                )}
+                              </td>
+                              <td>
+                                {editingProductId === product.id ? (
+                                  <input
+                                    className="input"
+                                    type="number"
+                                    value={editProductForm.price}
+                                    onChange={e => setEditProductForm(f => ({ ...f, price: Number(e.target.value) }))}
+                                    style={{ width: 80 }}
+                                    disabled={loading}
+                                  />
+                                ) : (
+                                  money.format(product.price)
+                                )}
+                              </td>
+                              <td>
+                                {sessionUser && sessionUser.role === "admin" ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <button
+                                      className="button button--ghost button--small"
+                                      onClick={() => {
+                                        if (product.stock > 0) {
+                                          setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock - 1 } : p));
+                                          patchProduct(product.id, { stock: product.stock - 1 })
+                                            .catch(() => refreshProducts());
+                                        }
+                                      }}
+                                      disabled={product.stock <= 0 || loading}
+                                      type="button"
+                                    >-1</button>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      value={editingProductId === product.id ? editProductForm.stock : (product.stock < 0 ? 0 : product.stock)}
+                                      style={{ width: 60 }}
+                                      disabled={loading}
+                                      onChange={e => {
+                                        let newStock = Number(e.target.value);
+                                        if (isNaN(newStock) || newStock < 0) newStock = 0;
+                                        if (editingProductId === product.id) {
+                                          setEditProductForm(f => ({ ...f, stock: newStock }));
+                                        } else {
+                                          setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: newStock } : p));
+                                          patchProduct(product.id, { stock: newStock })
+                                            .catch(() => refreshProducts());
+                                        }
+                                      }}
+                                    />
+                                    <button className="button button--success button--small" onClick={() => {
+                                      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 1 } : p));
+                                      patchProduct(product.id, { stock: product.stock + 1 })
+                                        .catch(() => refreshProducts());
+                                    }} disabled={loading} type="button">+1</button>
+                                    <button className="button button--success button--small" onClick={() => {
+                                      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, stock: p.stock + 5 } : p));
+                                      patchProduct(product.id, { stock: product.stock + 5 })
+                                        .catch(() => refreshProducts());
+                                    }} disabled={loading} type="button">+5</button>
+                                  </div>
+                                ) : (
+                                  product.stock < 0 ? 0 : product.stock
+                                )}
+                              </td>
+                              <td>
+                                {editingProductId === product.id ? (
+                                  <textarea
+                                    className="textarea"
+                                    value={editProductForm.description}
+                                    onChange={e => setEditProductForm(f => ({ ...f, description: e.target.value }))}
+                                    style={{ width: 140, minHeight: 30 }}
+                                    disabled={loading}
+                                  />
+                                ) : (
+                                  <span style={{ fontSize: 12, color: '#666' }}>{product.description?.slice(0, 40) || ''}{product.description?.length > 40 ? '…' : ''}</span>
+                                )}
+                              </td>
+                              <td><Badge label={product.active ? "Activo" : "Oculto"} variant={product.active ? "success" : "danger"} /></td>
+                              <td>
+                                <div className="actions-inline actions-inline--wrap">
+                                  {sessionUser && sessionUser.role === "admin" && (
+                                    <>
+                                      {editingProductId === product.id ? (
+                                        <>
+                                          <button
+                                            className="button button--primary button--small"
+                                            onClick={async () => {
+                                              setError("");
+                                              setSuccess("");
+                                              try {
+                                                await patchProduct(product.id, {
+                                                  name: editProductForm.name,
+                                                  category: editProductForm.category,
+                                                  price: editProductForm.price,
+                                                  description: editProductForm.description,
+                                                  stock: editProductForm.stock
+                                                });
+                                                setEditingProductId(null);
+                                                await refreshProducts();
+                                                setSuccess("Guardado");
+                                              } catch {
+                                                setError("Error al guardar");
+                                                await refreshProducts();
+                                              }
+                                            }}
+                                            type="button"
+                                            disabled={loading}
+                                          >Guardar</button>
                                           <button
                                             className="button button--ghost button--small"
-                                            onClick={async () => {
-                                              setError("");
-                                              setSuccess("");
-                                              setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
-                                              try {
-                                                await patchProduct(product.id, { active: false });
-                                                await refreshProducts();
-                                              } catch {
-                                                await refreshProducts();
-                                              }
-                                            }}
+                                            onClick={() => setEditingProductId(null)}
                                             type="button"
                                             disabled={loading}
-                                            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                                          >
-                                            Desactivar
-                                            {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
-                                            {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
-                                          </button>
-                                        )}
-                                        {!product.active && (
+                                          >Cancelar</button>
+                                        </>
+                                      ) : (
+                                        <>
                                           <button
-                                            className="button button--success button--small"
-                                            onClick={async () => {
-                                              setError("");
-                                              setSuccess("");
-                                              setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
-                                              try {
-                                                await patchProduct(product.id, { active: true });
-                                                await refreshProducts();
-                                              } catch {
-                                                await refreshProducts();
-                                              }
+                                            className="button button--ghost button--small"
+                                            onClick={() => {
+                                              setEditProductForm({
+                                                name: product.name,
+                                                category: product.category,
+                                                price: product.price,
+                                                description: product.description || "",
+                                                stock: product.stock
+                                              });
+                                              setEditingProductId(product.id);
                                             }}
                                             type="button"
                                             disabled={loading}
-                                            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                                          >
-                                            Activar
-                                            {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
-                                            {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
-                                          </button>
-                                        )}
-                                        <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} disabled={loading} type="button">🗑️</button>
-                                      </>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                          >Editar</button>
+                                          {product.active && (
+                                            <button
+                                              className="button button--ghost button--small"
+                                              onClick={async () => {
+                                                setError("");
+                                                setSuccess("");
+                                                setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
+                                                try {
+                                                  await patchProduct(product.id, { active: false });
+                                                  await refreshProducts();
+                                                } catch {
+                                                  await refreshProducts();
+                                                }
+                                              }}
+                                              type="button"
+                                              disabled={loading}
+                                              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                            >
+                                              Desactivar
+                                              {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                              {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
+                                            </button>
+                                          )}
+                                          {!product.active && (
+                                            <button
+                                              className="button button--success button--small"
+                                              onClick={async () => {
+                                                setError("");
+                                                setSuccess("");
+                                                setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
+                                                try {
+                                                  await patchProduct(product.id, { active: true });
+                                                  await refreshProducts();
+                                                } catch {
+                                                  await refreshProducts();
+                                                }
+                                              }}
+                                              type="button"
+                                              disabled={loading}
+                                              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                            >
+                                              Activar
+                                              {success && <span style={{ color: '#2ecc40', fontSize: 18 }}>✔️</span>}
+                                              {error && <span style={{ color: '#ff4136', fontSize: 18 }}>⚠️</span>}
+                                            </button>
+                                          )}
+                                          <button className="button button--danger button--small" onClick={() => void removeProduct(product.id)} disabled={loading} type="button">🗑️</button>
+                                        </>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
