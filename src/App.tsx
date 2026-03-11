@@ -335,7 +335,15 @@ export function App() {
   const [sessionUser, setSessionUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  // Productos: cache localStorage para carga instantánea
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const cached = window.localStorage.getItem("barbados360.products");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   // Inline editing state for products
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editProductForm, setEditProductForm] = useState({
@@ -687,7 +695,15 @@ export function App() {
       barbers: prev.barbers || [],
       products: prev.products || [],
     }));
-    setProducts((prev) => prev || []);
+    // Mostrar productos cacheados al instante
+    setProducts((prev) => prev && prev.length > 0 ? prev : (() => {
+      try {
+        const cached = window.localStorage.getItem("barbados360.products");
+        return cached ? JSON.parse(cached) : [];
+      } catch {
+        return [];
+      }
+    })());
 
     // Cargar datos en background
     Promise.all([
@@ -722,6 +738,10 @@ export function App() {
       setServices(serviceList);
       setUsers(userList);
       setProducts(productList);
+      // Guardar en cache localStorage
+      try {
+        window.localStorage.setItem("barbados360.products", JSON.stringify(productList));
+      } catch {}
       if (!bookingForm.barberId && userList.some((user) => user.role === "barber" && user.active && user.approved)) {
         const barber = userList.find((user) => user.role === "barber" && user.active && user.approved);
         const service = serviceList[0];
@@ -788,9 +808,11 @@ export function App() {
       setSummary(payload.summary);
       setAccountProfile(normalizeAccountProfile(profileResponse.data ?? null));
       // Actualiza productos, pero respeta el estado manual
-      setProducts(payload.products.map((p) => {
-        return p;
-      }));
+      setProducts(payload.products.map((p) => p));
+      // Guardar en cache localStorage
+      try {
+        window.localStorage.setItem("barbados360.products", JSON.stringify(payload.products));
+      } catch {}
       setPublicData({
         services: payload.services,
         barbers: payload.users.filter((user) => user.role === "barber" && user.active && user.approved),
@@ -1578,6 +1600,10 @@ export function App() {
       // Nunca mostrar stock negativo
       productsList = productsList.map(p => ({ ...p, stock: p.stock < 0 ? 0 : p.stock }));
       setProducts(productsList);
+      // Guardar en cache localStorage
+      try {
+        window.localStorage.setItem("barbados360.products", JSON.stringify(productsList));
+      } catch {}
       // Admin ve todos, los demás solo activos
       if (sessionUser && sessionUser.role === "admin") {
         setPublicData((current) => ({ ...current, products: productsList }));
