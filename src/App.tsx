@@ -331,10 +331,40 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [publicData, setPublicData] = useState<PublicHomeData>({ services: [], barbers: [], products: [] });
+  // Inicializar publicData con cache local para render instantáneo y máxima interactividad
+  const [publicData, setPublicData] = useState<PublicHomeData>(() => {
+    try {
+      const products = window.localStorage.getItem("barbados360.products");
+      const services = window.localStorage.getItem("barbados360.services");
+      const users = window.localStorage.getItem("barbados360.users");
+      return {
+        products: products ? JSON.parse(products).filter((p:any)=>p.active) : [],
+        services: services ? JSON.parse(services) : [],
+        barbers: users ? JSON.parse(users).filter((u:any)=>u.role==="barber"&&u.active&&u.approved) : [],
+      };
+    } catch {
+      return { services: [], barbers: [], products: [] };
+    }
+  });
+
+  // (Variables instant* eliminadas, ya no se usan)
   const [sessionUser, setSessionUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
+  const [users, setUsers] = useState<User[]>(() => {
+    try {
+      const cached = window.localStorage.getItem("barbados360.users");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [services, setServices] = useState<Service[]>(() => {
+    try {
+      const cached = window.localStorage.getItem("barbados360.services");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   // Productos: cache localStorage para carga instantánea
   const [products, setProducts] = useState<Product[]>(() => {
     try {
@@ -390,7 +420,14 @@ export function App() {
   const [initialAlertShown, setInitialAlertShown] = useState(false);
   
   // Testimonios y sugerencias
-  const [testimonialsList, setTestimonialsList] = useState<Testimonial[]>([]);
+  const [testimonialsList, setTestimonialsList] = useState<Testimonial[]>(() => {
+    try {
+      const cached = window.localStorage.getItem("barbados360.testimonials");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [adminTestimonials, setAdminTestimonials] = useState<Testimonial[]>([]);
   const [suggestionForm, setSuggestionForm] = useState({ name: "", email: "", message: "", rating: 5 });
   const [showSuggestionForm, setShowSuggestionForm] = useState(false);
@@ -741,6 +778,9 @@ export function App() {
       // Guardar en cache localStorage
       try {
         window.localStorage.setItem("barbados360.products", JSON.stringify(productList));
+        window.localStorage.setItem("barbados360.services", JSON.stringify(serviceList));
+        window.localStorage.setItem("barbados360.users", JSON.stringify(userList));
+        window.localStorage.setItem("barbados360.testimonials", JSON.stringify(testimonialList));
       } catch {}
       if (!bookingForm.barberId && userList.some((user) => user.role === "barber" && user.active && user.approved)) {
         const barber = userList.find((user) => user.role === "barber" && user.active && user.approved);
@@ -799,6 +839,11 @@ export function App() {
       setSessionUser(payload.user);
       setUsers(payload.users);
       setServices(payload.services);
+      // Guardar en cache localStorage
+      try {
+        window.localStorage.setItem("barbados360.users", JSON.stringify(payload.users));
+        window.localStorage.setItem("barbados360.services", JSON.stringify(payload.services));
+      } catch {}
       setApplications(payload.applications);
       setAppointments(payload.appointments);
       setConversations(payload.conversations);
