@@ -971,7 +971,7 @@ export function App() {
       method: "POST",
       ...jsonBody(loginForm),
     })
-      .then((response) => {
+      .then(async (response) => {
         const userId = String(response.data?.user_id ?? "");
         window.localStorage.setItem("barbados360.userId", userId);
         window.localStorage.removeItem(`barbados360.alertShown.${userId}`);
@@ -982,6 +982,25 @@ export function App() {
         setRoute("dashboard");
         setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
+
+        // Sincronización rápida: cargar datos clave en paralelo y actualizar cache local
+        const [usersRes, servicesRes, productsRes, profileRes] = await Promise.all([
+          apiRequest(apiBase, "/users"),
+          apiRequest(apiBase, "/services"),
+          apiRequest(apiBase, "/products"),
+          apiRequest(apiBase, `/users/${userId}/profile`),
+        ]);
+        try {
+          window.localStorage.setItem("barbados360.users", JSON.stringify(usersRes.data ?? []));
+          window.localStorage.setItem("barbados360.services", JSON.stringify(servicesRes.data ?? []));
+          window.localStorage.setItem("barbados360.products", JSON.stringify(productsRes.data ?? []));
+        } catch {}
+        // Refrescar estado local para render instantáneo
+        setUsers(Array.isArray(usersRes.data) ? usersRes.data.map(normalizeUser) : []);
+        setServices(Array.isArray(servicesRes.data) ? servicesRes.data.map(normalizeService) : []);
+        setProducts(Array.isArray(productsRes.data) ? productsRes.data.map(normalizeProduct) : []);
+        setAccountProfile(normalizeAccountProfile((profileRes.data && typeof profileRes.data === 'object') ? profileRes.data as Record<string, unknown> : null));
+        // Lanzar bootstrapSession en background para el resto de datos
         bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
