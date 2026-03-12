@@ -2739,7 +2739,7 @@ export function App() {
 
       {route === "dashboard" && sessionUser && (
         <main className="dashboard-shell">
-          {/* Eliminado: nunca mostrar banner de sincronización para máxima fluidez */}
+          {/* Siempre mostrar la estructura del panel, aunque los datos estén vacíos */}
           <aside className="dashboard-sidebar">
             <div className="profile-card">
               <img className="avatar avatar--large" src={(() => {
@@ -2751,11 +2751,11 @@ export function App() {
                     return apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar;
                   }
                 }
-                return (accountProfile?.user.avatar || sessionUser.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile?.user.avatar ?? sessionUser.avatar) : (accountProfile?.user.avatar ?? sessionUser.avatar)) : barbadosLogo;
+                return (accountProfile?.user?.avatar || sessionUser.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile?.user?.avatar ?? sessionUser.avatar) : (accountProfile?.user?.avatar ?? sessionUser.avatar)) : barbadosLogo;
               })()} alt={sessionUser.name} />
-              <strong>{accountProfile?.user.name ?? sessionUser.name}</strong>
+              <strong>{accountProfile?.user?.name ?? sessionUser.name ?? "Usuario"}</strong>
               <span>{roleLabel(sessionUser.role)}</span>
-              <small>{accountProfile?.user.phone ?? sessionUser.phone}</small>
+              <small>{accountProfile?.user?.phone ?? sessionUser.phone ?? ""}</small>
               <div className="actions-inline actions-inline--wrap actions-inline--center">
                 <label className="button button--ghost button--small file-button">
                   📷 Cambiar foto
@@ -2765,7 +2765,7 @@ export function App() {
               </div>
             </div>
             <div className="nav-list">
-              {[
+              {[...
                 ["overview", "Resumen"],
                 ...(sessionUser.role === "admin" ? [["users", "Usuarios"], ["applications", "Postulaciones"], ["products", "Productos"], ["orders", "Órdenes"], ["testimonials", "Opiniones"], ["cuts", "Ganancias"]] : []),
                 ...(sessionUser.role === "barber" ? [["cuts", "Mis Cortes"]] : []),
