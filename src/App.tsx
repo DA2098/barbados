@@ -2271,6 +2271,7 @@ export function App() {
                   const unreadNotifCount = value === "notifications" ? myNotifications.filter((n) => !n.read).length : 0;
                   const pendingTestimonials = value === "testimonials" ? adminTestimonials.filter((t) => !t.isApproved).length : 0;
                   const badgeCount = unreadMsgCount || unreadNotifCount || pendingTestimonials;
+                  if (typeof value !== 'string' || typeof label !== 'string') return null;
                   return (
                     <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
                       {label}
