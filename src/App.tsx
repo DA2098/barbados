@@ -1695,24 +1695,6 @@ export function App() {
     }
   }
 
-  async function addToCart(productId: string) {
-    if (!apiBase || !sessionUser || sessionUser.role !== "client") return;
-    setLoading(true);
-    setError("");
-    setSuccess("Agregando al carrito...");
-    try {
-      await apiRequest(apiBase, "/cart", {
-        method: "POST",
-        ...jsonBody({ client_id: sessionUser.id, product_id: productId, quantity: 1 }),
-      });
-      await refreshSession();
-      setSuccess("Producto agregado al carrito.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo agregar al carrito.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function updateCart(productId: string, delta: number) {
     if (!apiBase || !sessionUser || sessionUser.role !== "client") return;
@@ -2271,30 +2253,34 @@ export function App() {
               <p className="section-elite__desc">Descubre todas las herramientas de nuestra plataforma</p>
             </div>
 
-            <div className="accordion">
-              <AccordionItem 
-                icon="📅" 
-                title="Sistema de Reservas Inteligente"
-                defaultOpen={true}
-              >
-                <p>Tus clientes reservan citas online las 24 horas del día. Sistema automático de confirmaciones y recordatorios por notificación.</p>
-                <div className="card-full__features" style={{marginTop: '1rem'}}>
-                  <div className="card-full__feature">Calendario visual</div>
-                  <div className="card-full__feature">Recordatorios automáticos</div>
-                  <div className="card-full__feature">Disponibilidad en tiempo real</div>
-                </div>
-              </AccordionItem>
-              
-              <AccordionItem icon="💬" title="Chat en Vivo con Clientes">
-                <p>Comunícate directamente con tus clientes. Envía mensajes de texto, fotos de estilos sugeridos, y audios explicativos.</p>
-                <div className="card-full__features" style={{marginTop: '1rem'}}>
-                  <div className="card-full__feature">Mensajes instantáneos</div>
-                  <div className="card-full__feature">Envío de fotos</div>
-                  <div className="card-full__feature">Notas de voz</div>
-                </div>
-              </AccordionItem>
-              
-              <AccordionItem icon="📊" title="Dashboard y Analíticas">
+            <div className="nav-list">
+              {[
+                ["overview", "Resumen"],
+                ...((sessionUser && sessionUser.role === "admin") ? [["users", "Usuarios"], ["applications", "Postulaciones"], ["products", "Productos"], ["orders", "Órdenes"], ["testimonials", "Opiniones"], ["cuts", "Ganancias"]] : []),
+                ...((sessionUser && sessionUser.role === "barber") ? [["cuts", "Mis Cortes"]] : []),
+                ...((sessionUser && sessionUser.role !== "admin") ? [["appointments", "Citas"]] : []),
+                ["chat", "Chat"],
+                ["notifications", "Notificaciones"],
+                ...((sessionUser && sessionUser.role === "client") ? [["account", "Mi cuenta"]] : []),
+              ]
+                // Filtrar solo entradas válidas (array de longitud 2, ambos string)
+                .filter((item) => Array.isArray(item) && item.length === 2 && typeof item[0] === 'string' && typeof item[1] === 'string')
+                .map(([value, label]) => {
+                  // Usar actualUnreadMessages para el badge del chat (solo mensajes nuevos no vistos)
+                  const unreadMsgCount = value === "chat" ? actualUnreadMessages : 0;
+                  const unreadNotifCount = value === "notifications" ? myNotifications.filter((n) => !n.read).length : 0;
+                  const pendingTestimonials = value === "testimonials" ? adminTestimonials.filter((t) => !t.isApproved).length : 0;
+                  const badgeCount = unreadMsgCount || unreadNotifCount || pendingTestimonials;
+                  return (
+                    <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
+                      {label}
+                      {badgeCount > 0 && <span className="nav-badge">{badgeCount > 99 ? "99+" : badgeCount}</span>}
+                    </button>
+                  );
+                })}
+            </div>
+            <div>
+              <AccordionItem icon="📊" title="Panel de Control">
                 <p>Visualiza el rendimiento de tu negocio con gráficos interactivos. Controla ingresos, citas completadas y métricas clave.</p>
                 <div className="card-full__features" style={{marginTop: '1rem'}}>
                   <div className="card-full__feature">Gráficos mensuales</div>
@@ -2302,7 +2288,6 @@ export function App() {
                   <div className="card-full__feature">KPIs en tiempo real</div>
                 </div>
               </AccordionItem>
-              
               <AccordionItem icon="🛒" title="Tienda de Productos">
                 <p>Vende productos de cuidado capilar y barba directamente a tus clientes. Gestiona inventario y pedidos fácilmente.</p>
                 <div className="card-full__features" style={{marginTop: '1rem'}}>
@@ -2311,7 +2296,6 @@ export function App() {
                   <div className="card-full__feature">Órdenes organizadas</div>
                 </div>
               </AccordionItem>
-              
               <AccordionItem icon="💰" title="Control de Ganancias">
                 <p>Registra cada corte realizado y visualiza tus ingresos en tiempo real. Nunca pierdas el control de tus finanzas.</p>
                 <div className="card-full__features" style={{marginTop: '1rem'}}>
@@ -2619,57 +2603,34 @@ export function App() {
         <main className="content-shell">
           <section className="panel panel--full">
             <SectionHeader title="🛍️ Tienda de productos" subtitle="Geles, pómadas, champús y accesorios para el cuidado de tu cabello y barba. ¡Compra ahora!" />
-            <div className="cards-grid">
-              {publicData.products.map((product) => {
-                const categoryImages: Record<string, string> = {
-                  "Styling": "https://images.unsplash.com/photo-1552821206-e4a8b71c87d5?w=500&h=500&fit=crop",
-                  "Shampoo": "https://images.unsplash.com/photo-1587854692152-cbe660dbde0e?w=500&h=500&fit=crop",
-                  "Conditioner": "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=500&h=500&fit=crop",
-                  "Beard": "https://images.unsplash.com/photo-1596740841155-71015c5a1dcd?w=500&h=500&fit=crop",
-                  "Haircut": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&h=500&fit=crop",
-                };
-                const productImage = product.image || categoryImages[product.category] || "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=500&h=500&fit=crop";
-                return (
-                  <article className="shop-card shop-card--interactive" key={product.id}>
-                    <div className="shop-image-wrapper">
-                      <img className="shop-thumb" src={productImage} alt={product.name} loading="lazy" />
-                      <div className="shop-overlay">
-                        {sessionUser ? (
-                          <button 
-                            className="button button--primary button--large" 
-                            onClick={() => addToCart(product.id)} 
-                            type="button"
-                          >
-                            🛒 Comprar
-                          </button>
-                        ) : (
-                          <button 
-                            className="button button--primary button--large" 
-                            onClick={() => setRoute("register")}
-                            type="button"
-                          >
-                            Registrarse para comprar
-                          </button>
-                        )}
+            <div className="shop-list">
+              {products.map((product) => (
+                <article className="shop-card" key={product.id}>
+                  <div className="shop-body">
+                    <div className="entity-card__header">
+                      <div>
+                        <h4>{product.name}</h4>
+                        <p className="shop-category">📦 {product.category}</p>
                       </div>
+                      <Badge label={product.stock > 0 ? `${product.stock} stock` : "Agotado"} variant={product.stock > 0 ? "success" : "danger"} />
                     </div>
-                    <div className="shop-body">
-                      <div className="entity-card__header">
-                        <div>
-                          <h4>{product.name}</h4>
-                          <p className="shop-category">📦 {product.category}</p>
-                        </div>
-                        <Badge label={product.stock > 0 ? `${product.stock} stock` : "Agotado"} variant={product.stock > 0 ? "success" : "danger"} />
-                      </div>
-                      <p className="shop-description">{product.description}</p>
-                      <div className="shop-meta">
-                        <strong className="shop-price">{money.format(product.price)}</strong>
-                      </div>
+                    <p className="shop-description">{product.description}</p>
+                    <div className="shop-meta">
+                      <strong className="shop-price">{money.format(product.price)}</strong>
                     </div>
-                  </article>
-                );
-              })}
+                  </div>
+                </article>
+              ))}
             </div>
+            {!sessionUser && (
+              <button 
+                className="button button--primary button--large" 
+                onClick={() => setRoute("register")}
+                type="button"
+              >
+                Registrarse para comprar
+              </button>
+            )}
           </section>
         </main>
       )}
