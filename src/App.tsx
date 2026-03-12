@@ -1000,8 +1000,7 @@ export function App() {
         setServices(Array.isArray(servicesRes.data) ? servicesRes.data.map(normalizeService) : []);
         setProducts(Array.isArray(productsRes.data) ? productsRes.data.map(normalizeProduct) : []);
         setAccountProfile(normalizeAccountProfile((profileRes.data && typeof profileRes.data === 'object') ? profileRes.data as Record<string, unknown> : null));
-        // Lanzar bootstrapSession en background para el resto de datos
-        bootstrapSession(apiBase, userId);
+        // Sin background sync extra: solo sincronización rápida y directa
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
@@ -2739,9 +2738,7 @@ export function App() {
 
       {route === "dashboard" && sessionUser && (
         <main className="dashboard-shell">
-          {loading && (
-            <div className="sync-banner">🔄 Sincronizando datos...</div>
-          )}
+          {/* Eliminado: nunca mostrar banner de sincronización para máxima fluidez */}
           <aside className="dashboard-sidebar">
             <div className="profile-card">
               <img className="avatar avatar--large" src={(() => {
