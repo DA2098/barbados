@@ -2256,6 +2256,7 @@ export function App() {
             <div className="nav-list">
               {[
                 ["overview", "Resumen"],
+                ["team", "Equipo"],
                 ...((sessionUser && sessionUser.role === "admin") ? [["users", "Usuarios"], ["applications", "Postulaciones"], ["products", "Productos"], ["orders", "Órdenes"], ["testimonials", "Opiniones"], ["cuts", "Ganancias"]] : []),
                 ...((sessionUser && sessionUser.role === "barber") ? [["cuts", "Mis Cortes"]] : []),
                 ...((sessionUser && sessionUser.role !== "admin") ? [["appointments", "Citas"]] : []),
