@@ -2262,23 +2262,19 @@ export function App() {
                 ["chat", "Chat"],
                 ["notifications", "Notificaciones"],
                 ...((sessionUser && sessionUser.role === "client") ? [["account", "Mi cuenta"]] : []),
-              ]
-                // Filtrar solo entradas válidas (array de longitud 2, ambos string)
-                .filter((item) => Array.isArray(item) && item.length === 2 && typeof item[0] === 'string' && typeof item[1] === 'string')
-                .map(([value, label]) => {
-                  // Usar actualUnreadMessages para el badge del chat (solo mensajes nuevos no vistos)
-                  const unreadMsgCount = value === "chat" ? actualUnreadMessages : 0;
-                  const unreadNotifCount = value === "notifications" ? myNotifications.filter((n) => !n.read).length : 0;
-                  const pendingTestimonials = value === "testimonials" ? adminTestimonials.filter((t) => !t.isApproved).length : 0;
-                  const badgeCount = unreadMsgCount || unreadNotifCount || pendingTestimonials;
-                  if (typeof value !== 'string' || typeof label !== 'string') return null;
-                  return (
-                    <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
-                      {label}
-                      {badgeCount > 0 && <span className="nav-badge">{badgeCount > 99 ? "99+" : badgeCount}</span>}
-                    </button>
-                  );
-                })}
+              ].map(([value, label]) => {
+                // Usar actualUnreadMessages para el badge del chat (solo mensajes nuevos no vistos)
+                const unreadMsgCount = value === "chat" ? actualUnreadMessages : 0;
+                const unreadNotifCount = value === "notifications" ? myNotifications.filter((n) => !n.read).length : 0;
+                const pendingTestimonials = value === "testimonials" ? adminTestimonials.filter((t) => !t.isApproved).length : 0;
+                const badgeCount = unreadMsgCount || unreadNotifCount || pendingTestimonials;
+                return (
+                  <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
+                    {label}
+                    {badgeCount > 0 && <span className="nav-badge">{badgeCount > 99 ? "99+" : badgeCount}</span>}
+                  </button>
+                );
+              })}
             </div>
             <div>
               <AccordionItem icon="📊" title="Panel de Control">
