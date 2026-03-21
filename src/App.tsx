@@ -1069,41 +1069,6 @@ export function App() {
     }
   }
 
-  async function handleToggleFeatured(testimonialId: string, featured: boolean) {
-    if (!apiBase || !sessionUser) return;
-    setSuccess(featured ? "Destacando testimonio..." : "Quitando destacado...");
-    try {
-      await apiRequest(apiBase, `/testimonials/${testimonialId}`, {
-        method: "PATCH",
-        ...jsonBody({ actor_id: sessionUser.id, is_featured: featured }),
-      });
-      setAdminTestimonials((prev) =>
-        prev.map((t) => (t.id === testimonialId ? { ...t, isFeatured: featured } : t))
-      );
-      setSuccess(featured ? "Testimonio destacado." : "Testimonio ya no está destacado.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo actualizar.");
-    }
-  }
-
-  async function handleDeleteTestimonial(testimonialId: string) {
-    if (!apiBase || !sessionUser) return;
-    if (!window.confirm("¿Eliminar este testimonio permanentemente?")) return;
-    setLoading(true);
-    setSuccess("Eliminando testimonio...");
-    try {
-      await apiRequest(apiBase, `/testimonials/${testimonialId}?actor_id=${encodeURIComponent(sessionUser.id)}`, {
-        method: "DELETE",
-      });
-      setAdminTestimonials((prev) => prev.filter((t) => t.id !== testimonialId));
-      setTestimonialsList((prev) => prev.filter((t) => t.id !== testimonialId));
-      setSuccess("Testimonio eliminado.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo eliminar.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   // =====================================
   // FUNCIONES PARA CORTES DE BARBERO
@@ -2686,7 +2651,10 @@ export function App() {
           <aside className="dashboard-sidebar">
             <div className="profile-card">
               <img className="avatar avatar--large" src={(() => {
-                // Mostrar avatar instantáneo desde cache/localStorage
+                // Mostrar avatar instantáneo desde sessionUser primero, luego cache/localStorage, luego perfil
+                if (sessionUser.avatar) {
+                  return apiBase ? absoluteApiUrl(apiBase, sessionUser.avatar) : sessionUser.avatar;
+                }
                 const cached = window.localStorage.getItem("barbados360.users");
                 if (cached) {
                   const user = JSON.parse(cached).find((u: any) => u.id === sessionUser.id);
@@ -2694,7 +2662,7 @@ export function App() {
                     return apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar;
                   }
                 }
-                return (accountProfile?.user?.avatar || sessionUser.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile?.user?.avatar ?? sessionUser.avatar) : (accountProfile?.user?.avatar ?? sessionUser.avatar)) : barbadosLogo;
+                return (accountProfile?.user?.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile.user.avatar) : accountProfile.user.avatar) : barbadosLogo;
               })()} alt={sessionUser.name} />
               <strong>{accountProfile?.user?.name ?? sessionUser.name ?? "Usuario"}</strong>
               <span>{roleLabel(sessionUser.role)}</span>
@@ -2881,6 +2849,7 @@ export function App() {
                             <tr key={i}>
                               <td><div className="skeleton skeleton--text" style={{ width: 80 }} /></td>
                               <td><div className="skeleton skeleton--text" style={{ width: 60 }} /></td>
+                              <td><div className="skeleton skeleton--text" style={{ width: 120 }} /></td>
                               <td><div className="skeleton skeleton--text" style={{ width: 120 }} /></td>
                               <td><div className="skeleton skeleton--badge" style={{ width: 60, height: 24 }} /></td>
                               <td><div className="skeleton skeleton--button" style={{ width: 90, height: 28 }} /></td>
@@ -3318,7 +3287,7 @@ export function App() {
                         const lastMessage = conversation.messages[conversation.messages.length - 1];
                         return (
                           <button className={`conversation-item ${selectedConversation?.id === conversation.id ? "conversation-item--active" : ""}`} key={conversation.id} onClick={() => setSelectedConversationId(conversation.id)} type="button">
-                            <img className="conversation-item__avatar" src={otherUser?.avatar ? (apiBase ? absoluteApiUrl(apiBase, otherUser.avatar) : otherUser.avatar) : "https://ui-avatars.com/api/?name=User"} alt={otherUser?.name ?? "Usuario"} />
+                            <img className="conversation-item__avatar" src={otherUser?.avatar ? (apiBase ? absoluteApiUrl(apiBase, otherUser.avatar) : otherUser.avatar) : "https://ui-avatars.com/api/?name=C"} alt={otherUser?.name ?? "Usuario"} />
                             <div className="conversation-item__info">
                               <strong>{otherUser?.name ?? conversation.title}</strong>
                               <span>{conversation.title}</span>
@@ -3638,24 +3607,7 @@ export function App() {
                               </button>
                             )}
                             
-                            <button 
-                              className={`button button--small ${testimonial.isFeatured ? 'button--warning' : 'button--ghost'}`}
-                              onClick={() => void handleToggleFeatured(testimonial.id, !testimonial.isFeatured)}
-                              disabled={!testimonial.isApproved}
-                              type="button"
-                              title={testimonial.isApproved ? (testimonial.isFeatured ? "Quitar destacado" : "Destacar") : "Debes aprobar primero"}
-                            >
-                              {testimonial.isFeatured ? '⭐ Destacado' : '☆ Destacar'}
-                            </button>
-                            
-                            <button 
-                              className="button button--danger button--small" 
-                              onClick={() => void handleDeleteTestimonial(testimonial.id)}
-                              disabled={loading}
-                              type="button"
-                            >
-                              🗑️ Eliminar
-                            </button>
+                            {/* Botones de destacar y eliminar removidos */}
                           </div>
                         </div>
                       ))}
