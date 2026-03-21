@@ -2647,15 +2647,15 @@ export function App() {
             <div className="shop-list">
               {products.map((product) => (
                 <article className="shop-card" key={product.id}>
-                  <div className="shop-image" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 120, marginBottom: 12 }}>
+                  <div className="shop-image" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 180, marginBottom: 16 }}>
                     {product.image ? (
                       <img
                         src={apiBase && product.image && !product.image.startsWith("http") ? absoluteApiUrl(apiBase, product.image) : product.image}
                         alt={product.name}
-                        style={{ maxWidth: 100, maxHeight: 100, borderRadius: 8, objectFit: 'cover', background: '#222' }}
+                        style={{ maxWidth: 160, maxHeight: 160, borderRadius: 12, objectFit: 'cover', background: '#222' }}
                       />
                     ) : (
-                      <div style={{ width: 100, height: 100, borderRadius: 8, background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 32 }}>
+                      <div style={{ width: 160, height: 160, borderRadius: 12, background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 48 }}>
                         🛒
                       </div>
                     )}
