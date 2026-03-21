@@ -567,7 +567,12 @@ export function App() {
       const savedUserId = window.localStorage.getItem("barbados360.userId");
       if (savedUserId) {
         bootstrapSession(discovered, savedUserId).then(() => {
-          setRoute("dashboard");
+          // Solo redirigir si realmente hay usuario en sesión
+          if (window.localStorage.getItem("barbados360.userId") && sessionUser) {
+            setRoute("dashboard");
+          } else {
+            setRoute("home");
+          }
         });
       }
     }).catch((err) => {
