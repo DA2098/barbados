@@ -2644,62 +2644,75 @@ export function App() {
         <main className="content-shell">
           <section className="panel panel--full">
             <SectionHeader title="🛍️ Tienda de productos" subtitle="Geles, pómadas, champús y accesorios para el cuidado de tu cabello y barba. ¡Compra ahora!" />
-            <div className="shop-list">
+            <div className="shop-list" style={{ display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'center', alignItems: 'stretch' }}>
               {products.map((product) => (
-                <article className="shop-card" key={product.id}>
-                  <div className="shop-image" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 180, marginBottom: 16 }}>
+                <article className="shop-card" key={product.id} style={{
+                  background: '#181c24',
+                  borderRadius: 18,
+                  boxShadow: '0 4px 24px 0 rgba(0,0,0,0.18)',
+                  border: '1.5px solid #23283a',
+                  padding: 24,
+                  margin: '18px 0',
+                  maxWidth: 340,
+                  minWidth: 260,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  transition: 'box-shadow 0.2s',
+                }}>
+                  <div className="shop-image" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 220, marginBottom: 18 }}>
                     {product.image ? (
                       <img
                         src={apiBase && product.image && !product.image.startsWith("http") ? absoluteApiUrl(apiBase, product.image) : product.image}
                         alt={product.name}
-                        style={{ maxWidth: 160, maxHeight: 160, borderRadius: 12, objectFit: 'cover', background: '#222' }}
+                        style={{ maxWidth: 210, maxHeight: 210, borderRadius: 16, objectFit: 'cover', background: '#222', boxShadow: '0 2px 12px 0 #0006' }}
                       />
                     ) : (
-                      <div style={{ width: 160, height: 160, borderRadius: 12, background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 48 }}>
+                      <div style={{ width: 210, height: 210, borderRadius: 16, background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', fontSize: 64, boxShadow: '0 2px 12px 0 #0006' }}>
                         🛒
                       </div>
                     )}
                   </div>
-                  <div className="shop-body">
-                    <div className="entity-card__header">
+                  <div className="shop-body" style={{ width: '100%', textAlign: 'center' }}>
+                    <div className="entity-card__header" style={{ justifyContent: 'center', marginBottom: 8 }}>
                       <div>
-                        <h4>{product.name}</h4>
-                        <p className="shop-category">📦 {product.category}</p>
+                        <h3 style={{ fontSize: 22, margin: 0, color: '#fff', fontWeight: 700 }}>{product.name}</h3>
+                        <p className="shop-category" style={{ color: '#b6b6b6', fontSize: 15, margin: '2px 0 0 0' }}>📦 {product.category}</p>
                       </div>
+                    </div>
+                    <p className="shop-description" style={{ color: '#e0e0e0', fontSize: 16, margin: '12px 0 18px 0', minHeight: 48 }}>{product.description}</p>
+                    <div className="shop-meta" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 10 }}>
+                      <strong className="shop-price" style={{ fontSize: 22, color: '#ffd700', letterSpacing: 1 }}>{money.format(product.price)}</strong>
                       <Badge label={product.stock > 0 ? `${product.stock} stock` : "Agotado"} variant={product.stock > 0 ? "success" : "danger"} />
                     </div>
-                    <p className="shop-description">{product.description}</p>
-                    <div className="shop-meta" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <strong className="shop-price">{money.format(product.price)}</strong>
-                      {sessionUser && sessionUser.role === "client" ? (
-                        <button
-                          className="button button--primary"
-                          style={{ marginLeft: 8, minWidth: 90 }}
-                          disabled={product.stock <= 0 || loading}
-                          onClick={async () => {
-                            if (!apiBase || !sessionUser) return;
-                            setLoading(true);
-                            setError("");
-                            setSuccess("Agregando al carrito...");
-                            try {
-                              await apiRequest(apiBase, `/cart`, {
-                                method: "POST",
-                                ...jsonBody({ product_id: product.id, quantity: 1, client_id: sessionUser.id }),
-                              });
-                              await refreshSession();
-                              setSuccess("Producto agregado al carrito.");
-                            } catch (err) {
-                              setError(err instanceof Error ? err.message : "No se pudo agregar al carrito.");
-                            } finally {
-                              setLoading(false);
-                            }
-                          }}
-                          type="button"
-                        >
-                          {product.stock > 0 ? "Agregar" : "Sin stock"}
-                        </button>
-                      ) : null}
-                    </div>
+                    {sessionUser && sessionUser.role === "client" ? (
+                      <button
+                        className="button button--primary"
+                        style={{ width: '100%', fontSize: 18, padding: '12px 0', borderRadius: 10, marginTop: 8, background: '#2e7d32', color: '#fff', fontWeight: 700, boxShadow: '0 2px 8px 0 #0003', opacity: product.stock > 0 ? 1 : 0.6 }}
+                        disabled={product.stock <= 0 || loading}
+                        onClick={async () => {
+                          if (!apiBase || !sessionUser) return;
+                          setLoading(true);
+                          setError("");
+                          setSuccess("Agregando al carrito...");
+                          try {
+                            await apiRequest(apiBase, `/cart`, {
+                              method: "POST",
+                              ...jsonBody({ product_id: product.id, quantity: 1, client_id: sessionUser.id }),
+                            });
+                            await refreshSession();
+                            setSuccess("Producto agregado al carrito.");
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : "No se pudo agregar al carrito.");
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                        type="button"
+                      >
+                        {product.stock > 0 ? "Agregar al carrito" : "Sin stock"}
+                      </button>
+                    ) : null}
                   </div>
                 </article>
               ))}
