@@ -3101,17 +3101,11 @@ export function App() {
                   <SectionHeader title="Crear producto" subtitle="Agregar nueva mercancía al inventario." />
                   <form className="form-grid" onSubmit={(event) => void createProduct(event)}>
                     <input className="input" placeholder="Nombre" value={productForm.name} onChange={(event) => setProductForm((current) => ({ ...current, name: event.target.value }))} />
-                                        <input className="input" placeholder="Nombre" value={productForm.name} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, name: event.target.value }))} />
                     <input className="input" placeholder="Categoría" value={productForm.category} onChange={(event) => setProductForm((current) => ({ ...current, category: event.target.value }))} />
-                                        <input className="input" placeholder="Categoría" value={productForm.category} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, category: event.target.value }))} />
                     <input className="input" type="number" placeholder="Precio" value={productForm.price} onChange={(event) => setProductForm((current) => ({ ...current, price: Number(event.target.value) }))} />
-                                        <input className="input" type="number" placeholder="Precio" value={productForm.price} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, price: Number(event.target.value) }))} />
                     <input className="input" type="number" placeholder="Stock" value={productForm.stock} onChange={(event) => setProductForm((current) => ({ ...current, stock: Number(event.target.value) }))} />
-                                        <input className="input" type="number" placeholder="Stock" value={productForm.stock} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, stock: Number(event.target.value) }))} />
                     <input className="input field--full" placeholder="URL de imagen" value={productForm.image} onChange={(event) => setProductForm((current) => ({ ...current, image: event.target.value }))} />
-                                        <input className="input field--full" placeholder="URL de imagen" value={productForm.image} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, image: event.target.value }))} />
                     <textarea className="textarea field--full" placeholder="Descripción" value={productForm.description} onChange={(event) => setProductForm((current) => ({ ...current, description: event.target.value }))} />
-                                        <textarea className="textarea field--full" placeholder="Descripción" value={productForm.description} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, description: event.target.value }))} />
                     <div className="field-actions"><button className="button button--primary" type="submit">Guardar producto</button></div>
                   </form>
                 </div>
