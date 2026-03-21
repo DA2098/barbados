@@ -1,4 +1,13 @@
-// (el useEffect de redirección se colocará después de las declaraciones de sessionUser, route y setRoute)
+// ===============================
+// Archivo principal de la aplicación React (App.tsx)
+// Este archivo contiene toda la lógica y el renderizado de la app de barbería.
+// Cada bloque, función y variable está documentada para máxima comprensión.
+// ===============================
+
+// Importaciones de React y tipos de datos usados en toda la app
+// useEffect, useState, useMemo, etc. son hooks de React para manejar estado y efectos secundarios
+// Los tipos importados de './types' definen la estructura de los datos principales (usuarios, productos, citas, etc.)
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChangeEvent,
@@ -34,6 +43,8 @@ import type {
   Service
 } from "./types";
 // Add missing normalizeApplication function if not present
+// Función para normalizar los datos de una aplicación de barbero recibida del backend
+// Convierte los campos a los tipos y nombres esperados en el frontend
 function normalizeApplication(raw: Record<string, unknown>): BarberApplication {
   return {
     id: String(raw.id ?? ""),
@@ -56,12 +67,14 @@ const showcaseStyle = "https://images.pexels.com/photos/1805600/pexels-photo-180
 const showcaseBeard = "https://images.pexels.com/photos/2881253/pexels-photo-2881253.jpeg?auto=compress&cs=tinysrgb&w=800";
 const heroFallbackImage = "https://images.pexels.com/photos/1805600/pexels-photo-1805600.jpeg?auto=compress&cs=tinysrgb&w=1920";
 
+// Formateador de dinero en pesos mexicanos, usado para mostrar precios y totales
 const money = new Intl.NumberFormat("es-MX", {
   style: "currency",
   currency: "MXN",
   maximumFractionDigits: 0,
 });
 
+// Formateadores de fecha y hora para mostrar datos legibles en español
 const dateTime = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
   timeStyle: "short",
@@ -71,11 +84,13 @@ const dateOnly = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
 });
 
+// Convierte un objeto Date a un string compatible con inputs de tipo "datetime-local"
 function toInputDate(date: Date) {
   const offset = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
+// Devuelve el color/tono visual según el estado de una entidad (cita, pago, etc.)
 function tone(status: string) {
   if (["accepted", "completed", "approved", "paid"].includes(status)) return "success";
   if (["pending"].includes(status)) return "warning";
@@ -83,6 +98,7 @@ function tone(status: string) {
   return "info";
 }
 
+// Devuelve la etiqueta en español para cada estado de cita, pago, etc.
 function statusLabel(status: string) {
   switch (status) {
     case "pending":
@@ -104,12 +120,14 @@ function statusLabel(status: string) {
   }
 }
 
+// Devuelve la etiqueta en español para cada rol de usuario
 function roleLabel(role: Role) {
   if (role === "admin") return "Administrador";
   if (role === "barber") return "Barbero";
   return "Cliente";
 }
 
+// Normaliza los datos de usuario recibidos del backend para asegurar que tengan el formato y avatar correcto
 function normalizeUser(raw: Record<string, unknown>): User {
   // Avatar: si no existe o da error de carga, usar avatar por defecto
   let avatarUrl = String(raw.avatar ?? raw.avatar_url ?? "");
@@ -1029,18 +1047,14 @@ export function App() {
         previousMessageCountRef.current = 0;
         setLoginForm({ email: "", password: "" });
 
-        // Cargar datos completos y establecer sessionUser para mostrar el panel
+        // Redirigir INMEDIATAMENTE al dashboard (antes de cargar datos completos)
+        setRoute("dashboard");
+        setDashboardTab("overview");
+        setSuccess("");
+
+        // Cargar datos completos y establecer sessionUser para mostrar el panel correcto
         await bootstrapSession(apiBase, userId);
-        // Redirigir al instante al panel correcto según el rol
-        if (window.localStorage.getItem("barbados360.userId")) {
-          setRoute("dashboard");
-          setDashboardTab("overview");
-          setSuccess(""); // Quitar cualquier banner de redirección
-        } else {
-          setRoute("home");
-          setDashboardTab("overview");
-          setError("No se pudo cargar la sesión. Intenta de nuevo.");
-        }
+        // Si quieres redirigir a un tab específico según el rol, puedes hacerlo aquí (opcional)
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
@@ -1176,6 +1190,7 @@ export function App() {
   }
 
   // Cargar cortes detallados de un barbero específico (para admin)
+  // Carga los cortes detallados de un barbero específico (solo para admin)
   async function loadBarberCutsDetail(barberId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     try {
@@ -1205,6 +1220,8 @@ export function App() {
   }
 
   // Expandir/colapsar detalles de un barbero
+  // Expande o colapsa la sección de detalles de un barbero en el resumen admin
+  // Si no están cargados los detalles, los solicita al backend
   function toggleBarberExpand(barberId: string) {
     setExpandedBarberIds(prev => {
       const next = new Set(prev);
@@ -1222,6 +1239,8 @@ export function App() {
     });
   }
 
+  // Maneja el registro de un nuevo corte por parte del barbero
+  // Valida los campos y envía la información al backend
   async function handleRegisterCut(event: React.FormEvent) {
     event.preventDefault();
     if (!apiBase || !sessionUser || sessionUser.role !== "barber") return;
@@ -1254,6 +1273,7 @@ export function App() {
     }
   }
 
+  // Elimina un corte registrado por el barbero (con confirmación)
   async function handleDeleteCut(cutId: string) {
     if (!apiBase || !sessionUser) return;
     if (!window.confirm("¿Eliminar este corte?")) return;
@@ -1296,27 +1316,7 @@ export function App() {
     if (userId) {
       window.localStorage.removeItem(`barbados360.alertShown.${userId}`);
     }
-    setSessionUser(null);
-    setUsers([]);
-    setServices([]);
-    setProducts([]);
-    setApplications([]);
-    setAppointments([]);
-    setConversations([]);
-    setNotifications([]);
-    setOrders([]);
-    setCart([]);
-    setSummary(null);
-    setAccountProfile(null);
-    setSelectedConversationId("");
-    setShowUnreadBanner(false);
-    setInitialAlertShown(false);
-    setSeenCountsLoaded(false);
-    setRoute("home");
-    setDashboardTab("overview");
-    previousNotificationCountRef.current = 0;
-    previousMessageCountRef.current = 0;
-    // Limpiar todos los estados antes de iniciar nueva sesión
+    // Limpiar todos los estados
     setSessionUser(null);
     setUsers([]);
     setServices([]);
@@ -1334,7 +1334,7 @@ export function App() {
     setInitialAlertShown(false);
     setSeenCountsLoaded(false);
     setDashboardTab("overview");
-    setRoute("dashboard");
+    setRoute("home"); // Siempre dirigir al inicio tras cerrar sesión
     previousNotificationCountRef.current = 0;
     previousMessageCountRef.current = 0;
   }
