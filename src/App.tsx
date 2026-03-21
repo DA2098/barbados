@@ -341,15 +341,20 @@ function AccordionItem({ icon, title, children, defaultOpen = false }: { icon: s
 export function App() {
         // Eliminar postulaciones (applications)
         function deleteApplication(applicationId: string) {
-          const prevApplications = [...applications];
-          setApplications(applications => applications.filter(a => a.id !== applicationId));
-          setSuccess("Postulación eliminada (sincronizando)");
+          setSuccess("Eliminando postulación...");
           if (!apiBase) return;
           apiRequest(apiBase, `/applications/${applicationId}`, { method: "DELETE" })
-            .then(() => setSuccess("Postulación eliminada correctamente"))
+            .then((response) => {
+              // Solo elimina del estado si el backend responde éxito
+              if (response && response.ok) {
+                setApplications(applications => applications.filter(a => a.id !== applicationId));
+                setSuccess("Postulación eliminada correctamente");
+              } else {
+                setError("No se pudo eliminar la postulación. El backend no respondió éxito.");
+              }
+            })
             .catch((err: any) => {
-              setApplications(prevApplications);
-              setError(err instanceof Error ? err.message : "No se pudo eliminar la postulación.");
+              setError(err instanceof Error ? err.message : "No se pudo eliminar la postulación. El backend no respondió éxito.");
             });
         }
       // Edición inline de usuario
