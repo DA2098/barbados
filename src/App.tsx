@@ -339,6 +339,19 @@ function AccordionItem({ icon, title, children, defaultOpen = false }: { icon: s
 }
 
 export function App() {
+        // Eliminar postulaciones (applications)
+        function deleteApplication(applicationId: string) {
+          const prevApplications = [...applications];
+          setApplications(applications => applications.filter(a => a.id !== applicationId));
+          setSuccess("Postulación eliminada (sincronizando)");
+          if (!apiBase) return;
+          apiRequest(apiBase, `/applications/${applicationId}`, { method: "DELETE" })
+            .then(() => setSuccess("Postulación eliminada correctamente"))
+            .catch((err: any) => {
+              setApplications(prevApplications);
+              setError(err instanceof Error ? err.message : "No se pudo eliminar la postulación.");
+            });
+        }
       // Edición inline de usuario
       const [editingUserId, setEditingUserId] = useState<string | null>(null);
       const [editUserForm, setEditUserForm] = useState({ name: "", email: "", role: "client", active: true });
@@ -3234,9 +3247,12 @@ export function App() {
                   {applications.map((application) => (
                     <article className="entity-card" key={application.id}>
                       <div className="entity-card__header">
-                        <div>
-                          <h4>{application.name}</h4>
-                          <p>{application.specialty}</p>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%'}}>
+                          <div>
+                            <h4>{application.name}</h4>
+                            <p>{application.specialty}</p>
+                          </div>
+                          <button className="button button--danger button--small" style={{marginLeft:8}} onClick={() => deleteApplication(application.id)} type="button">Eliminar</button>
                         </div>
                         <Badge label={statusLabel(application.status)} variant={tone(application.status)} />
                       </div>
