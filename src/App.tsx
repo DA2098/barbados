@@ -3058,7 +3058,11 @@ export function App() {
                             <tr key={product.id}>
                               <td>
                                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                                  <img src={product.image} alt={product.name} style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8 }} />
+                                  <img
+                                    src={apiBase && product.image && !product.image.startsWith("http") ? absoluteApiUrl(apiBase, product.image) : product.image}
+                                    alt={product.name}
+                                    style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8 }}
+                                  />
                                   <div style={{ display: "flex", gap: 2 }}>
                                     <label className="button button--ghost button--small" style={{ fontSize: "0.65rem", padding: "2px 4px", cursor: loading ? "not-allowed" : "pointer" }}>
                                       📁
