@@ -980,6 +980,8 @@ export function App() {
     setLoading(true);
     setError("");
     setSuccess("Iniciando sesión...");
+    // Feedback visual inmediato
+    setTimeout(() => setSuccess("¡Bienvenido! Redirigiendo..."), 200);
 
     // Limpiar todo el estado antes de iniciar nueva sesión
     setSessionUser(null);
@@ -1630,6 +1632,8 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
     setSuccess("Creando producto...");
+    // Feedback visual inmediato
+    setTimeout(() => setSuccess("Producto creado (sincronizando)..."), 200);
     try {
       await apiRequest(apiBase, "/products", {
         method: "POST",
@@ -1649,6 +1653,7 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     // Optimistic UI: refleja el cambio al instante, sin loader
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
+    setSuccess("Producto actualizado (sincronizando)...");
     const mappedPayload = mapProductPayload(payload);
     apiRequest(apiBase, `/products/${productId}`, {
       method: "PATCH",
@@ -1671,6 +1676,7 @@ export function App() {
     if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
     // Optimistic UI: elimina el producto localmente al instante
     setProducts(prev => prev.filter(p => p.id !== productId));
+    setSuccess("Producto eliminado (sincronizando)...");
     apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" })
       .then(() => {
         refreshProducts();
@@ -1689,6 +1695,7 @@ export function App() {
     if (!file || !apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setError("");
     setSuccess("Actualizando imagen...");
+    setTimeout(() => setSuccess("Imagen actualizada (sincronizando)..."), 200);
     // Optimistic UI: mostrar preview instantáneo
     const reader = new FileReader();
     reader.onload = async () => {
@@ -1714,6 +1721,7 @@ export function App() {
   async function refreshProducts() {
     if (!apiBase) return;
     setLoading(true);
+    setSuccess("Sincronizando productos...");
     try {
       const actorId = sessionUser ? sessionUser.id : "";
       const response = await apiRequest(apiBase, `/products?actor_id=${actorId}`);
