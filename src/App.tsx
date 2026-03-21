@@ -1018,7 +1018,7 @@ export function App() {
     setInitialAlertShown(false);
     setSeenCountsLoaded(false);
     setDashboardTab("overview");
-    setRoute("home");
+    setRoute("dashboard");
     previousNotificationCountRef.current = 0;
     previousMessageCountRef.current = 0;
 
@@ -1038,16 +1038,10 @@ export function App() {
 
         // Cargar datos completos y establecer sessionUser para mostrar el panel
         await bootstrapSession(apiBase, userId);
-        // Redirigir al instante al panel correcto según el rol
-        if (window.localStorage.getItem("barbados360.userId")) {
-          setRoute("dashboard");
-          setDashboardTab("overview");
-          setSuccess(""); // Quitar cualquier banner de redirección
-        } else {
-          setRoute("home");
-          setDashboardTab("overview");
-          setError("No se pudo cargar la sesión. Intenta de nuevo.");
-        }
+        // Redirigir SIEMPRE al panel tras login
+        setRoute("dashboard");
+        setDashboardTab("overview");
+        setSuccess(""); // Quitar cualquier banner de redirección
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
