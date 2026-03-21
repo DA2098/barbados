@@ -413,7 +413,9 @@ export function App() {
       const name = normalize(p.name);
       if (seen.has(name)) return false;
       seen.add(name);
-      return true;
+      // Solo admin ve todos, los demás solo activos
+      if (sessionUser && sessionUser.role === "admin") return true;
+      return p.active;
     });
   }, [products]);
   // Inline editing state for products
@@ -1035,13 +1037,12 @@ export function App() {
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
         setLoginForm({ email: "", password: "" });
-
-        // Cargar datos completos y establecer sessionUser para mostrar el panel
-        await bootstrapSession(apiBase, userId);
-        // Redirigir SIEMPRE al panel tras login
+        // Redirigir INSTANTÁNEAMENTE al panel (antes de cargar datos)
         setRoute("dashboard");
         setDashboardTab("overview");
-        setSuccess(""); // Quitar cualquier banner de redirección
+        setSuccess("");
+        // Cargar datos completos y establecer sessionUser para mostrar el panel
+        await bootstrapSession(apiBase, userId);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
@@ -1683,9 +1684,23 @@ export function App() {
     // Prevent toggling if already in desired state
     if (typeof payload.active === "boolean") {
       const product = products.find((p) => p.id === productId);
-      if (product && product.active === payload.active) {
-        setError(payload.active ? "El producto ya está activo." : "El producto ya está desactivado.");
-        return;
+      // Solo el admin puede reactivar
+      if (payload.active === true) {
+        if (!sessionUser || sessionUser.role !== "admin") {
+          setError("Solo el admin puede reactivar productos.");
+          return;
+        }
+        if (product && product.active) {
+          setError("El producto ya está activo.");
+          return;
+        }
+      }
+      // Desactivar: solo si está activo
+      if (payload.active === false) {
+        if (product && !product.active) {
+          setError("El producto ya está desactivado.");
+          return;
+        }
       }
     }
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
