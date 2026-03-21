@@ -1,5 +1,4 @@
 // (el useEffect de redirección se colocará después de las declaraciones de sessionUser, route y setRoute)
-// (el useEffect de redirección se colocará después de las declaraciones de sessionUser, route y setRoute)
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChangeEvent,
@@ -339,51 +338,6 @@ function AccordionItem({ icon, title, children, defaultOpen = false }: { icon: s
 }
 
 export function App() {
-        // Eliminar postulaciones (applications)
-        function deleteApplication(applicationId: string) {
-          setSuccess("Eliminando postulación...");
-          if (!apiBase) return;
-          apiRequest(apiBase, `/api/applications/${applicationId}`, { method: "DELETE" })
-            .then((response) => {
-              // Solo elimina del estado si el backend responde éxito
-              if (response && response.ok) {
-                setApplications(applications => applications.filter(a => a.id !== applicationId));
-                setSuccess("Postulación eliminada correctamente");
-              } else {
-                setError("No se pudo eliminar la postulación. El backend no respondió éxito.");
-              }
-            })
-            .catch((err: any) => {
-              setError(err instanceof Error ? err.message : "No se pudo eliminar la postulación. El backend no respondió éxito.");
-            });
-        }
-      // Edición inline de usuario
-      const [editingUserId, setEditingUserId] = useState<string | null>(null);
-      const [editUserForm, setEditUserForm] = useState({ name: "", email: "", role: "client", active: true });
-
-      function startEditUser(user: User) {
-        setEditingUserId(user.id);
-        setEditUserForm({ name: user.name, email: user.email, role: user.role, active: user.active });
-      }
-
-      function saveUserEdit(userId: string) {
-        const prevUsers = [...users];
-        setUsers((users: User[]) => users.map((u: User) =>
-          u.id === userId ? { ...u, ...editUserForm, role: editUserForm.role as Role } : u
-        ));
-        setEditingUserId(null);
-        setSuccess("Usuario actualizado (sincronizando)");
-        if (!apiBase) return;
-        apiRequest(apiBase, `/users/${userId}`, {
-          method: "PATCH",
-          ...jsonBody({ ...editUserForm, role: editUserForm.role as Role }),
-        })
-          .then(() => setSuccess("Usuario actualizado correctamente"))
-          .catch((err: any) => {
-            setUsers(prevUsers);
-            setError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
-          });
-      }
     // Estado manual para activación/desactivación de productos
     // Eliminado: manualProductState no se usa
   const [route, setRoute] = useState<Route>("home");
@@ -411,12 +365,6 @@ export function App() {
 
   // (Variables instant* eliminadas, ya no se usan)
   const [sessionUser, setSessionUser] = useState<User | null>(null);
-    // Redirigir automáticamente al panel si hay sesión activa y la ruta es home
-    useEffect(() => {
-      if (sessionUser && route === "home") {
-        setRoute("dashboard");
-      }
-    }, [sessionUser, route]);
   // Siempre usar cache localStorage para render instantáneo de usuarios/barberos
   const [users, setUsers] = useState<User[]>(() => {
     try {
@@ -453,15 +401,12 @@ export function App() {
 
   // Productos únicos por nombre para el panel admin
   const uniqueProducts = useMemo(() => {
-    const normalize = (str: string) => str.trim().replace(/\s+/g, " ").toLowerCase();
     const seen = new Set<string>();
     return products.filter((p: Product) => {
-      const name = normalize(p.name);
+      const name = p.name.trim().toLowerCase();
       if (seen.has(name)) return false;
       seen.add(name);
-      // Solo admin ve todos, los demás solo activos
-      if (sessionUser && sessionUser.role === "admin") return true;
-      return p.active;
+      return true;
     });
   }, [products]);
   // Inline editing state for products
@@ -471,109 +416,8 @@ export function App() {
     category: "",
     price: 0,
     description: "",
-    stock: 0,
-    image: ""
+    stock: 0
   });
-    // Renderiza formulario de edición de producto
-    const renderEditProductForm = (product: Product) => {
-      return (
-        <form
-          className="edit-product-form"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            await patchProduct(product.id, editProductForm);
-            setEditingProductId(null);
-          }}
-          style={{ background: "#181c23", padding: 16, borderRadius: 8, marginBottom: 16 }}
-        >
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <input
-              type="text"
-              value={editProductForm.name}
-              placeholder="Nombre"
-              onChange={e => setEditProductForm(f => ({ ...f, name: e.target.value }))}
-              required
-              style={{ flex: 1 }}
-            />
-            <input
-              type="text"
-              value={editProductForm.category}
-              placeholder="Categoría"
-              onChange={e => setEditProductForm(f => ({ ...f, category: e.target.value }))}
-              required
-              style={{ flex: 1 }}
-            />
-            <input
-              type="number"
-              value={editProductForm.price}
-              placeholder="Precio"
-              min={0}
-              onChange={e => setEditProductForm(f => ({ ...f, price: Number(e.target.value) }))}
-              required
-              style={{ width: 80 }}
-            />
-            <input
-              type="number"
-              value={editProductForm.stock}
-              placeholder="Stock"
-              min={0}
-              onChange={e => setEditProductForm(f => ({ ...f, stock: Number(e.target.value) }))}
-              required
-              style={{ width: 80 }}
-            />
-          </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <textarea
-              value={editProductForm.description}
-              placeholder="Descripción"
-              onChange={e => setEditProductForm(f => ({ ...f, description: e.target.value }))}
-              rows={2}
-              style={{ flex: 2 }}
-            />
-            <input
-              type="text"
-              value={editProductForm.image}
-              placeholder="URL de imagen"
-              onChange={e => setEditProductForm(f => ({ ...f, image: e.target.value }))}
-              style={{ flex: 2 }}
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={e => uploadProductImage(product.id, e)}
-              style={{ flex: 1 }}
-            />
-          </div>
-          <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-            <button type="submit" style={{ background: '#1abc9c', color: '#fff', border: 0, borderRadius: 4, padding: '6px 16px' }}>Guardar</button>
-            <button type="button" onClick={() => setEditingProductId(null)} style={{ background: '#444', color: '#fff', border: 0, borderRadius: 4, padding: '6px 16px' }}>Cancelar</button>
-          </div>
-        </form>
-      );
-    }
-    // Ejemplo de integración (ajusta según tu renderizado de inventario):
-    // Ejemplo de integración (ajusta según tu renderizado de inventario):
-    {uniqueProducts.map(product => (
-      <div key={product.id}>
-        {editingProductId === product.id
-          ? renderEditProductForm(product)
-          : <>
-              {/* ...render info producto... */}
-              <button onClick={() => {
-                setEditingProductId(product.id);
-                setEditProductForm({
-                  name: product.name,
-                  category: product.category,
-                  price: product.price,
-                  description: product.description,
-                  stock: product.stock,
-                  image: product.image || ""
-                });
-              }}>Editar</button>
-            </>
-        }
-      </div>
-    ))}
   const [applications, setApplications] = useState<BarberApplication[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -1033,7 +877,6 @@ export function App() {
       }
 
       setSessionUser(payload.user);
-      setTimeout(() => setRoute("dashboard"), 0);
       // Refrescar solo el usuario actual en el cache local para evitar mostrar avatar viejo
       try {
         const cachedUsers = window.localStorage.getItem("barbados360.users");
@@ -1168,7 +1011,7 @@ export function App() {
     setInitialAlertShown(false);
     setSeenCountsLoaded(false);
     setDashboardTab("overview");
-    setRoute("dashboard");
+    setRoute("home");
     previousNotificationCountRef.current = 0;
     previousMessageCountRef.current = 0;
 
@@ -1185,12 +1028,19 @@ export function App() {
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
         setLoginForm({ email: "", password: "" });
-        // Redirigir INSTANTÁNEAMENTE al panel (antes de cargar datos)
-        setRoute("dashboard");
-        setDashboardTab("overview");
-        setSuccess("");
+
         // Cargar datos completos y establecer sessionUser para mostrar el panel
         await bootstrapSession(apiBase, userId);
+        // Redirigir al instante al panel correcto según el rol
+        if (window.localStorage.getItem("barbados360.userId")) {
+          setRoute("dashboard");
+          setDashboardTab("overview");
+          setSuccess(""); // Quitar cualquier banner de redirección
+        } else {
+          setRoute("home");
+          setDashboardTab("overview");
+          setError("No se pudo cargar la sesión. Intenta de nuevo.");
+        }
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
@@ -1462,16 +1312,31 @@ export function App() {
     setShowUnreadBanner(false);
     setInitialAlertShown(false);
     setSeenCountsLoaded(false);
-    setDashboardTab("overview");
     setRoute("home");
+    setDashboardTab("overview");
     previousNotificationCountRef.current = 0;
     previousMessageCountRef.current = 0;
-    // Redirección instantánea y recarga para máxima velocidad UX
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        window.location.href = "/";
-      }
-    }, 0);
+    // Limpiar todos los estados antes de iniciar nueva sesión
+    setSessionUser(null);
+    setUsers([]);
+    setServices([]);
+    setProducts([]);
+    setApplications([]);
+    setAppointments([]);
+    setConversations([]);
+    setNotifications([]);
+    setOrders([]);
+    setCart([]);
+    setSummary(null);
+    setAccountProfile(null);
+    setSelectedConversationId("");
+    setShowUnreadBanner(false);
+    setInitialAlertShown(false);
+    setSeenCountsLoaded(false);
+    setDashboardTab("overview");
+    setRoute("dashboard");
+    previousNotificationCountRef.current = 0;
+    previousMessageCountRef.current = 0;
   }
 
   async function handleApply(event: FormEvent<HTMLFormElement>) {
@@ -1553,7 +1418,7 @@ export function App() {
     try {
       const appointment = appointments.find((item) => item.id === appointmentId);
       const client = appointment ? usersById[appointment.clientId] : null;
-      const service = appointment ? services.find((s) => s.id === appointment.serviceId) : null;
+      const service = appointment ? servicesById[appointment.serviceId] : null;
       const response = await apiRequest<{ id?: string }>(apiBase, "/conversations", {
         method: "POST",
         ...jsonBody({
@@ -1720,35 +1585,33 @@ export function App() {
 
   async function toggleUser(user: User) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    // UI instantánea: actualiza local
-    const prevUsers = [...users];
-    setUsers(users => users.map(u => u.id === user.id ? { ...u, active: !u.active } : u));
-    setSuccess("Usuario actualizado (sincronizando)");
-    // Petición en background
-    apiRequest(apiBase, `/users/${user.id}`, {
-      method: "PATCH",
-      ...jsonBody({ active: !user.active }),
-    })
-      .then(() => setSuccess("Usuario actualizado correctamente"))
-      .catch(err => {
-        setUsers(prevUsers); // Revierte si falla
-        setError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
+    setLoading(true);
+    setSuccess("Actualizando usuario...");
+    try {
+      await apiRequest(apiBase, `/users/${user.id}`, {
+        method: "PATCH",
+        ...jsonBody({ active: !user.active }),
       });
+      await refreshSession();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function deleteUser(userId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    // UI instantánea: elimina local
-    const prevUsers = [...users];
-    setUsers(users => users.filter(u => u.id !== userId));
-    setSuccess("Usuario eliminado (sincronizando)");
-    // Petición en background
-    apiRequest(apiBase, `/users/${userId}`, { method: "DELETE" })
-      .then(() => setSuccess("Usuario eliminado correctamente"))
-      .catch(err => {
-        setUsers(prevUsers); // Revierte si falla
-        setError(err instanceof Error ? err.message : "No se pudo eliminar el usuario.");
-      });
+    setLoading(true);
+    setSuccess("Eliminando usuario...");
+    try {
+      await apiRequest(apiBase, `/users/${userId}`, { method: "DELETE" });
+      await refreshSession();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo eliminar el usuario.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function reviewApplication(applicationId: string, decision: "approve" | "reject") {
@@ -1777,31 +1640,18 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
     setSuccess("Creando producto...");
-    // Normalizar nombre y categoría antes de crear
-    const normalize = (str: string) => str.trim().replace(/\s+/g, " ").toLowerCase();
-    const normalizedName = normalize(productForm.name);
-    const normalizedCategory = normalize(productForm.category);
-    // Validar que no se repita el nombre (case-insensitive, ignora espacios y mayúsculas)
-    const exists = products.some(
-      (p) => normalize(p.name) === normalizedName
-    );
+    // Validar que no se repita el nombre
+    const exists = products.some(p => p.name.trim().toLowerCase() === productForm.name.trim().toLowerCase());
     if (exists) {
       setError("Ya existe un producto con ese nombre.");
       setLoading(false);
       return;
     }
-    // Capitalizar la primera letra de cada palabra
-    const capitalizeWords = (str: string) => str.replace(/\b\w/g, c => c.toUpperCase());
-    const newProduct = {
-      ...productForm,
-      name: capitalizeWords(normalizedName),
-      category: capitalizeWords(normalizedCategory),
-    };
     setTimeout(() => setSuccess("Producto creado (sincronizando)..."), 200);
     try {
       await apiRequest(apiBase, "/products", {
         method: "POST",
-        ...jsonBody(newProduct),
+        ...jsonBody(productForm),
       });
       await refreshSession();
       setProductForm({ name: "", category: "Styling", description: "", price: 0, stock: 0, image: "" });
@@ -1816,59 +1666,33 @@ export function App() {
   async function patchProduct(productId: string, payload: Partial<Product>) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     // Optimistic UI: refleja el cambio al instante, sin loader
-    // Prevent toggling if already in desired state
-    if (typeof payload.active === "boolean") {
-      const product = products.find((p) => p.id === productId);
-      // Solo el admin puede reactivar
-      if (payload.active === true) {
-        if (!sessionUser || sessionUser.role !== "admin") {
-          setError("Solo el admin puede reactivar productos.");
-          return;
-        }
-        if (product && product.active) {
-          setError("El producto ya está activo.");
-          return;
-        }
-      }
-      // Desactivar: solo si está activo
-      if (payload.active === false) {
-        if (product && !product.active) {
-          setError("El producto ya está desactivado.");
-          return;
-        }
-      }
-      // Nunca invertir el estado automáticamente ni reactivar tras desactivar
-    }
-    setLoading(true);
-    setError("");
-    setSuccess("Actualizando producto...");
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
+    setSuccess("Producto actualizado (sincronizando)...");
     const mappedPayload = mapProductPayload(payload);
     try {
       await apiRequest(apiBase, `/products/${productId}`, {
         method: "PATCH",
         ...jsonBody(mappedPayload),
       });
+      await refreshProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
-    } finally {
       await refreshProducts();
-      setLoading(false);
     }
   }
 
   async function removeProduct(productId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
-    setLoading(true);
-    setError("");
-    setSuccess("Eliminando producto...");
+    // Optimistic UI: elimina el producto localmente al instante
+    setProducts(prev => prev.filter(p => p.id !== productId));
+    setSuccess("Producto eliminado (sincronizando)...");
     try {
       await apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" });
+      await refreshProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
-    } finally {
       await refreshProducts();
-      setLoading(false);
     }
   }
 
@@ -1876,21 +1700,27 @@ export function App() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    setLoading(true);
     setError("");
     setSuccess("Actualizando imagen...");
+    setTimeout(() => setSuccess("Imagen actualizada (sincronizando)..."), 200);
+    // Optimistic UI: mostrar preview instantáneo
     const reader = new FileReader();
     reader.onload = async () => {
+      // Solo actualiza la imagen localmente y en backend, pero nunca la borra salvo acción explícita
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, image: reader.result as string } : p));
+      setLoading(true);
       try {
         await patchProduct(productId, { image: reader.result as string });
+        setSuccess("Imagen del producto actualizada.");
+        // No borres la imagen salvo que el admin lo haga explícitamente
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
       } finally {
         setLoading(false);
+        await refreshProducts();
       }
     };
-    reader.onerror = () => {
-      setError("No se pudo leer el archivo");
-      setLoading(false);
-    };
+    reader.onerror = () => setError("No se pudo leer el archivo");
     reader.readAsDataURL(file);
   }
   // Nueva función para refrescar productos
@@ -3188,53 +3018,27 @@ export function App() {
                         ) : (
                           users.map((user) => (
                             <tr key={user.id}>
-                              {editingUserId === user.id ? (
-                                <>
-                                  <td>
-                                    <input value={editUserForm.name} onChange={e => setEditUserForm(f => ({ ...f, name: e.target.value }))} className="input input--small" />
-                                  </td>
-                                  <td>
-                                    <select value={editUserForm.role} onChange={e => setEditUserForm(f => ({ ...f, role: e.target.value as Role }))} className="input input--small">
-                                      <option value="admin">Administrador</option>
-                                      <option value="barber">Barbero</option>
-                                      <option value="client">Cliente</option>
-                                    </select>
-                                  </td>
-                                  <td>
-                                    <input value={editUserForm.email} onChange={e => setEditUserForm(f => ({ ...f, email: e.target.value }))} className="input input--small" />
-                                  </td>
-                                  <td>
-                                    <span className={editUserForm.active ? "badge badge--success" : "badge badge--danger"}>
-                                      {editUserForm.active ? "Activo" : "Inactivo"}
-                                    </span>
-                                  </td>
-                                  <td>
-                                    <button className="button button--primary button--small" onClick={() => saveUserEdit(user.id)} type="button">Guardar</button>
-                                    <button className="button button--ghost button--small" onClick={() => setEditingUserId(null)} type="button">Cancelar</button>
-                                  </td>
-                                </>
-                              ) : (
-                                <>
-                                  <td>{user.name}</td>
-                                  <td>{roleLabel(user.role)}</td>
-                                  <td>{user.email}</td>
-                                  <td>
-                                    <span className={user.active ? "badge badge--success" : "badge badge--danger"}>
-                                      {user.active ? "Activo" : "Inactivo"}
-                                    </span>
-                                  </td>
-                                  <td>
-                                    <div className="actions-inline actions-inline--wrap">
-                                      <button className="button button--ghost button--small" onClick={() => void toggleUser(user)} type="button">{user.active ? "Desactivar" : "Activar"}</button>
-                                      <button className="button button--ghost button--small" onClick={() => startEditUser(user)} type="button">Editar</button>
-                                      <button className="button button--danger button--small" onClick={() => void deleteUser(user.id)} type="button">Eliminar</button>
-                                      {sessionUser.id === user.id && (
-                                        <button className="button button--ghost button--small" onClick={handleLogout} type="button">Cerrar sesión</button>
-                                      )}
-                                    </div>
-                                  </td>
-                                </>
-                              )}
+                              <td>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <img
+                                    src={apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar}
+                                    alt={user.name}
+                                    style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }}
+                                  />
+                                  <span>{user.name}</span>
+                                </div>
+                              </td>
+                              <td>{roleLabel(user.role)}</td>
+                              <td>{user.email}</td>
+                              <td><Badge label={user.active ? "Activo" : "Inactivo"} variant={user.active ? "success" : "danger"} /></td>
+                              <td>
+                                {user.role !== "admin" && (
+                                  <div className="actions-inline actions-inline--wrap">
+                                    <button className="button button--ghost button--small" onClick={() => void toggleUser(user)} type="button">{user.active ? "Desactivar" : "Activar"}</button>
+                                    <button className="button button--danger button--small" onClick={() => void deleteUser(user.id)} type="button">Eliminar</button>
+                                  </div>
+                                )}
+                              </td>
                             </tr>
                           ))
                         )}
@@ -3252,12 +3056,9 @@ export function App() {
                   {applications.map((application) => (
                     <article className="entity-card" key={application.id}>
                       <div className="entity-card__header">
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%'}}>
-                          <div>
-                            <h4>{application.name}</h4>
-                            <p>{application.specialty}</p>
-                          </div>
-                          <button className="button button--danger button--small" style={{marginLeft:8}} onClick={() => deleteApplication(application.id)} type="button">Eliminar</button>
+                        <div>
+                          <h4>{application.name}</h4>
+                          <p>{application.specialty}</p>
                         </div>
                         <Badge label={statusLabel(application.status)} variant={tone(application.status)} />
                       </div>
@@ -3285,11 +3086,17 @@ export function App() {
                   <SectionHeader title="Crear producto" subtitle="Agregar nueva mercancía al inventario." />
                   <form className="form-grid" onSubmit={(event) => void createProduct(event)}>
                     <input className="input" placeholder="Nombre" value={productForm.name} onChange={(event) => setProductForm((current) => ({ ...current, name: event.target.value }))} />
+                                        <input className="input" placeholder="Nombre" value={productForm.name} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, name: event.target.value }))} />
                     <input className="input" placeholder="Categoría" value={productForm.category} onChange={(event) => setProductForm((current) => ({ ...current, category: event.target.value }))} />
+                                        <input className="input" placeholder="Categoría" value={productForm.category} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, category: event.target.value }))} />
                     <input className="input" type="number" placeholder="Precio" value={productForm.price} onChange={(event) => setProductForm((current) => ({ ...current, price: Number(event.target.value) }))} />
+                                        <input className="input" type="number" placeholder="Precio" value={productForm.price} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, price: Number(event.target.value) }))} />
                     <input className="input" type="number" placeholder="Stock" value={productForm.stock} onChange={(event) => setProductForm((current) => ({ ...current, stock: Number(event.target.value) }))} />
+                                        <input className="input" type="number" placeholder="Stock" value={productForm.stock} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, stock: Number(event.target.value) }))} />
                     <input className="input field--full" placeholder="URL de imagen" value={productForm.image} onChange={(event) => setProductForm((current) => ({ ...current, image: event.target.value }))} />
+                                        <input className="input field--full" placeholder="URL de imagen" value={productForm.image} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, image: event.target.value }))} />
                     <textarea className="textarea field--full" placeholder="Descripción" value={productForm.description} onChange={(event) => setProductForm((current) => ({ ...current, description: event.target.value }))} />
+                                        <textarea className="textarea field--full" placeholder="Descripción" value={productForm.description} onChange={(event) => setProductForm((current: ProductForm) => ({ ...current, description: event.target.value }))} />
                     <div className="field-actions"><button className="button button--primary" type="submit">Guardar producto</button></div>
                   </form>
                 </div>
@@ -3492,8 +3299,7 @@ export function App() {
                                                 category: product.category,
                                                 price: product.price,
                                                 description: product.description || "",
-                                                stock: product.stock,
-                                                image: product.image || ""
+                                                stock: product.stock
                                               });
                                               setEditingProductId(product.id);
                                             }}
@@ -3506,11 +3312,6 @@ export function App() {
                                               onClick={async () => {
                                                 setError("");
                                                 setSuccess("");
-                                                // Prevent double deactivation
-                                                if (!product.active) {
-                                                  setError("El producto ya está desactivado.");
-                                                  return;
-                                                }
                                                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
                                                 try {
                                                   await patchProduct(product.id, { active: false });
@@ -3534,11 +3335,6 @@ export function App() {
                                               onClick={async () => {
                                                 setError("");
                                                 setSuccess("");
-                                                // Only admin can reactivate, and only if not already active
-                                                if (product.active) {
-                                                  setError("El producto ya está activo.");
-                                                  return;
-                                                }
                                                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
                                                 try {
                                                   await patchProduct(product.id, { active: true });
