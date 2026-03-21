@@ -1706,14 +1706,15 @@ export function App() {
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
     setSuccess("Producto actualizado (sincronizando)...");
     const mappedPayload = mapProductPayload(payload);
+    // Refresca productos para máxima sincronía en todos los paneles
     try {
       await apiRequest(apiBase, `/products/${productId}`, {
         method: "PATCH",
         ...jsonBody(mappedPayload),
       });
-      await refreshProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
+    } finally {
       await refreshProducts();
     }
   }
