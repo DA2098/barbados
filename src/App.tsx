@@ -1646,13 +1646,16 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
     setSuccess("Creando producto...");
-    // Validar que no se repita el nombre
-    const exists = products.some(p => p.name.trim().toLowerCase() === productForm.name.trim().toLowerCase());
+    // Validar que no se repita el nombre (case-insensitive, ignora espacios)
+    const exists = products.some(
+      (p) => p.name.trim().toLowerCase() === productForm.name.trim().toLowerCase()
+    );
     if (exists) {
       setError("Ya existe un producto con ese nombre.");
       setLoading(false);
       return;
     }
+    // Ordenar productos por nombre después de crear
     setTimeout(() => setSuccess("Producto creado (sincronizando)..."), 200);
     try {
       await apiRequest(apiBase, "/products", {
@@ -1672,6 +1675,14 @@ export function App() {
   async function patchProduct(productId: string, payload: Partial<Product>) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     // Optimistic UI: refleja el cambio al instante, sin loader
+    // Prevent toggling if already in desired state
+    if (typeof payload.active === "boolean") {
+      const product = products.find((p) => p.id === productId);
+      if (product && product.active === payload.active) {
+        setError(payload.active ? "El producto ya está activo." : "El producto ya está desactivado.");
+        return;
+      }
+    }
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
     setSuccess("Producto actualizado (sincronizando)...");
     const mappedPayload = mapProductPayload(payload);
@@ -3318,6 +3329,11 @@ export function App() {
                                               onClick={async () => {
                                                 setError("");
                                                 setSuccess("");
+                                                // Prevent double deactivation
+                                                if (!product.active) {
+                                                  setError("El producto ya está desactivado.");
+                                                  return;
+                                                }
                                                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: false } : p));
                                                 try {
                                                   await patchProduct(product.id, { active: false });
@@ -3341,6 +3357,11 @@ export function App() {
                                               onClick={async () => {
                                                 setError("");
                                                 setSuccess("");
+                                                // Only admin can reactivate, and only if not already active
+                                                if (product.active) {
+                                                  setError("El producto ya está activo.");
+                                                  return;
+                                                }
                                                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: true } : p));
                                                 try {
                                                   await patchProduct(product.id, { active: true });
