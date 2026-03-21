@@ -1021,18 +1021,15 @@ export function App() {
 
         // Cargar datos completos y establecer sessionUser para mostrar el panel
         await bootstrapSession(apiBase, userId);
-
-        // Esperar a que sessionUser esté listo antes de mostrar el panel
-        setTimeout(() => {
-          if (window.localStorage.getItem("barbados360.userId")) {
-            setRoute("dashboard");
-            setDashboardTab("overview");
-          } else {
-            setRoute("home");
-            setDashboardTab("overview");
-            setError("No se pudo cargar la sesión. Intenta de nuevo.");
-          }
-        }, 100);
+        // Redirigir inmediatamente al panel correcto según el rol
+        if (window.localStorage.getItem("barbados360.userId")) {
+          setRoute("dashboard");
+          setDashboardTab("overview");
+        } else {
+          setRoute("home");
+          setDashboardTab("overview");
+          setError("No se pudo cargar la sesión. Intenta de nuevo.");
+        }
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
@@ -1632,7 +1629,13 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
     setSuccess("Creando producto...");
-    // Feedback visual inmediato
+    // Validar que no se repita el nombre
+    const exists = products.some(p => p.name.trim().toLowerCase() === productForm.name.trim().toLowerCase());
+    if (exists) {
+      setError("Ya existe un producto con ese nombre.");
+      setLoading(false);
+      return;
+    }
     setTimeout(() => setSuccess("Producto creado (sincronizando)..."), 200);
     try {
       await apiRequest(apiBase, "/products", {
@@ -1655,20 +1658,16 @@ export function App() {
     setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
     setSuccess("Producto actualizado (sincronizando)...");
     const mappedPayload = mapProductPayload(payload);
-    apiRequest(apiBase, `/products/${productId}`, {
-      method: "PATCH",
-      ...jsonBody(mappedPayload),
-    })
-      .then(() => {
-        refreshProducts();
-        // Refrescar también publicData para la tienda
-        setTimeout(() => refreshProducts(), 100);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
-        refreshProducts();
-        setTimeout(() => refreshProducts(), 100);
+    try {
+      await apiRequest(apiBase, `/products/${productId}`, {
+        method: "PATCH",
+        ...jsonBody(mappedPayload),
       });
+      await refreshProducts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
+      await refreshProducts();
+    }
   }
 
   async function removeProduct(productId: string) {
@@ -1677,16 +1676,13 @@ export function App() {
     // Optimistic UI: elimina el producto localmente al instante
     setProducts(prev => prev.filter(p => p.id !== productId));
     setSuccess("Producto eliminado (sincronizando)...");
-    apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" })
-      .then(() => {
-        refreshProducts();
-        setTimeout(() => refreshProducts(), 100);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
-        refreshProducts();
-        setTimeout(() => refreshProducts(), 100);
-      });
+    try {
+      await apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" });
+      await refreshProducts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
+      await refreshProducts();
+    }
   }
 
   async function uploadProductImage(productId: string, event: ChangeEvent<HTMLInputElement>) {
@@ -1699,19 +1695,18 @@ export function App() {
     // Optimistic UI: mostrar preview instantáneo
     const reader = new FileReader();
     reader.onload = async () => {
+      // Solo actualiza la imagen localmente y en backend, pero nunca la borra salvo acción explícita
       setProducts(prev => prev.map(p => p.id === productId ? { ...p, image: reader.result as string } : p));
       setLoading(true);
       try {
         await patchProduct(productId, { image: reader.result as string });
-        await refreshProducts();
-        setTimeout(() => refreshProducts(), 100);
         setSuccess("Imagen del producto actualizada.");
+        // No borres la imagen salvo que el admin lo haga explícitamente
       } catch (err) {
         setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
-        await refreshProducts();
-        setTimeout(() => refreshProducts(), 100);
       } finally {
         setLoading(false);
+        await refreshProducts();
       }
     };
     reader.onerror = () => setError("No se pudo leer el archivo");
