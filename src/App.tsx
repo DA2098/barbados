@@ -3140,6 +3140,14 @@ export function App() {
                         ) : (
                           users.map((user) => (
                             <tr key={user.id}>
+                              <td>{user.name}</td>
+                              <td>{roleLabel(user.role)}</td>
+                              <td>{user.email}</td>
+                              <td>
+                                <span className={user.active ? "badge badge--success" : "badge badge--danger"}>
+                                  {user.active ? "Activo" : "Inactivo"}
+                                </span>
+                              </td>
                               <td>
                                 {user.role !== "admin" && (
                                   <div className="actions-inline actions-inline--wrap">
