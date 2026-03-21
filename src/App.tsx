@@ -1057,7 +1057,7 @@ export function App() {
         setRoute("dashboard");
         // Redirigir al tab adecuado según el rol
         if (userRole === "admin") {
-          setDashboardTab("overview");
+          setDashboardTab("users");
         } else if (userRole === "barber") {
           setDashboardTab("cuts");
         } else {
@@ -2819,7 +2819,7 @@ export function App() {
         </main>
       )}
 
-      {route === "dashboard" && (
+      {route === "dashboard" && sessionUser && (
         <main className="dashboard-shell">
           {/* Siempre mostrar la estructura del panel, aunque los datos estén vacíos */}
           <aside className="dashboard-sidebar">
