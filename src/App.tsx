@@ -1,3 +1,4 @@
+// (el useEffect de redirección se colocará después de las declaraciones de sessionUser, route y setRoute)
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChangeEvent,
@@ -364,6 +365,12 @@ export function App() {
 
   // (Variables instant* eliminadas, ya no se usan)
   const [sessionUser, setSessionUser] = useState<User | null>(null);
+    // Redirigir automáticamente al panel si hay sesión activa y la ruta es home
+    useEffect(() => {
+      if (sessionUser && route === "home") {
+        setRoute("dashboard");
+      }
+    }, [sessionUser, route]);
   // Siempre usar cache localStorage para render instantáneo de usuarios/barberos
   const [users, setUsers] = useState<User[]>(() => {
     try {
@@ -1417,7 +1424,7 @@ export function App() {
     try {
       const appointment = appointments.find((item) => item.id === appointmentId);
       const client = appointment ? usersById[appointment.clientId] : null;
-      const service = appointment ? servicesById[appointment.serviceId] : null;
+      const service = appointment ? services.find((s) => s.id === appointment.serviceId) : null;
       const response = await apiRequest<{ id?: string }>(apiBase, "/conversations", {
         method: "POST",
         ...jsonBody({
