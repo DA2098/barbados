@@ -343,7 +343,7 @@ export function App() {
         function deleteApplication(applicationId: string) {
           setSuccess("Eliminando postulación...");
           if (!apiBase) return;
-          apiRequest(apiBase, `/applications/${applicationId}`, { method: "DELETE" })
+          apiRequest(apiBase, `/api/applications/${applicationId}`, { method: "DELETE" })
             .then((response) => {
               // Solo elimina del estado si el backend responde éxito
               if (response && response.ok) {
