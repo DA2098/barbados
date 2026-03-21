@@ -2807,78 +2807,83 @@ export function App() {
         </main>
       )}
 
-      {route === "dashboard" && sessionUser && (
+      {route === "dashboard" && (
         <main className="dashboard-shell">
           {/* Siempre mostrar la estructura del panel, aunque los datos estén vacíos */}
           <aside className="dashboard-sidebar">
             <div className="profile-card">
               <img className="avatar avatar--large" src={(() => {
                 // Mostrar avatar instantáneo desde sessionUser primero, luego cache/localStorage, luego perfil
-                if (sessionUser.avatar) {
+                if (sessionUser?.avatar) {
                   return apiBase ? absoluteApiUrl(apiBase, sessionUser.avatar) : sessionUser.avatar;
                 }
                 const cached = window.localStorage.getItem("barbados360.users");
-                if (cached) {
+                if (cached && sessionUser) {
                   const user = JSON.parse(cached).find((u: any) => u.id === sessionUser.id);
                   if (user && user.avatar) {
                     return apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar;
                   }
                 }
                 return (accountProfile?.user?.avatar) ? (apiBase ? absoluteApiUrl(apiBase, accountProfile.user.avatar) : accountProfile.user.avatar) : barbadosLogo;
-              })()} alt={sessionUser.name} />
-              <strong>{accountProfile?.user?.name ?? sessionUser.name ?? "Usuario"}</strong>
-              <span>{roleLabel(sessionUser.role)}</span>
-              <small>{accountProfile?.user?.phone ?? sessionUser.phone ?? ""}</small>
-              <div className="actions-inline actions-inline--wrap actions-inline--center">
-                <label className="button button--ghost button--small file-button">
-                  📷 Cambiar foto
-                  <input hidden accept="image/jpeg,image/png,image/gif,image/webp,image/*" type="file" onChange={(event) => void uploadOwnAvatar(event)} />
-                </label>
-                <button className="button button--danger button--small" onClick={() => void removeOwnAvatar()} type="button">🗑️ Borrar</button>
-              </div>
+              })()} alt={sessionUser?.name ?? "Usuario"} />
+              <strong>{accountProfile?.user?.name ?? sessionUser?.name ?? "Usuario"}</strong>
+              <span>{roleLabel(sessionUser?.role ?? "client")}</span>
+              <small>{accountProfile?.user?.phone ?? sessionUser?.phone ?? ""}</small>
+              {sessionUser && (
+                <div className="actions-inline actions-inline--wrap actions-inline--center">
+                  <label className="button button--ghost button--small file-button">
+                    📷 Cambiar foto
+                    <input hidden accept="image/jpeg,image/png,image/gif,image/webp,image/*" type="file" onChange={(event) => void uploadOwnAvatar(event)} />
+                  </label>
+                  <button className="button button--danger button--small" onClick={() => void removeOwnAvatar()} type="button">🗑️ Borrar</button>
+                </div>
+              )}
             </div>
             <div className="nav-list">
-              {[
-                ["overview", "Resumen"],
-                ...(sessionUser.role === "admin" ? [["users", "Usuarios"], ["applications", "Postulaciones"], ["products", "Productos"], ["orders", "Órdenes"], ["testimonials", "Opiniones"], ["cuts", "Ganancias"]] : []),
-                ...(sessionUser.role === "barber" ? [["cuts", "Mis Cortes"]] : []),
-                ...(sessionUser.role !== "admin" ? [["appointments", "Citas"]] : []),
-                ["chat", "Chat"],
-                ["notifications", "Notificaciones"],
-                ...(sessionUser.role === "client" ? [["account", "Mi cuenta"]] : []),
-              ].map(([value, label]) => {
-                let badgeCount = 0;
-                if (value === "chat") badgeCount = actualUnreadMessages;
-                else if (value === "notifications") badgeCount = myNotifications.filter((n) => !n.read).length;
-                else if (value === "testimonials") badgeCount = adminTestimonials.filter((t) => !t.isApproved).length;
-                return (
-                  <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
-                    {label}
-                    {badgeCount > 0 && <span className="nav-badge">{badgeCount > 99 ? "99+" : badgeCount}</span>}
-                  </button>
-                );
-              })}
+              {(() => {
+                const role = sessionUser?.role ?? "client";
+                return [
+                  ["overview", "Resumen"],
+                  ...(role === "admin" ? [["users", "Usuarios"], ["applications", "Postulaciones"], ["products", "Productos"], ["orders", "Órdenes"], ["testimonials", "Opiniones"], ["cuts", "Ganancias"]] : []),
+                  ...(role === "barber" ? [["cuts", "Mis Cortes"]] : []),
+                  ...(role !== "admin" ? [["appointments", "Citas"]] : []),
+                  ["chat", "Chat"],
+                  ["notifications", "Notificaciones"],
+                  ...(role === "client" ? [["account", "Mi cuenta"]] : []),
+                ].map(([value, label]) => {
+                  let badgeCount = 0;
+                  if (value === "chat") badgeCount = actualUnreadMessages;
+                  else if (value === "notifications") badgeCount = myNotifications.filter((n) => !n.read).length;
+                  else if (value === "testimonials") badgeCount = adminTestimonials.filter((t) => !t.isApproved).length;
+                  return (
+                    <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
+                      {label}
+                      {badgeCount > 0 && <span className="nav-badge">{badgeCount > 99 ? "99+" : badgeCount}</span>}
+                    </button>
+                  );
+                });
+              })()}
             </div>
           </aside>
 
           <section className="dashboard-content">
             <div className="panel panel--full">
               <SectionHeader
-                title={`Panel de ${roleLabel(sessionUser.role)}`}
+                title={`Panel de ${roleLabel(sessionUser?.role ?? "client")}`}
                 subtitle="Frontend React consumiendo el backend PHP y la base de datos PostgreSQL."
                 action={<button className="button button--ghost button--small" onClick={() => void refreshSession()} type="button">Sincronizar</button>}
               />
               <div className="mini-stats mini-stats--dynamic">
-                <div className="mini-stat mini-stat--accent"><span>Mi rol</span><strong>{roleLabel(sessionUser.role)}</strong><small>Acceso segmentado por perfil</small></div>
-                <div className="mini-stat mini-stat--success"><span>Mis citas</span><strong>{accountProfile?.stats.appointmentsTotal ?? myAppointments.length}</strong><small>Seguimiento del servicio</small></div>
-                <div className="mini-stat mini-stat--info"><span>Chats</span><strong>{myConversations.length}</strong><small>Conversaciones activas</small></div>
-                <div className="mini-stat mini-stat--warning"><span>Notificaciones</span><strong>{accountProfile?.stats.notificationsUnread ?? myNotifications.filter((notification) => !notification.read).length}</strong><small>Alertas recientes</small></div>
+                <div className="mini-stat mini-stat--accent"><span>Mi rol</span><strong>{roleLabel(sessionUser?.role ?? "client")}</strong><small>Acceso segmentado por perfil</small></div>
+                <div className="mini-stat mini-stat--success"><span>Mis citas</span><strong>{accountProfile?.stats.appointmentsTotal ?? myAppointments.length ?? 0}</strong><small>Seguimiento del servicio</small></div>
+                <div className="mini-stat mini-stat--info"><span>Chats</span><strong>{myConversations?.length ?? 0}</strong><small>Conversaciones activas</small></div>
+                <div className="mini-stat mini-stat--warning"><span>Notificaciones</span><strong>{accountProfile?.stats.notificationsUnread ?? myNotifications.filter((notification) => !notification.read).length ?? 0}</strong><small>Alertas recientes</small></div>
               </div>
             </div>
 
             {dashboardTab === "overview" && (
               <div className="dashboard-grid dashboard-grid--full">
-                {sessionUser.role === "admin" && (
+                {sessionUser?.role === "admin" && (
                   <>
                     <div className="panel panel--span-2">
                       <SectionHeader title="📊 Panel de Control" subtitle="Métricas clave del negocio en tiempo real" />
@@ -2923,20 +2928,20 @@ export function App() {
                     </div>
                   </>
                 )}
-                <div className={sessionUser.role === "admin" ? "panel panel--span-3" : "panel panel--full"}>
-                  <SectionHeader title="✂️ Actividad reciente" subtitle={sessionUser.role === "admin" ? "Todas las citas del sistema" : sessionUser.role === "barber" ? "Tus próximas citas" : "Tus citas reservadas"} />
+                <div className={sessionUser?.role === "admin" ? "panel panel--span-3" : "panel panel--full"}>
+                  <SectionHeader title="✂️ Actividad reciente" subtitle={sessionUser?.role === "admin" ? "Todas las citas del sistema" : sessionUser?.role === "barber" ? "Tus próximas citas" : "Tus citas reservadas"} />
                   <div className="data-list">
-                    {displayedAppointments.slice(0, sessionUser.role === "client" ? 5 : 10).map((appointment) => (
+                    {displayedAppointments.slice(0, sessionUser?.role === "client" ? 5 : 10).map((appointment) => (
                       <div className="list-row" key={appointment.id}>
                         <div className="list-row-main">
                           <strong>{servicesById[appointment.serviceId]?.name ?? "Servicio"}</strong>
-                          {sessionUser.role === "admin" && (
+                          {sessionUser?.role === "admin" && (
                             <span>
                               Cliente: {usersById[appointment.clientId]?.name ?? "-"} · Barbero: {usersById[appointment.barberId]?.name ?? "-"}
                             </span>
                           )}
-                          {sessionUser.role === "barber" && <span>Cliente: {usersById[appointment.clientId]?.name ?? "-"}</span>}
-                          {sessionUser.role === "client" && <span>Barbero: {usersById[appointment.barberId]?.name ?? "-"}</span>}
+                          {sessionUser?.role === "barber" && <span>Cliente: {usersById[appointment.clientId]?.name ?? "-"}</span>}
+                          {sessionUser?.role === "client" && <span>Barbero: {usersById[appointment.barberId]?.name ?? "-"}</span>}
                           <small>{dateTime.format(new Date(appointment.date))}</small>
                         </div>
                         <Badge label={statusLabel(appointment.status)} variant={tone(appointment.status)} />
@@ -2944,7 +2949,7 @@ export function App() {
                     ))}
                   </div>
                 </div>
-                {sessionUser.role === "client" && (
+                {sessionUser?.role === "client" && (
                   <div className="panel">
                     <SectionHeader title="🛒 Mi carrito" subtitle="Productos para comprar." />
                     {cartDetailed.length === 0 ? (
@@ -2979,7 +2984,7 @@ export function App() {
               </div>
             )}
 
-            {dashboardTab === "users" && sessionUser.role === "admin" && (
+            {dashboardTab === "users" && sessionUser?.role === "admin" && (
               <div className="dashboard-grid dashboard-grid--full">
                 <div className="panel panel--span-2">
                   <SectionHeader title="Crear usuarios" subtitle="Alta de clientes y barberos." />
@@ -3049,7 +3054,7 @@ export function App() {
               </div>
             )}
 
-            {dashboardTab === "applications" && sessionUser.role === "admin" && (
+            {dashboardTab === "applications" && sessionUser?.role === "admin" && (
               <div className="panel panel--full">
                 <SectionHeader title="Postulaciones" subtitle="Aprobación y rechazo de candidatos barberos." />
                 <div className="cards-grid">
@@ -3080,7 +3085,7 @@ export function App() {
               </div>
             )}
 
-            {dashboardTab === "products" && sessionUser.role === "admin" && (
+            {dashboardTab === "products" && sessionUser?.role === "admin" && (
               <div className="dashboard-grid dashboard-grid--full">
                 <div className="panel panel--span-2">
                   <SectionHeader title="Crear producto" subtitle="Agregar nueva mercancía al inventario." />
@@ -3371,7 +3376,7 @@ export function App() {
 
             {dashboardTab === "appointments" && (
               <div className="dashboard-grid dashboard-grid--full">
-                {sessionUser.role === "client" && (
+                {sessionUser?.role === "client" && (
                   <div className="panel panel--span-2">
                     <SectionHeader title="Reservar cita" subtitle="Al agendar se habilita la conversación con el barbero." />
                     <form className="form-grid" onSubmit={(event) => void createAppointment(event)}>
@@ -3405,9 +3410,9 @@ export function App() {
                           <p>{appointment.notes}</p>
                         </div>
                         <div className="actions-inline actions-inline--wrap">
-                          {sessionUser.role === "barber" && appointment.status === "pending" && <button className="button button--success button--small" onClick={() => void changeAppointmentStatus(appointment.id, "accept")} type="button">Aceptar</button>}
-                          {sessionUser.role === "barber" && appointment.status === "accepted" && <button className="button button--success button--small" onClick={() => void changeAppointmentStatus(appointment.id, "complete")} type="button">Completar</button>}
-                          {(sessionUser.role === "client" || sessionUser.role === "barber" || sessionUser.role === "admin") && appointment.status !== "cancelled" && appointment.status !== "completed" && <button className="button button--danger button--small" onClick={() => void changeAppointmentStatus(appointment.id, "cancel")} type="button">Cancelar</button>}
+                          {sessionUser?.role === "barber" && appointment.status === "pending" && <button className="button button--success button--small" onClick={() => void changeAppointmentStatus(appointment.id, "accept")} type="button">Aceptar</button>}
+                          {sessionUser?.role === "barber" && appointment.status === "accepted" && <button className="button button--success button--small" onClick={() => void changeAppointmentStatus(appointment.id, "complete")} type="button">Completar</button>}
+                          {(sessionUser?.role === "client" || sessionUser?.role === "barber" || sessionUser?.role === "admin") && appointment.status !== "cancelled" && appointment.status !== "completed" && <button className="button button--danger button--small" onClick={() => void changeAppointmentStatus(appointment.id, "cancel")} type="button">Cancelar</button>}
                           <button className="button button--primary button--small" onClick={() => void createConversation(appointment.id)} type="button">Abrir chat</button>
                         </div>
                       </article>
@@ -3419,10 +3424,10 @@ export function App() {
 
             {dashboardTab === "chat" && (
               <div className="panel panel--full">
-                <SectionHeader title="Chat en tiempo real" subtitle={sessionUser.role === "admin" ? "Comunícate directamente con tus barberos." : "Solo existe cuando hay una cita asociada."} />
+                <SectionHeader title="Chat en tiempo real" subtitle={sessionUser?.role === "admin" ? "Comunícate directamente con tus barberos." : "Solo existe cuando hay una cita asociada."} />
                 <div className="chat-layout">
                   <aside className="chat-sidebar">
-                    {sessionUser.role === "admin" && (
+                    {sessionUser?.role === "admin" && (
                       <div className="admin-chat-starter">
                         <label className="label">Iniciar chat con barbero:</label>
                         <select 
@@ -3443,10 +3448,10 @@ export function App() {
                       </div>
                     )}
                     {myConversations.length === 0 ? (
-                      <EmptyState title="Sin conversaciones" text={sessionUser.role === "admin" ? "Selecciona un barbero arriba para iniciar un chat." : "Primero debes tener una cita y abrir una conversación."} />
+                      <EmptyState title="Sin conversaciones" text={sessionUser?.role === "admin" ? "Selecciona un barbero arriba para iniciar un chat." : "Primero debes tener una cita y abrir una conversación."} />
                     ) : (
                       myConversations.map((conversation) => {
-                        const otherUserId = conversation.clientId === sessionUser.id ? conversation.barberId : conversation.clientId;
+                        const otherUserId = conversation.clientId === sessionUser?.id ? conversation.barberId : conversation.clientId;
                         const otherUser = usersById[otherUserId];
                         const lastMessage = conversation.messages[conversation.messages.length - 1];
                         return (
@@ -3485,7 +3490,7 @@ export function App() {
                         </div>
                         <div className="messages-area">
                           {selectedConversation.messages.map((message) => {
-                            const own = message.senderId === sessionUser.id;
+                            const own = message.senderId === sessionUser?.id;
                             const senderUser = usersById[message.senderId];
                             return (
                               <div className={`message-row ${own ? "message-row--own" : ""}`} key={message.id}>
@@ -3508,7 +3513,7 @@ export function App() {
                                   )}
                                   <small>{dateTime.format(new Date(message.createdAt))}</small>
                                 </div>
-                                {own && <img className="message-avatar" src={sessionUser.avatar ? (apiBase ? absoluteApiUrl(apiBase, sessionUser.avatar) : sessionUser.avatar) : "https://ui-avatars.com/api/?name=Me"} alt="Yo" />}
+                                {own && <img className="message-avatar" src={sessionUser?.avatar ? (apiBase ? absoluteApiUrl(apiBase, sessionUser.avatar) : sessionUser.avatar) : "https://ui-avatars.com/api/?name=Me"} alt="Yo" />}
                               </div>
                             );
                           })}
@@ -3547,7 +3552,7 @@ export function App() {
               </div>
             )}
 
-            {dashboardTab === "orders" && sessionUser.role === "admin" && (
+            {dashboardTab === "orders" && sessionUser?.role === "admin" && (
               <div className="panel panel--full">
                 <SectionHeader title="Órdenes de compra" subtitle="Control comercial completo de ventas, cliente, productos comprados y último servicio asociado." />
                 <div className="cards-grid">
@@ -3605,7 +3610,7 @@ export function App() {
                     ))}
                   </div>
                 </div>
-                {sessionUser.role === "client" && (
+                {sessionUser?.role === "client" && (
                   <div className="panel">
                     <SectionHeader title="Carrito" subtitle="Tus compras en curso." />
                     {cartDetailed.length === 0 ? (
@@ -3640,7 +3645,7 @@ export function App() {
               </div>
             )}
 
-            {dashboardTab === "account" && sessionUser.role === "client" && (
+            {dashboardTab === "account" && sessionUser?.role === "client" && (
               <div className="dashboard-grid dashboard-grid--full">
                 <div className="panel panel--span-2">
                   <SectionHeader title="Mi cuenta" subtitle="Perfil real del cliente con datos comerciales y control de imagen." />
@@ -3649,15 +3654,15 @@ export function App() {
                       <div className="cards-grid">
                         <div className="entity-card">
                           <strong>Nombre</strong>
-                          <span>{accountProfile?.user.name ?? sessionUser.name}</span>
+                          <span>{accountProfile?.user.name ?? sessionUser?.name}</span>
                         </div>
                         <div className="entity-card">
                           <strong>Correo</strong>
-                          <span>{accountProfile?.user.email ?? sessionUser.email}</span>
+                          <span>{accountProfile?.user.email ?? sessionUser?.email}</span>
                         </div>
                         <div className="entity-card">
                           <strong>Teléfono</strong>
-                          <span>{(accountProfile?.user.phone ?? sessionUser.phone) || "No registrado"}</span>
+                          <span>{(accountProfile?.user.phone ?? sessionUser?.phone) || "No registrado"}</span>
                         </div>
                         <div className="entity-card">
                           <strong>Citas completadas</strong>
@@ -3665,7 +3670,7 @@ export function App() {
                         </div>
                       </div>
                       <div style={{ marginTop: "1rem" }}>
-                        <button className="button button--primary" onClick={() => { setProfileForm({ name: sessionUser.name, phone: sessionUser.phone ?? "" }); setEditingProfile(true); }} type="button">Editar perfil</button>
+                        <button className="button button--primary" onClick={() => { setProfileForm({ name: sessionUser?.name ?? "", phone: sessionUser?.phone ?? "" }); setEditingProfile(true); }} type="button">Editar perfil</button>
                       </div>
                     </>
                   ) : (
@@ -3706,7 +3711,7 @@ export function App() {
               </div>
             )}
 
-            {dashboardTab === "testimonials" && sessionUser.role === "admin" && (
+            {dashboardTab === "testimonials" && sessionUser?.role === "admin" && (
               <div className="dashboard-grid dashboard-grid--full">
                 <div className="panel panel--full">
                   <SectionHeader 
@@ -3782,7 +3787,7 @@ export function App() {
             )}
 
             {/* Panel de Cortes - Para Barberos */}
-            {dashboardTab === "cuts" && sessionUser.role === "barber" && (
+            {dashboardTab === "cuts" && sessionUser?.role === "barber" && (
               <div className="dashboard-grid dashboard-grid--full">
                 <div className="panel panel--span-2">
                   <SectionHeader 
@@ -3909,7 +3914,7 @@ export function App() {
             )}
 
             {/* Panel de Ganancias - Para Admin */}
-            {dashboardTab === "cuts" && sessionUser.role === "admin" && (
+            {dashboardTab === "cuts" && sessionUser?.role === "admin" && (
               <div className="dashboard-grid dashboard-grid--full">
                 <div className="panel panel--span-2">
                   <SectionHeader 
