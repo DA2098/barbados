@@ -1,4 +1,5 @@
 // (el useEffect de redirección se colocará después de las declaraciones de sessionUser, route y setRoute)
+// (el useEffect de redirección se colocará después de las declaraciones de sessionUser, route y setRoute)
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type {
   ChangeEvent,
@@ -338,6 +339,33 @@ function AccordionItem({ icon, title, children, defaultOpen = false }: { icon: s
 }
 
 export function App() {
+      // Edición inline de usuario
+      const [editingUserId, setEditingUserId] = useState<string | null>(null);
+      const [editUserForm, setEditUserForm] = useState({ name: "", email: "", role: "client", active: true });
+
+      function startEditUser(user: User) {
+        setEditingUserId(user.id);
+        setEditUserForm({ name: user.name, email: user.email, role: user.role, active: user.active });
+      }
+
+      function saveUserEdit(userId: string) {
+        const prevUsers = [...users];
+        setUsers((users: User[]) => users.map((u: User) =>
+          u.id === userId ? { ...u, ...editUserForm, role: editUserForm.role as Role } : u
+        ));
+        setEditingUserId(null);
+        setSuccess("Usuario actualizado (sincronizando)");
+        if (!apiBase) return;
+        apiRequest(apiBase, `/users/${userId}`, {
+          method: "PATCH",
+          ...jsonBody({ ...editUserForm, role: editUserForm.role as Role }),
+        })
+          .then(() => setSuccess("Usuario actualizado correctamente"))
+          .catch((err: any) => {
+            setUsers(prevUsers);
+            setError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
+          });
+      }
     // Estado manual para activación/desactivación de productos
     // Eliminado: manualProductState no se usa
   const [route, setRoute] = useState<Route>("home");
@@ -1674,33 +1702,35 @@ export function App() {
 
   async function toggleUser(user: User) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    setLoading(true);
-    setSuccess("Actualizando usuario...");
-    try {
-      await apiRequest(apiBase, `/users/${user.id}`, {
-        method: "PATCH",
-        ...jsonBody({ active: !user.active }),
+    // UI instantánea: actualiza local
+    const prevUsers = [...users];
+    setUsers(users => users.map(u => u.id === user.id ? { ...u, active: !u.active } : u));
+    setSuccess("Usuario actualizado (sincronizando)");
+    // Petición en background
+    apiRequest(apiBase, `/users/${user.id}`, {
+      method: "PATCH",
+      ...jsonBody({ active: !user.active }),
+    })
+      .then(() => setSuccess("Usuario actualizado correctamente"))
+      .catch(err => {
+        setUsers(prevUsers); // Revierte si falla
+        setError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
       });
-      await refreshSession();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo actualizar el usuario.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function deleteUser(userId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
-    setLoading(true);
-    setSuccess("Eliminando usuario...");
-    try {
-      await apiRequest(apiBase, `/users/${userId}`, { method: "DELETE" });
-      await refreshSession();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo eliminar el usuario.");
-    } finally {
-      setLoading(false);
-    }
+    // UI instantánea: elimina local
+    const prevUsers = [...users];
+    setUsers(users => users.filter(u => u.id !== userId));
+    setSuccess("Usuario eliminado (sincronizando)");
+    // Petición en background
+    apiRequest(apiBase, `/users/${userId}`, { method: "DELETE" })
+      .then(() => setSuccess("Usuario eliminado correctamente"))
+      .catch(err => {
+        setUsers(prevUsers); // Revierte si falla
+        setError(err instanceof Error ? err.message : "No se pudo eliminar el usuario.");
+      });
   }
 
   async function reviewApplication(applicationId: string, decision: "approve" | "reject") {
@@ -3140,22 +3170,53 @@ export function App() {
                         ) : (
                           users.map((user) => (
                             <tr key={user.id}>
-                              <td>{user.name}</td>
-                              <td>{roleLabel(user.role)}</td>
-                              <td>{user.email}</td>
-                              <td>
-                                <span className={user.active ? "badge badge--success" : "badge badge--danger"}>
-                                  {user.active ? "Activo" : "Inactivo"}
-                                </span>
-                              </td>
-                              <td>
-                                {user.role !== "admin" && (
-                                  <div className="actions-inline actions-inline--wrap">
-                                    <button className="button button--ghost button--small" onClick={() => void toggleUser(user)} type="button">{user.active ? "Desactivar" : "Activar"}</button>
-                                    <button className="button button--danger button--small" onClick={() => void deleteUser(user.id)} type="button">Eliminar</button>
-                                  </div>
-                                )}
-                              </td>
+                              {editingUserId === user.id ? (
+                                <>
+                                  <td>
+                                    <input value={editUserForm.name} onChange={e => setEditUserForm(f => ({ ...f, name: e.target.value }))} className="input input--small" />
+                                  </td>
+                                  <td>
+                                    <select value={editUserForm.role} onChange={e => setEditUserForm(f => ({ ...f, role: e.target.value as Role }))} className="input input--small">
+                                      <option value="admin">Administrador</option>
+                                      <option value="barber">Barbero</option>
+                                      <option value="client">Cliente</option>
+                                    </select>
+                                  </td>
+                                  <td>
+                                    <input value={editUserForm.email} onChange={e => setEditUserForm(f => ({ ...f, email: e.target.value }))} className="input input--small" />
+                                  </td>
+                                  <td>
+                                    <span className={editUserForm.active ? "badge badge--success" : "badge badge--danger"}>
+                                      {editUserForm.active ? "Activo" : "Inactivo"}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <button className="button button--primary button--small" onClick={() => saveUserEdit(user.id)} type="button">Guardar</button>
+                                    <button className="button button--ghost button--small" onClick={() => setEditingUserId(null)} type="button">Cancelar</button>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td>{user.name}</td>
+                                  <td>{roleLabel(user.role)}</td>
+                                  <td>{user.email}</td>
+                                  <td>
+                                    <span className={user.active ? "badge badge--success" : "badge badge--danger"}>
+                                      {user.active ? "Activo" : "Inactivo"}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div className="actions-inline actions-inline--wrap">
+                                      <button className="button button--ghost button--small" onClick={() => void toggleUser(user)} type="button">{user.active ? "Desactivar" : "Activar"}</button>
+                                      <button className="button button--ghost button--small" onClick={() => startEditUser(user)} type="button">Editar</button>
+                                      <button className="button button--danger button--small" onClick={() => void deleteUser(user.id)} type="button">Eliminar</button>
+                                      {sessionUser.id === user.id && (
+                                        <button className="button button--ghost button--small" onClick={handleLogout} type="button">Cerrar sesión</button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </>
+                              )}
                             </tr>
                           ))
                         )}
