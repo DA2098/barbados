@@ -865,6 +865,15 @@ export function App() {
       }
 
       setSessionUser(payload.user);
+      // Refrescar solo el usuario actual en el cache local para evitar mostrar avatar viejo
+      try {
+        const cachedUsers = window.localStorage.getItem("barbados360.users");
+        if (cachedUsers) {
+          const usersArr = JSON.parse(cachedUsers);
+          const updatedUsers = usersArr.map((u:any) => u.id === payload.user.id ? { ...u, avatar: payload.user.avatar } : u);
+          window.localStorage.setItem("barbados360.users", JSON.stringify(updatedUsers));
+        }
+      } catch {}
       setUsers(payload.users);
       setServices(payload.services);
       // Guardar en cache localStorage
@@ -1239,6 +1248,15 @@ export function App() {
   async function handleLogout() {
     const userId = sessionUser?.id;
     window.localStorage.removeItem("barbados360.userId");
+    // Limpiar avatar cacheado del usuario anterior
+    try {
+      const cachedUsers = window.localStorage.getItem("barbados360.users");
+      if (cachedUsers && userId) {
+        const usersArr = JSON.parse(cachedUsers);
+        const updatedUsers = usersArr.map((u:any) => u.id === userId ? { ...u, avatar: undefined } : u);
+        window.localStorage.setItem("barbados360.users", JSON.stringify(updatedUsers));
+      }
+    } catch {}
     // Limpiar el flag de alerta para que al volver a entrar pueda mostrar nuevas notificaciones en este login
     if (userId) {
       window.localStorage.removeItem(`barbados360.alertShown.${userId}`);
