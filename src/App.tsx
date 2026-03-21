@@ -397,6 +397,17 @@ export function App() {
       return [];
     }
   });
+
+  // Productos únicos por nombre para el panel admin
+  const uniqueProducts = useMemo(() => {
+    const seen = new Set<string>();
+    return products.filter((p: Product) => {
+      const name = p.name.trim().toLowerCase();
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+  }, [products]);
   // Inline editing state for products
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editProductForm, setEditProductForm] = useState({
@@ -980,8 +991,6 @@ export function App() {
     setLoading(true);
     setError("");
     setSuccess("Iniciando sesión...");
-    // Feedback visual inmediato
-    setTimeout(() => setSuccess("¡Bienvenido! Redirigiendo..."), 200);
 
     // Limpiar todo el estado antes de iniciar nueva sesión
     setSessionUser(null);
@@ -1021,10 +1030,11 @@ export function App() {
 
         // Cargar datos completos y establecer sessionUser para mostrar el panel
         await bootstrapSession(apiBase, userId);
-        // Redirigir inmediatamente al panel correcto según el rol
+        // Redirigir al instante al panel correcto según el rol
         if (window.localStorage.getItem("barbados360.userId")) {
           setRoute("dashboard");
           setDashboardTab("overview");
+          setSuccess(""); // Quitar cualquier banner de redirección
         } else {
           setRoute("home");
           setDashboardTab("overview");
@@ -3118,7 +3128,7 @@ export function App() {
                             </tr>
                           ))
                         ) : (
-                          products.map((product) => (
+                          uniqueProducts.map((product: Product) => (
                             <tr key={product.id}>
                               <td>
                                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
