@@ -407,9 +407,10 @@ export function App() {
 
   // Productos únicos por nombre para el panel admin
   const uniqueProducts = useMemo(() => {
+    const normalize = (str: string) => str.trim().replace(/\s+/g, " ").toLowerCase();
     const seen = new Set<string>();
     return products.filter((p: Product) => {
-      const name = p.name.trim().toLowerCase();
+      const name = normalize(p.name);
       if (seen.has(name)) return false;
       seen.add(name);
       return true;
@@ -1646,21 +1647,31 @@ export function App() {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     setLoading(true);
     setSuccess("Creando producto...");
-    // Validar que no se repita el nombre (case-insensitive, ignora espacios)
+    // Normalizar nombre y categoría antes de crear
+    const normalize = (str: string) => str.trim().replace(/\s+/g, " ").toLowerCase();
+    const normalizedName = normalize(productForm.name);
+    const normalizedCategory = normalize(productForm.category);
+    // Validar que no se repita el nombre (case-insensitive, ignora espacios y mayúsculas)
     const exists = products.some(
-      (p) => p.name.trim().toLowerCase() === productForm.name.trim().toLowerCase()
+      (p) => normalize(p.name) === normalizedName
     );
     if (exists) {
       setError("Ya existe un producto con ese nombre.");
       setLoading(false);
       return;
     }
-    // Ordenar productos por nombre después de crear
+    // Capitalizar la primera letra de cada palabra
+    const capitalizeWords = (str: string) => str.replace(/\b\w/g, c => c.toUpperCase());
+    const newProduct = {
+      ...productForm,
+      name: capitalizeWords(normalizedName),
+      category: capitalizeWords(normalizedCategory),
+    };
     setTimeout(() => setSuccess("Producto creado (sincronizando)..."), 200);
     try {
       await apiRequest(apiBase, "/products", {
         method: "POST",
-        ...jsonBody(productForm),
+        ...jsonBody(newProduct),
       });
       await refreshSession();
       setProductForm({ name: "", category: "Styling", description: "", price: 0, stock: 0, image: "" });
@@ -3035,19 +3046,6 @@ export function App() {
                         ) : (
                           users.map((user) => (
                             <tr key={user.id}>
-                              <td>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <img
-                                    src={apiBase ? absoluteApiUrl(apiBase, user.avatar) : user.avatar}
-                                    alt={user.name}
-                                    style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }}
-                                  />
-                                  <span>{user.name}</span>
-                                </div>
-                              </td>
-                              <td>{roleLabel(user.role)}</td>
-                              <td>{user.email}</td>
-                              <td><Badge label={user.active ? "Activo" : "Inactivo"} variant={user.active ? "success" : "danger"} /></td>
                               <td>
                                 {user.role !== "admin" && (
                                   <div className="actions-inline actions-inline--wrap">
