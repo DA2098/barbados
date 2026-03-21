@@ -1047,14 +1047,26 @@ export function App() {
         previousMessageCountRef.current = 0;
         setLoginForm({ email: "", password: "" });
 
-        // Redirigir INMEDIATAMENTE al dashboard (antes de cargar datos completos)
+        // Cargar datos mínimos del usuario para saber el rol antes de mostrar el dashboard
+        let userRole: string = "client";
+        try {
+          const userResp = await apiRequest<Record<string, unknown>>(apiBase, `/users/${userId}`);
+          userRole = String(userResp.data?.role ?? "client");
+        } catch {}
+
         setRoute("dashboard");
-        setDashboardTab("overview");
+        // Redirigir al tab adecuado según el rol
+        if (userRole === "admin") {
+          setDashboardTab("overview");
+        } else if (userRole === "barber") {
+          setDashboardTab("cuts");
+        } else {
+          setDashboardTab("overview");
+        }
         setSuccess("");
 
         // Cargar datos completos y establecer sessionUser para mostrar el panel correcto
         await bootstrapSession(apiBase, userId);
-        // Si quieres redirigir a un tab específico según el rol, puedes hacerlo aquí (opcional)
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
@@ -1334,7 +1346,7 @@ export function App() {
     setInitialAlertShown(false);
     setSeenCountsLoaded(false);
     setDashboardTab("overview");
-    setRoute("home"); // Siempre dirigir al inicio tras cerrar sesión
+    setTimeout(() => setRoute("home"), 50); // Forzar redirección tras limpiar estado
     previousNotificationCountRef.current = 0;
     previousMessageCountRef.current = 0;
   }
