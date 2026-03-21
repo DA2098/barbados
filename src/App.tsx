@@ -981,6 +981,28 @@ export function App() {
     setError("");
     setSuccess("Iniciando sesión...");
 
+    // Limpiar todo el estado antes de iniciar nueva sesión
+    setSessionUser(null);
+    setUsers([]);
+    setServices([]);
+    setProducts([]);
+    setApplications([]);
+    setAppointments([]);
+    setConversations([]);
+    setNotifications([]);
+    setOrders([]);
+    setCart([]);
+    setSummary(null);
+    setAccountProfile(null);
+    setSelectedConversationId("");
+    setShowUnreadBanner(false);
+    setInitialAlertShown(false);
+    setSeenCountsLoaded(false);
+    setDashboardTab("overview");
+    setRoute("home");
+    previousNotificationCountRef.current = 0;
+    previousMessageCountRef.current = 0;
+
     apiRequest<{ user_id: string }>(apiBase, "/auth/login", {
       method: "POST",
       ...jsonBody(loginForm),
@@ -997,15 +1019,18 @@ export function App() {
 
         // Cargar datos completos y establecer sessionUser para mostrar el panel
         await bootstrapSession(apiBase, userId);
-        // Si no hay usuario tras bootstrap, regresar a home y mostrar error
-        if (!sessionUser) {
-          setRoute("home");
-          setDashboardTab("overview");
-          setError("No se pudo cargar la sesión. Intenta de nuevo.");
-        } else {
-          setRoute("dashboard");
-          setDashboardTab("overview");
-        }
+
+        // Esperar a que sessionUser esté listo antes de mostrar el panel
+        setTimeout(() => {
+          if (window.localStorage.getItem("barbados360.userId")) {
+            setRoute("dashboard");
+            setDashboardTab("overview");
+          } else {
+            setRoute("home");
+            setDashboardTab("overview");
+            setError("No se pudo cargar la sesión. Intenta de nuevo.");
+          }
+        }, 100);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
