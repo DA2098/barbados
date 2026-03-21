@@ -987,6 +987,7 @@ export function App() {
       }
 
       setSessionUser(payload.user);
+      setTimeout(() => setRoute("dashboard"), 0);
       // Refrescar solo el usuario actual en el cache local para evitar mostrar avatar viejo
       try {
         const cachedUsers = window.localStorage.getItem("barbados360.users");
@@ -1415,31 +1416,16 @@ export function App() {
     setShowUnreadBanner(false);
     setInitialAlertShown(false);
     setSeenCountsLoaded(false);
+    setDashboardTab("overview");
     setRoute("home");
-    setDashboardTab("overview");
     previousNotificationCountRef.current = 0;
     previousMessageCountRef.current = 0;
-    // Limpiar todos los estados antes de iniciar nueva sesión
-    setSessionUser(null);
-    setUsers([]);
-    setServices([]);
-    setProducts([]);
-    setApplications([]);
-    setAppointments([]);
-    setConversations([]);
-    setNotifications([]);
-    setOrders([]);
-    setCart([]);
-    setSummary(null);
-    setAccountProfile(null);
-    setSelectedConversationId("");
-    setShowUnreadBanner(false);
-    setInitialAlertShown(false);
-    setSeenCountsLoaded(false);
-    setDashboardTab("overview");
-    setRoute("dashboard");
-    previousNotificationCountRef.current = 0;
-    previousMessageCountRef.current = 0;
+    // Redirección instantánea y recarga para máxima velocidad UX
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    }, 0);
   }
 
   async function handleApply(event: FormEvent<HTMLFormElement>) {
