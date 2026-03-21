@@ -1704,8 +1704,9 @@ export function App() {
       }
       // Nunca invertir el estado automáticamente ni reactivar tras desactivar
     }
-    setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...payload } : p));
-    setSuccess("Producto actualizado (sincronizando)...");
+    setLoading(true);
+    setError("");
+    setSuccess("Actualizando producto...");
     const mappedPayload = mapProductPayload(payload);
     try {
       await apiRequest(apiBase, `/products/${productId}`, {
@@ -1716,21 +1717,23 @@ export function App() {
       setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
     } finally {
       await refreshProducts();
+      setLoading(false);
     }
   }
 
   async function removeProduct(productId: string) {
     if (!apiBase || !sessionUser || sessionUser.role !== "admin") return;
     if (!confirm("¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.")) return;
-    // Optimistic UI: elimina el producto localmente al instante
-    setProducts(prev => prev.filter(p => p.id !== productId));
-    setSuccess("Producto eliminado (sincronizando)...");
+    setLoading(true);
+    setError("");
+    setSuccess("Eliminando producto...");
     try {
       await apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" });
-      await refreshProducts();
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
+    } finally {
       await refreshProducts();
+      setLoading(false);
     }
   }
 
@@ -1738,17 +1741,21 @@ export function App() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !apiBase || !sessionUser || sessionUser.role !== "admin") return;
+    setLoading(true);
     setError("");
     setSuccess("Actualizando imagen...");
-    setTimeout(() => setSuccess("Imagen actualizada (sincronizando)..."), 200);
-    // Optimistic UI: mostrar preview instantáneo
     const reader = new FileReader();
-    reader.onload = () => {
-      setProducts(prev => prev.map(p => p.id === productId ? { ...p, image: reader.result as string } : p));
-      // Sincroniza en segundo plano
-      patchProduct(productId, { image: reader.result as string });
+    reader.onload = async () => {
+      try {
+        await patchProduct(productId, { image: reader.result as string });
+      } finally {
+        setLoading(false);
+      }
     };
-    reader.onerror = () => setError("No se pudo leer el archivo");
+    reader.onerror = () => {
+      setError("No se pudo leer el archivo");
+      setLoading(false);
+    };
     reader.readAsDataURL(file);
   }
   // Nueva función para refrescar productos
