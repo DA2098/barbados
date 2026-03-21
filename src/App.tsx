@@ -425,8 +425,109 @@ export function App() {
     category: "",
     price: 0,
     description: "",
-    stock: 0
+    stock: 0,
+    image: ""
   });
+    // Renderiza formulario de edición de producto
+    const renderEditProductForm = (product: Product) => {
+      return (
+        <form
+          className="edit-product-form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await patchProduct(product.id, editProductForm);
+            setEditingProductId(null);
+          }}
+          style={{ background: "#181c23", padding: 16, borderRadius: 8, marginBottom: 16 }}
+        >
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              type="text"
+              value={editProductForm.name}
+              placeholder="Nombre"
+              onChange={e => setEditProductForm(f => ({ ...f, name: e.target.value }))}
+              required
+              style={{ flex: 1 }}
+            />
+            <input
+              type="text"
+              value={editProductForm.category}
+              placeholder="Categoría"
+              onChange={e => setEditProductForm(f => ({ ...f, category: e.target.value }))}
+              required
+              style={{ flex: 1 }}
+            />
+            <input
+              type="number"
+              value={editProductForm.price}
+              placeholder="Precio"
+              min={0}
+              onChange={e => setEditProductForm(f => ({ ...f, price: Number(e.target.value) }))}
+              required
+              style={{ width: 80 }}
+            />
+            <input
+              type="number"
+              value={editProductForm.stock}
+              placeholder="Stock"
+              min={0}
+              onChange={e => setEditProductForm(f => ({ ...f, stock: Number(e.target.value) }))}
+              required
+              style={{ width: 80 }}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <textarea
+              value={editProductForm.description}
+              placeholder="Descripción"
+              onChange={e => setEditProductForm(f => ({ ...f, description: e.target.value }))}
+              rows={2}
+              style={{ flex: 2 }}
+            />
+            <input
+              type="text"
+              value={editProductForm.image}
+              placeholder="URL de imagen"
+              onChange={e => setEditProductForm(f => ({ ...f, image: e.target.value }))}
+              style={{ flex: 2 }}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => uploadProductImage(product.id, e)}
+              style={{ flex: 1 }}
+            />
+          </div>
+          <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+            <button type="submit" style={{ background: '#1abc9c', color: '#fff', border: 0, borderRadius: 4, padding: '6px 16px' }}>Guardar</button>
+            <button type="button" onClick={() => setEditingProductId(null)} style={{ background: '#444', color: '#fff', border: 0, borderRadius: 4, padding: '6px 16px' }}>Cancelar</button>
+          </div>
+        </form>
+      );
+    }
+    // Ejemplo de integración (ajusta según tu renderizado de inventario):
+    // Ejemplo de integración (ajusta según tu renderizado de inventario):
+    {uniqueProducts.map(product => (
+      <div key={product.id}>
+        {editingProductId === product.id
+          ? renderEditProductForm(product)
+          : <>
+              {/* ...render info producto... */}
+              <button onClick={() => {
+                setEditingProductId(product.id);
+                setEditProductForm({
+                  name: product.name,
+                  category: product.category,
+                  price: product.price,
+                  description: product.description,
+                  stock: product.stock,
+                  image: product.image || ""
+                });
+              }}>Editar</button>
+            </>
+        }
+      </div>
+    ))}
   const [applications, setApplications] = useState<BarberApplication[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -3315,7 +3416,8 @@ export function App() {
                                                 category: product.category,
                                                 price: product.price,
                                                 description: product.description || "",
-                                                stock: product.stock
+                                                stock: product.stock,
+                                                image: product.image || ""
                                               });
                                               setEditingProductId(product.id);
                                             }}
