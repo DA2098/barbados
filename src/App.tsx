@@ -984,16 +984,24 @@ export function App() {
         setSeenCountsLoaded(false);
         previousNotificationCountRef.current = 0;
         previousMessageCountRef.current = 0;
-        // CAMBIO DE RUTA INSTANTÁNEO: mostrar panel al instante
-        setRoute("dashboard");
-        setDashboardTab("overview");
         setLoginForm({ email: "", password: "" });
 
         // Cargar datos completos y establecer sessionUser para mostrar el panel
         await bootstrapSession(apiBase, userId);
+        // Si no hay usuario tras bootstrap, regresar a home y mostrar error
+        if (!sessionUser) {
+          setRoute("home");
+          setDashboardTab("overview");
+          setError("No se pudo cargar la sesión. Intenta de nuevo.");
+        } else {
+          setRoute("dashboard");
+          setDashboardTab("overview");
+        }
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
+        setRoute("home");
+        setDashboardTab("overview");
       })
       .finally(() => {
         setLoading(false);
