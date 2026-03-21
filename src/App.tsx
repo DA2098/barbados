@@ -2669,8 +2669,36 @@ export function App() {
                       <Badge label={product.stock > 0 ? `${product.stock} stock` : "Agotado"} variant={product.stock > 0 ? "success" : "danger"} />
                     </div>
                     <p className="shop-description">{product.description}</p>
-                    <div className="shop-meta">
+                    <div className="shop-meta" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <strong className="shop-price">{money.format(product.price)}</strong>
+                      {sessionUser && sessionUser.role === "client" ? (
+                        <button
+                          className="button button--primary"
+                          style={{ marginLeft: 8, minWidth: 90 }}
+                          disabled={product.stock <= 0 || loading}
+                          onClick={async () => {
+                            if (!apiBase || !sessionUser) return;
+                            setLoading(true);
+                            setError("");
+                            setSuccess("Agregando al carrito...");
+                            try {
+                              await apiRequest(apiBase, `/cart`, {
+                                method: "POST",
+                                ...jsonBody({ product_id: product.id, quantity: 1, client_id: sessionUser.id }),
+                              });
+                              await refreshSession();
+                              setSuccess("Producto agregado al carrito.");
+                            } catch (err) {
+                              setError(err instanceof Error ? err.message : "No se pudo agregar al carrito.");
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          type="button"
+                        >
+                          {product.stock > 0 ? "Agregar" : "Sin stock"}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </article>
