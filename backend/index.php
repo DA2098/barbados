@@ -626,6 +626,15 @@ if ($resource === 'users') {
 }
 
 if ($resource === 'applications') {
+        // DELETE - Eliminar postulación
+        if ($id && $method === 'DELETE') {
+            $application = fetch_one($pdo, 'SELECT * FROM barber_applications WHERE id = :id', [':id' => $id]);
+            if (!$application) {
+                respond(['ok' => false, 'message' => 'Postulación no encontrada.'], 404);
+            }
+            execute_statement($pdo, 'DELETE FROM barber_applications WHERE id = :id', [':id' => $id]);
+            respond(['ok' => true, 'message' => 'Postulación eliminada.']);
+        }
     if ($method === 'GET') {
         respond([
             'ok' => true,
