@@ -2676,7 +2676,7 @@ export function App() {
               </div>
             </div>
             <div className="nav-list">
-              {[...
+              {[
                 ["overview", "Resumen"],
                 ...(sessionUser.role === "admin" ? [["users", "Usuarios"], ["applications", "Postulaciones"], ["products", "Productos"], ["orders", "Órdenes"], ["testimonials", "Opiniones"], ["cuts", "Ganancias"]] : []),
                 ...(sessionUser.role === "barber" ? [["cuts", "Mis Cortes"]] : []),
@@ -2685,12 +2685,10 @@ export function App() {
                 ["notifications", "Notificaciones"],
                 ...(sessionUser.role === "client" ? [["account", "Mi cuenta"]] : []),
               ].map(([value, label]) => {
-                // Usar actualUnreadMessages para el badge del chat (solo mensajes nuevos no vistos)
-                const unreadMsgCount = value === "chat" ? actualUnreadMessages : 0;
-                const unreadNotifCount = value === "notifications" ? myNotifications.filter((n) => !n.read).length : 0;
-                const pendingTestimonials = value === "testimonials" ? adminTestimonials.filter((t) => !t.isApproved).length : 0;
-                const badgeCount = unreadMsgCount || unreadNotifCount || pendingTestimonials;
-                
+                let badgeCount = 0;
+                if (value === "chat") badgeCount = actualUnreadMessages;
+                else if (value === "notifications") badgeCount = myNotifications.filter((n) => !n.read).length;
+                else if (value === "testimonials") badgeCount = adminTestimonials.filter((t) => !t.isApproved).length;
                 return (
                   <button key={value} className={`nav-button ${dashboardTab === value ? "nav-button--active" : ""}`} onClick={() => setDashboardTab(value as DashboardTab)} type="button">
                     {label}
