@@ -2130,8 +2130,8 @@ export function App() {
             </>
           ) : (
             <>
-              <button className={`nav-link ${route === "dashboard" ? "nav-link--active" : ""}`} onClick={() => setRoute("dashboard")} type="button">Mi panel</button>
-              <button className="button button--ghost button--small" onClick={() => void handleLogout()} type="button">Salir</button>
+              {sessionUser && <button className={`nav-link ${route === "dashboard" ? "nav-link--active" : ""}`} onClick={() => setRoute("dashboard")} type="button">Mi panel</button>}
+              {sessionUser && <button className="button button--ghost button--small" onClick={() => void handleLogout()} type="button">Salir</button>}
             </>
           )}
         </nav>
