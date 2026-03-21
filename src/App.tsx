@@ -1727,20 +1727,10 @@ export function App() {
     setTimeout(() => setSuccess("Imagen actualizada (sincronizando)..."), 200);
     // Optimistic UI: mostrar preview instantáneo
     const reader = new FileReader();
-    reader.onload = async () => {
-      // Solo actualiza la imagen localmente y en backend, pero nunca la borra salvo acción explícita
+    reader.onload = () => {
       setProducts(prev => prev.map(p => p.id === productId ? { ...p, image: reader.result as string } : p));
-      setLoading(true);
-      try {
-        await patchProduct(productId, { image: reader.result as string });
-        setSuccess("Imagen del producto actualizada.");
-        // No borres la imagen salvo que el admin lo haga explícitamente
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
-      } finally {
-        setLoading(false);
-        await refreshProducts();
-      }
+      // Sincroniza en segundo plano
+      patchProduct(productId, { image: reader.result as string });
     };
     reader.onerror = () => setError("No se pudo leer el archivo");
     reader.readAsDataURL(file);
