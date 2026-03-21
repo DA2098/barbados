@@ -1656,10 +1656,13 @@ export function App() {
     })
       .then(() => {
         refreshProducts();
+        // Refrescar también publicData para la tienda
+        setTimeout(() => refreshProducts(), 100);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo actualizar el producto.");
         refreshProducts();
+        setTimeout(() => refreshProducts(), 100);
       });
   }
 
@@ -1671,10 +1674,12 @@ export function App() {
     apiRequest(apiBase, `/products/${productId}`, { method: "DELETE" })
       .then(() => {
         refreshProducts();
+        setTimeout(() => refreshProducts(), 100);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "No se pudo eliminar el producto.");
         refreshProducts();
+        setTimeout(() => refreshProducts(), 100);
       });
   }
 
@@ -1692,10 +1697,12 @@ export function App() {
       try {
         await patchProduct(productId, { image: reader.result as string });
         await refreshProducts();
+        setTimeout(() => refreshProducts(), 100);
         setSuccess("Imagen del producto actualizada.");
       } catch (err) {
         setError(err instanceof Error ? err.message : "No se pudo actualizar la imagen.");
         await refreshProducts();
+        setTimeout(() => refreshProducts(), 100);
       } finally {
         setLoading(false);
       }
