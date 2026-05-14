@@ -22,6 +22,7 @@ type CutForm = {
   price: string;
   stock: string;
   image_url: string;
+  duration_minutes: string;
   is_visible: boolean;
 };
 
@@ -49,6 +50,7 @@ const emptyCut: CutForm = {
   price: '',
   stock: '100',
   image_url: '',
+  duration_minutes: '30',
   is_visible: true
 };
 
@@ -234,6 +236,7 @@ export default function AdminPanel() {
       stock: Number(cutForm.stock),
       image_url: cutForm.image_url,
       category: 'service',
+      duration_minutes: Number(cutForm.duration_minutes || 0),
       is_visible: cutForm.is_visible
     } as Omit<Product, 'id'>;
 
@@ -279,6 +282,7 @@ export default function AdminPanel() {
       price: String(product.price),
       stock: String(product.stock),
       image_url: product.image_url,
+      duration_minutes: String(product.duration_minutes || 30),
       is_visible: product.is_visible
     });
   };
@@ -862,6 +866,7 @@ export default function AdminPanel() {
               <input required type="text" placeholder="Nombre del corte" value={cutForm.name} onChange={(e) => setCutForm({ ...cutForm, name: e.target.value })} className="w-full p-2 form-input" />
               <textarea required placeholder="Información del corte" value={cutForm.description} onChange={(e) => setCutForm({ ...cutForm, description: e.target.value })} className="w-full p-2 form-input" rows={3} />
               <input required type="number" step="0.01" placeholder="Precio" value={cutForm.price} onChange={(e) => setCutForm({ ...cutForm, price: e.target.value })} className="w-full p-2 form-input" />
+              <input required type="number" placeholder="Duración (min)" value={cutForm.duration_minutes} onChange={(e) => setCutForm({ ...cutForm, duration_minutes: e.target.value })} className="w-full p-2 form-input" />
               <input type="url" placeholder="URL Imagen" value={cutForm.image_url} onChange={(e) => setCutForm({ ...cutForm, image_url: e.target.value })} className="w-full p-2 form-input" />
               {cutForm.image_url && (
                 <div className="space-y-2">
@@ -910,6 +915,7 @@ export default function AdminPanel() {
               <thead className="border-b border-white/10">
                 <tr>
                   <th className="p-3 text-contrast font-semibold">Corte</th>
+                  <th className="p-3 text-contrast font-semibold">Duración</th>
                   <th className="p-3 text-contrast font-semibold">Precio</th>
                   <th className="p-3 text-contrast font-semibold">Visibilidad</th>
                   <th className="p-3 text-center text-contrast font-semibold">Acciones</th>
@@ -929,6 +935,7 @@ export default function AdminPanel() {
                         </div>
                       </div>
                     </td>
+                    <td className="p-3 text-contrast">{(cut.duration_minutes || 0) + ' min'}</td>
                     <td className="p-3 text-contrast">${cut.price.toFixed(2)}</td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
