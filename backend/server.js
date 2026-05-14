@@ -83,12 +83,17 @@ function resolveConversationType(roleA, roleB) {
   return null;
 }
 
-// --- AUTH / REGISTER ---
-app.post('/api', async (req, res) => {
-  const { action, name, email, password, role: requestedRole } = req.body;
+// --- API ROUTER ---
+app.all('/api', async (req, res) => {
+  const action = (req.method === 'GET' ? req.query.action : req.body.action) || '';
 
-  if (action === 'register') {
-    try {
+  try {
+    if (req.method === 'GET' && !action) {
+      return res.json({ message: 'API Barbados - Use action parameter', status: 'ok' });
+    }
+
+    if (req.method === 'POST' && action === 'register') {
+      const { name, email, password, role: requestedRole } = req.body;
       const cleanRole = ['user', 'barber'].includes(requestedRole) ? requestedRole : 'user';
       const isBarberApplication = cleanRole === 'barber';
       const userRole = 'user';
@@ -115,7 +120,7 @@ app.post('/api', async (req, res) => {
         }
       }
 
-      res.json({
+      return res.json({
         id: String(userId),
         name,
         email,
@@ -124,27 +129,14 @@ app.post('/api', async (req, res) => {
         phone: '',
         avatar_url: null
       });
-    } catch (err) {
-      res.status(400).json({ error: err.message });
     }
-  }
-});
 
-// --- LOGIN ---
-app.post('/api', async (req, res) => {
-  const { action, email, password } = req.body;
-
-  if (action === 'login') {
-    try {
+    if (req.method === 'POST' && action === 'login') {
+      const { email, password } = req.body;
       const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
       const user = result.rows[0];
 
-      if (!user) {
-        return res.status(401).json({ error: 'Credenciales incorrectas' });
-      }
-
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
+      if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ error: 'Credenciales incorrectas' });
       }
 
@@ -154,35 +146,18 @@ app.post('/api', async (req, res) => {
         });
       }
 
-      res.json(normalizeUser(user));
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.json(normalizeUser(user));
     }
-  }
-});
 
-// --- GET USERS ---
-app.get('/api', async (req, res) => {
-  const { action } = req.query;
-
-  if (action === 'users') {
-    try {
+    if (req.method === 'GET' && action === 'users') {
       const result = await pool.query(
         'SELECT id, name, email, role, barber_approved, phone, avatar_url FROM users'
       );
-      res.json(result.rows.map(normalizeUser));
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.json(result.rows.map(normalizeUser));
     }
-  }
-});
 
-// --- GET PRODUCTS ---
-app.get('/api', async (req, res) => {
-  const { action, category, includeHidden } = req.query;
-
-  if (action === 'products') {
-    try {
+    if (req.method === 'GET' && action === 'products') {
+      const { category, includeHidden } = req.query;
       let query = 'SELECT id, name, description, price, image_url, category, is_visible, stock FROM products WHERE 1=1';
       const params = [];
 
@@ -198,38 +173,23 @@ app.get('/api', async (req, res) => {
       query += ' ORDER BY id DESC';
 
       const result = await pool.query(query, params);
-      res.json(result.rows);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.json(result.rows);
     }
-  }
-});
 
-// --- CREATE PRODUCT ---
-app.post('/api', async (req, res) => {
-  const { action, name, price, stock, image_url, description, category, is_visible } = req.body;
-
-  if (action === 'products') {
-    try {
+    if (req.method === 'POST' && action === 'products') {
+      const { name, price, stock, image_url, description, category, is_visible } = req.body;
       const normalizedCategory = normalizeProductCategory(category);
       await pool.query(
         'INSERT INTO products (name, description, price, stock, image_url, category, is_visible) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [name, description || '', price, stock, image_url || '', normalizedCategory, is_visible !== false]
       );
-      res.json({ message: 'Producto creado' });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.json({ message: 'Producto creado' });
     }
-  }
-});
 
-// Default GET /api (para testing)
-app.get('/api', (req, res) => {
-  const { action } = req.query;
-  if (!action) {
-    return res.json({ message: 'API Barbados - Use action parameter', status: 'ok' });
+    return res.status(404).json({ error: `Action "${action || 'none'}" no encontrada` });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
-  res.status(404).json({ error: `Action "${action}" no encontrada` });
 });
 
 // Root endpoint for Render health/testing
