@@ -793,12 +793,14 @@ app.all(['/api', '/api.php'], async (req, res) => {
       if (user.role === 'barber') roles = ['user', 'admin'];
       if (user.role === 'admin') roles = ['user', 'barber'];
 
+      // Build IN clause with placeholders
+      const placeholders = roles.map((_, i) => `$${i + 2}`).join(', ');
       const result = await pool.query(
         `SELECT id, name, email, role, barber_approved, phone, avatar_url
          FROM users
-         WHERE id <> $1 AND role::text = ANY($2)
+         WHERE id <> $1 AND role IN (${placeholders})
          ORDER BY name ASC`,
-        [userId, roles]
+        [userId, ...roles]
       );
 
       return res.json(result.rows.map(normalizeUser));
