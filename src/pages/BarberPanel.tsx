@@ -11,7 +11,7 @@ export default function BarberPanel() {
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
-  const [type, setType] = useState<'Barbería' | 'Lancería' | 'Bebidas'>('Barbería');
+  const [type, setType] = useState<'Cortes / Barbería' | 'Lancería' | 'Bebidas'>('Cortes / Barbería');
   const [selectedItemId, setSelectedItemId] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -46,14 +46,14 @@ export default function BarberPanel() {
     ]);
   };
 
-  const getProductsByType = (selectedType: 'Barbería' | 'Lancería' | 'Bebidas') => {
-    if (selectedType === 'Barbería') return catalogProducts.filter((product) => product.category === 'service');
+  const getProductsByType = (selectedType: 'Cortes / Barbería' | 'Lancería' | 'Bebidas') => {
+    if (selectedType === 'Cortes / Barbería') return catalogProducts.filter((product) => product.category === 'service');
     if (selectedType === 'Lancería') return catalogProducts.filter((product) => product.category === 'food');
     return catalogProducts.filter((product) => product.category === 'drink');
   };
 
-  const typeLabel = (value: 'Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida') => {
-    if (value === 'Corte' || value === 'Barbería') return 'Barbería';
+  const typeLabel = (value: 'Cortes / Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida') => {
+    if (value === 'Corte' || value === 'Cortes / Barbería') return 'Cortes / Barbería';
     if (value === 'Menu' || value === 'Lancería') return 'Lancería';
     return 'Bebidas';
   };
@@ -212,7 +212,7 @@ export default function BarberPanel() {
               onChange={(e) => setType(e.target.value as any)}
               className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
             >
-              <option value="Barbería">Barbería</option>
+              <option value="Cortes / Barbería">Cortes / Barbería</option>
               <option value="Lancería">Lancería</option>
               <option value="Bebidas">Bebidas</option>
             </select>
@@ -221,7 +221,7 @@ export default function BarberPanel() {
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1">Servicio / Producto</label>
             {getProductsByType(type).length === 0 ? (
-              <p className="text-sm text-gray-500">No hay barbería, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
+              <p className="text-sm text-gray-500">No hay cortes, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
             ) : (
               <select 
                 value={selectedItemId} 
@@ -273,10 +273,10 @@ export default function BarberPanel() {
                     <td className="p-4 text-sm">{new Date(log.date).toLocaleString()}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium 
-                        ${(log.type === 'Corte' || log.type === 'Barbería') ? 'bg-blue-100 text-blue-700' : 
+                        ${(log.type === 'Corte' || log.type === 'Barbería' || log.type === 'Cortes / Barbería') ? 'bg-blue-100 text-blue-700' : 
                           (log.type === 'Menu' || log.type === 'Lancería') ? 'bg-orange-100 text-orange-700' : 
                           'bg-purple-100 text-purple-700'}`}>
-                        {typeLabel(log.type as 'Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida')}
+                        {typeLabel(log.type as 'Cortes / Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida')}
                       </span>
                     </td>
                     <td className="p-4 font-medium">{log.name}</td>
