@@ -920,6 +920,60 @@ app.all(['/api', '/api.php'], async (req, res) => {
       return res.json(result.rows.map(normalizeConversation));
     }
 
+    if (req.method === 'GET' && action === 'admin-chat-monitor') {
+      const { adminId } = req.query;
+      if (!(await isAdminUser(adminId))) {
+        return res.status(403).json({ error: 'No autorizado. Solo administradores pueden ver esto.' });
+      }
+
+      const result = await pool.query(
+        `SELECT 
+           c.id AS conversation_id,
+           c.conversation_type,
+           c.last_message_at,
+           c.created_at,
+           u1.id AS user1_id,
+           u1.name AS user1_name,
+           u1.avatar_url AS user1_avatar,
+           u1.role AS user1_role,
+           u2.id AS user2_id,
+           u2.name AS user2_name,
+           u2.avatar_url AS user2_avatar,
+           u2.role AS user2_role,
+           (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND is_deleted = false) AS message_count
+         FROM conversations c
+         JOIN conversation_participants p1 ON c.id = p1.conversation_id
+         JOIN conversation_participants p2 ON c.id = p2.conversation_id AND p1.user_id < p2.user_id
+         JOIN users u1 ON p1.user_id = u1.id
+         JOIN users u2 ON p2.user_id = u2.id
+         WHERE c.is_active = true
+         ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`,
+        []
+      );
+
+      const chats = result.rows.map(row => {
+        const barber = row.user1_role === 'barber' 
+          ? { id: row.user1_id, name: row.user1_name, avatar: row.user1_avatar }
+          : { id: row.user2_id, name: row.user2_name, avatar: row.user2_avatar };
+        
+        const client = row.user1_role === 'user' || row.user1_role === 'client'
+          ? { id: row.user1_id, name: row.user1_name, avatar: row.user1_avatar }
+          : { id: row.user2_id, name: row.user2_name, avatar: row.user2_avatar };
+
+        return {
+          conversationId: String(row.conversation_id),
+          conversationType: row.conversation_type,
+          barber: barber,
+          client: client,
+          lastMessageAt: row.last_message_at,
+          createdAt: row.created_at,
+          messageCount: Number(row.message_count)
+        };
+      });
+
+      return res.json(chats);
+    }
+
     if (req.method === 'DELETE' && action === 'conversations') {
       const { id } = req.query;
       const { actorId } = req.body;

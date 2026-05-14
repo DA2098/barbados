@@ -49,6 +49,16 @@ export interface Message {
   createdAt: string;
 }
 
+export interface AdminChatSession {
+  conversationId: string;
+  conversationType: string;
+  barber: { id: string; name: string; avatar: string | null };
+  client: { id: string; name: string; avatar: string | null };
+  lastMessageAt: string | null;
+  createdAt: string;
+  messageCount: number;
+}
+
 export interface AppNotification {
   id: string;
   type: 'new_message' | 'new_image' | 'system';
@@ -566,6 +576,12 @@ export const api = {
       body: JSON.stringify({ conversationId, senderId, ...payload })
     });
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al enviar mensaje'));
+  },
+
+  async getAdminChatMonitor(adminId: string): Promise<AdminChatSession[]> {
+    const res = await fetch(`${API_URL}?action=admin-chat-monitor&adminId=${adminId}`);
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener chats'));
+    return await res.json();
   },
 
   // --- NOTIFICATIONS ---

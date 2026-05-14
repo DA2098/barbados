@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview } from '../services/api';
+import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -77,18 +77,20 @@ export default function AdminPanel() {
   const [creatingUser, setCreatingUser] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingServiceImage, setUploadingServiceImage] = useState(false);
+  const [chats, setChats] = useState<AdminChatSession[]>([]);
 
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [uData, pData, sData, lData, applicationData, appointmentData, reviewData] = await Promise.all([
+      const [uData, pData, sData, lData, applicationData, appointmentData, reviewData, chatData] = await Promise.all([
         api.getUsers(),
         api.getProducts({ includeHidden: true }),
         api.getServices({ includeHidden: true }),
         api.getBarberLogs(),
         api.getBarberApplications(user.id),
         api.getAppointments(user.id),
-        api.getAppointmentReviews()
+        api.getAppointmentReviews(),
+        api.getAdminChatMonitor(user.id)
       ]);
       console.log('✓ Datos cargados - Products:', pData, 'Services:', sData);
       setUsers(uData);
@@ -97,6 +99,7 @@ export default function AdminPanel() {
       setBarberApplications(applicationData);
       setAppointments(appointmentData);
       setReviews(reviewData);
+      setChats(chatData);
     } catch (error: any) {
       console.error('Error en fetchData:', error);
       alert(`Error al cargar datos: ${error.message}`);
@@ -913,78 +916,138 @@ export default function AdminPanel() {
       )}
 
       {activeTab === 'chatAdmin' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="glass-card rounded-xl p-4 sm:p-5">
-            <h2 className="text-xl font-bold mb-4 text-contrast">Chat con Barberos</h2>
-            <div className="space-y-3">
-              {users.filter((u) => u.role === 'barber').map((barber) => (
-                <div key={barber.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {barber.avatar_url ? (
-                      <img
-                        src={barber.avatar_url}
-                        alt={barber.name}
-                        className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
-                        onError={(event) => {
-                          event.currentTarget.style.display = 'none';
-                          const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20"
-                      style={{ display: barber.avatar_url ? 'none' : 'flex' }}
-                    >
-                      {barber.name.charAt(0)}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate text-contrast">{barber.name}</p>
-                      <p className="text-xs muted truncate">{barber.email}</p>
-                    </div>
-                  </div>
-                  <Link to={`/chat?peerId=${barber.id}`} className="px-3 py-1.5 rounded accent-btn text-xs font-semibold">
-                    Abrir chat
-                  </Link>
-                </div>
-              ))}
+        <div className="space-y-6">
+          <div className="glass-card rounded-xl p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+              <h2 className="text-lg sm:text-xl font-bold">Monitor de Chats en Tiempo Real</h2>
+              <p className="text-sm text-gray-500">Conversaciones activas entre barberos y clientes</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left">
+                <thead className="bg-gray-50 text-gray-500">
+                  <tr>
+                    <th className="p-4">Barbero</th>
+                    <th className="p-4">Cliente</th>
+                    <th className="p-4">Mensajes</th>
+                    <th className="p-4">Último Mensaje</th>
+                    <th className="p-4">Iniciado</th>
+                    <th className="p-4 text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {chats.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-400">No hay conversaciones activas aún.</td>
+                    </tr>
+                  ) : (
+                    chats.map((chat) => (
+                      <tr key={chat.conversationId} className="hover:bg-gray-50">
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            {chat.barber.avatar ? (
+                              <img src={chat.barber.avatar} alt={chat.barber.name} className="w-8 h-8 rounded-full object-cover border" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                                {chat.barber.name.charAt(0)}
+                              </div>
+                            )}
+                            <span className="font-medium">{chat.barber.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            {chat.client.avatar ? (
+                              <img src={chat.client.avatar} alt={chat.client.name} className="w-8 h-8 rounded-full object-cover border" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
+                                {chat.client.name.charAt(0)}
+                              </div>
+                            )}
+                            <span className="font-medium">{chat.client.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">{chat.messageCount}</span>
+                        </td>
+                        <td className="p-4 text-sm text-gray-600">
+                          {chat.lastMessageAt ? new Date(chat.lastMessageAt).toLocaleString() : 'Nunca'}
+                        </td>
+                        <td className="p-4 text-sm text-gray-600">
+                          {new Date(chat.createdAt).toLocaleString()}
+                        </td>
+                        <td className="p-4 text-center">
+                          <Link to={`/chat?peerId=${chat.barber.id}`} className="px-3 py-1.5 rounded text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition">
+                            Ver Chat
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div className="glass-card rounded-xl p-4 sm:p-5">
-            <h2 className="text-xl font-bold mb-4 text-contrast">Chat con Clientes Registrados</h2>
-            <div className="space-y-3">
-              {users.filter((u) => u.role === 'user').map((client) => (
-                <div key={client.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {client.avatar_url ? (
-                      <img
-                        src={client.avatar_url}
-                        alt={client.name}
-                        className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
-                        onError={(event) => {
-                          event.currentTarget.style.display = 'none';
-                          const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20"
-                      style={{ display: client.avatar_url ? 'none' : 'flex' }}
-                    >
-                      {client.name.charAt(0)}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="glass-card rounded-xl p-4 sm:p-5">
+              <h3 className="text-lg font-bold mb-3">Barberos Disponibles</h3>
+              <div className="space-y-3">
+                {users.filter((u) => u.role === 'barber').map((barber) => (
+                  <div key={barber.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {barber.avatar_url ? (
+                        <img
+                          src={barber.avatar_url}
+                          alt={barber.name}
+                          className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20 flex">
+                          {barber.name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate text-contrast">{barber.name}</p>
+                        <p className="text-xs muted truncate">{barber.email}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate text-contrast">{client.name}</p>
-                      <p className="text-xs muted truncate">{client.email}</p>
-                    </div>
+                    <Link to={`/chat?peerId=${barber.id}`} className="px-3 py-1.5 rounded accent-btn text-xs font-semibold">
+                      Contactar
+                    </Link>
                   </div>
-                  <Link to={`/chat?peerId=${client.id}`} className="px-3 py-1.5 rounded bg-indigo-600 text-white text-xs font-semibold">
-                    Abrir chat
-                  </Link>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-card rounded-xl p-4 sm:p-5">
+              <h3 className="text-lg font-bold mb-3">Clientes Registrados</h3>
+              <div className="space-y-3">
+                {users.filter((u) => u.role === 'user').map((client) => (
+                  <div key={client.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {client.avatar_url ? (
+                        <img
+                          src={client.avatar_url}
+                          alt={client.name}
+                          className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20 flex">
+                          {client.name.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate text-contrast">{client.name}</p>
+                        <p className="text-xs muted truncate">{client.email}</p>
+                      </div>
+                    </div>
+                    <Link to={`/chat?peerId=${client.id}`} className="px-3 py-1.5 rounded bg-indigo-600 text-white text-xs font-semibold">
+                      Contactar
+                    </Link>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
