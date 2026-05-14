@@ -38,7 +38,7 @@ const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, c
         onMouseLeave={handleMouseLeave}
       >
         {image && (
-          <div className="aspect-[4/3] w-full bg-white/70 dark:bg-black/20 overflow-hidden border-b border-white/10">
+          <div className="aspect-4/3 w-full bg-white/70 dark:bg-black/20 overflow-hidden border-b border-white/10">
             <a href={image} target="_blank" rel="noreferrer" className="block h-full w-full">
               <img src={image} alt={title || 'card-image'} className="h-full w-full object-contain p-2 sm:p-3" />
             </a>
