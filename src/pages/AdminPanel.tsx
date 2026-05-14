@@ -141,33 +141,28 @@ export default function AdminPanel() {
     try {
       if (newUserForm.role === 'barber') {
         await api.createBarber(user.id, newUserForm.name, newUserForm.email, newUserForm.password, newUserForm.phone);
-                  <tbody>
-                    <tr className="border-t border-white/10">
-                      <td className="p-2 font-medium">Cortes</td>
-                      <td className="p-2 text-green-600 font-bold">${todayByCategory.cortes.toFixed(2)}</td>
-                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.cortes.toFixed(2)}</td>
-                    </tr>
-                    <tr className="border-t border-white/10">
-                      <td className="p-2 font-medium">Barbería</td>
-                      <td className="p-2 text-green-600 font-bold">${todayByCategory.barberia.toFixed(2)}</td>
-                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.barberia.toFixed(2)}</td>
-                    </tr>
-                    <tr className="border-t border-white/10">
-                      <td className="p-2 font-medium">Lancería</td>
-                      <td className="p-2 text-green-600 font-bold">${todayByCategory.lanceria.toFixed(2)}</td>
-                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.lanceria.toFixed(2)}</td>
-                    </tr>
-                    <tr className="border-t border-white/10">
-                      <td className="p-2 font-medium">Bebidas</td>
-                      <td className="p-2 text-green-600 font-bold">${todayByCategory.bebidas.toFixed(2)}</td>
-                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.bebidas.toFixed(2)}</td>
-                    </tr>
-                    <tr className="border-t border-white/10 bg-white/5">
-                      <td className="p-2 font-semibold">Total</td>
-                      <td className="p-2 font-semibold">${todayTotal.toFixed(2)}</td>
-                      <td className="p-2 font-semibold">${monthTotal.toFixed(2)}</td>
-                    </tr>
-                  </tbody>
+      } else {
+        await api.createClient(user.id, newUserForm.name, newUserForm.email, newUserForm.password, newUserForm.phone);
+      }
+
+      setNewUserForm(emptyNewUser);
+      setCreatingUser(false);
+      await fetchData();
+    } catch (error: any) {
+      setCreatingUser(false);
+      alert(error.message);
+    }
+  };
+
+  const handleSubmitProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const payload = {
+      name: productForm.name,
+      description: productForm.description,
+      price: Number(productForm.price),
+      stock: Number(productForm.stock),
+      image_url: productForm.image_url,
       category: productForm.category,
       is_visible: productForm.is_visible
     } as Omit<Product, 'id'>;
