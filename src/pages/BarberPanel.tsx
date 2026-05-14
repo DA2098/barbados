@@ -52,6 +52,12 @@ export default function BarberPanel() {
     return catalogProducts.filter((product) => product.category === 'drink');
   };
 
+  const typeLabel = (value: 'Corte' | 'Menu' | 'Bebida') => {
+    if (value === 'Corte') return 'Corte';
+    if (value === 'Menu') return 'Lancería';
+    return 'Bebidas';
+  };
+
   useEffect(() => {
     if (!user) return;
     fetchLogs();
@@ -207,7 +213,7 @@ export default function BarberPanel() {
               className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
             >
               <option value="Corte">Corte / Barbería</option>
-              <option value="Menu">Menú de Comida</option>
+              <option value="Menu">Lancería</option>
               <option value="Bebida">Bebidas</option>
             </select>
           </div>
@@ -215,7 +221,7 @@ export default function BarberPanel() {
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1">Servicio / Producto</label>
             {getProductsByType(type).length === 0 ? (
-              <p className="text-sm text-gray-500">No hay productos visibles publicados por el admin en esta categoría.</p>
+              <p className="text-sm text-gray-500">No hay cortes, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
             ) : (
               <select 
                 value={selectedItemId} 
@@ -270,7 +276,7 @@ export default function BarberPanel() {
                         ${log.type === 'Corte' ? 'bg-blue-100 text-blue-700' : 
                           log.type === 'Menu' ? 'bg-orange-100 text-orange-700' : 
                           'bg-purple-100 text-purple-700'}`}>
-                        {log.type}
+                        {typeLabel(log.type as 'Corte' | 'Menu' | 'Bebida')}
                       </span>
                     </td>
                     <td className="p-4 font-medium">{log.name}</td>

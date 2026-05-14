@@ -391,10 +391,10 @@ export default function AdminPanel() {
   const cuts = products.filter((p) => p.category === 'service');
   const storeProducts = products.filter((p) => p.category !== 'service');
   const categoryLabel = (category: Product['category']) => {
-    if (category === 'barber') return 'BARBERIA';
+    if (category === 'barber') return 'CORTES';
     if (category === 'food') return 'LANCERIA';
     if (category === 'drink') return 'BEBIDA';
-    return 'SERVICIO';
+    return 'CORTES';
   };
 
   return (
@@ -654,7 +654,7 @@ export default function AdminPanel() {
               <input required type="text" placeholder="Nombre" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} className="w-full p-2 border rounded" />
               <textarea placeholder="Descripción" value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="w-full p-2 border rounded" rows={2} />
               <select value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value as ProductForm['category'] })} className="w-full p-2 border rounded">
-                <option value="barber">Barberia (Tienda)</option>
+                <option value="barber">Cortes (Tienda)</option>
                 <option value="food">Lanceria (Tienda)</option>
                 <option value="drink">Bebida (Tienda)</option>
               </select>

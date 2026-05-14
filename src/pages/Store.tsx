@@ -33,7 +33,7 @@ export default function Store() {
   useAutoRefresh(() => loadProducts(true), { intervalMs: 30000 });
 
   const categoryLabel = (c: 'barber' | 'food' | 'drink' | 'service') => {
-    if (c === 'barber') return 'Barberia';
+    if (c === 'barber') return 'Cortes';
     if (c === 'food') return 'Lanceria';
     if (c === 'drink') return 'Bebidas';
     return 'Servicios';
@@ -51,13 +51,13 @@ export default function Store() {
           onClick={() => setCategory('barber')}
           className={`px-4 py-2 rounded-lg font-semibold ${category === 'barber' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
         >
-          Barberia
+          Cortes
         </button>
         <button
           onClick={() => setCategory('food')}
           className={`px-4 py-2 rounded-lg font-semibold ${category === 'food' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
         >
-          Lanceria
+          Lancería
         </button>
         <button
           onClick={() => setCategory('drink')}
@@ -73,7 +73,7 @@ export default function Store() {
         <div className="glass-card p-12 text-center rounded-xl shadow-sm">
           <ShoppingCart className="w-16 h-16 mx-auto muted mb-4" />
           <h2 className="text-xl font-medium text-contrast">No hay productos disponibles</h2>
-          <p className="muted mt-2">El administrador aun no ha agregado productos para esta categoria.</p>
+          <p className="muted mt-2">El administrador aún no ha agregado elementos para esta categoría.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
