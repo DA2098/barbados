@@ -147,6 +147,9 @@ export default function AdminPanel() {
   useRealtimeUserEvents(user?.id, async () => {
     if (user?.role !== 'admin') return;
     await fetchData();
+    if (selectedConversationId) {
+      await loadConversationMessages(selectedConversationId);
+    }
   }, user?.role === 'admin');
 
   if (user?.role !== 'admin') {
@@ -1039,7 +1042,22 @@ export default function AdminPanel() {
                 ) : (
                   conversationMessages.map((m) => (
                     <div key={m.id} className="p-2">
-                      <div className="text-xs text-gray-400">{m.senderName} · {new Date(m.createdAt).toLocaleString()}</div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-400">{m.senderName} · {new Date(m.createdAt).toLocaleString()}</div>
+                        <div>
+                          <button onClick={async () => {
+                            if (!user) return;
+                            if (!confirm('¿Eliminar este mensaje para todos?')) return;
+                            try {
+                              await api.deleteMessage(m.id, user.id);
+                              await loadConversationMessages(selectedConversationId);
+                              await fetchData();
+                            } catch (err: any) {
+                              alert(err.message);
+                            }
+                          }} className="text-xs text-red-500">Eliminar</button>
+                        </div>
+                      </div>
                       <div className="mt-1 bg-white/5 p-2 rounded">{m.messageType === 'image' ? (<a href={m.imageUrl} target="_blank" rel="noreferrer"><img src={m.imageUrl} className="max-h-40 rounded" /></a>) : m.body}</div>
                     </div>
                   ))

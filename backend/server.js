@@ -1049,6 +1049,40 @@ app.all(['/api', '/api.php'], async (req, res) => {
       return res.json({ message: 'Mensaje enviado', id: String(inserted.rows[0].id) });
     }
 
+    if (req.method === 'DELETE' && action === 'messages') {
+      const { id } = req.query;
+      const { actorId } = req.body;
+      if (!id) return res.status(400).json({ error: 'id requerido' });
+
+      const actor = await getUserById(actorId);
+      if (!actor || actor.role !== 'admin') {
+        return res.status(403).json({ error: 'Solo administradores pueden borrar mensajes' });
+      }
+
+      const msgResult = await pool.query('SELECT conversation_id FROM messages WHERE id = $1', [id]);
+      if (msgResult.rowCount === 0) return res.status(404).json({ error: 'Mensaje no encontrado' });
+      const convoId = msgResult.rows[0].conversation_id;
+
+      await pool.query('UPDATE messages SET is_deleted = true WHERE id = $1', [id]);
+
+      // Recompute last_message_at for conversation
+      const lastMsgRes = await pool.query('SELECT MAX(created_at) AS last_ts FROM messages WHERE conversation_id = $1 AND is_deleted = false', [convoId]);
+      const lastTs = lastMsgRes.rows[0]?.last_ts || null;
+      if (lastTs) {
+        await pool.query('UPDATE conversations SET last_message_at = $1 WHERE id = $2', [lastTs, convoId]);
+      } else {
+        await pool.query('UPDATE conversations SET last_message_at = created_at WHERE id = $1', [convoId]);
+      }
+
+      // Notify participants that a message was deleted
+      const participants = await pool.query('SELECT user_id FROM conversation_participants WHERE conversation_id = $1', [convoId]);
+      for (const p of participants.rows) {
+        await createNotification(p.user_id, 'system', 'Mensaje eliminado', `Un mensaje fue eliminado por el administrador`, { conversationId: String(convoId), messageId: String(id) });
+      }
+
+      return res.json({ message: 'Mensaje eliminado' });
+    }
+
     if (req.method === 'GET' && action === 'notifications') {
       const { userId } = req.query;
       const result = await pool.query(

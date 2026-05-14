@@ -552,6 +552,15 @@ export const api = {
     return await res.json();
   },
 
+  async deleteMessage(messageId: string, actorId: string): Promise<void> {
+    const res = await fetch(`${API_URL}?action=messages&id=${messageId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actorId })
+    });
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al eliminar mensaje'));
+  },
+
   async uploadChatImage(userId: string, file: File): Promise<{ mediaId: string; imageUrl: string }> {
     const formData = new FormData();
     formData.append('userId', userId);
