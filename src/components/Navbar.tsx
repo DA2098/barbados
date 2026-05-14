@@ -1,0 +1,226 @@
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import { ShoppingCart, Menu, MessageCircle, Bell, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { useEffect, useRef, useState } from 'react';
+import { api, AppNotification } from '../services/api';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
+
+export default function Navbar() {
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { items } = useCart();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const lastAdminMessageIdRef = useRef<string | null>(null);
+  const checkingAdminMessageRef = useRef(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const totalCartItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const canBuyProducts = user?.role !== 'admin' && user?.role !== 'barber';
+
+  const syncLatestAdminMessage = async () => {
+    if (!user || user.role === 'admin' || checkingAdminMessageRef.current) return;
+    checkingAdminMessageRef.current = true;
+
+    try {
+      const contacts = await api.getChatContacts(user.id);
+      const adminContact = contacts.find((contact) => contact.role === 'admin');
+      if (!adminContact) return;
+
+      const convo = await api.getOrCreateConversation(user.id, adminContact.id);
+      const msgs = await api.getMessages(convo.id, user.id);
+      const adminMessages = msgs.filter((msg) => msg.senderId === adminContact.id);
+      const latestAdminMessage = adminMessages[adminMessages.length - 1];
+
+      if (!latestAdminMessage) return;
+
+      if (!lastAdminMessageIdRef.current) {
+        lastAdminMessageIdRef.current = latestAdminMessage.id;
+        return;
+      }
+
+      if (lastAdminMessageIdRef.current !== latestAdminMessage.id) {
+        lastAdminMessageIdRef.current = latestAdminMessage.id;
+        navigate(`/chat?peerId=${adminContact.id}`);
+      }
+    } catch {
+      // No bloquea la UI si falla un intento puntual de sincronizacion.
+    } finally {
+      checkingAdminMessageRef.current = false;
+    }
+  };
+
+  useAutoRefresh(async () => {
+    if (!user) return;
+    try {
+      const response = await api.getNotifications(user.id);
+      setUnreadCount(Array.isArray(response) ? response.filter((n: AppNotification) => !n.isRead).length : 0);
+    } catch {
+      setUnreadCount(0);
+    }
+  }, { intervalMs: 20000, enabled: !!user });
+
+  useEffect(() => {
+    if (!user || user.role === 'admin') return;
+    void syncLatestAdminMessage();
+  }, [user?.id, user?.role]);
+
+  useRealtimeUserEvents(user?.id, (payload) => {
+    setUnreadCount(payload.unreadCount || 0);
+    void syncLatestAdminMessage();
+  }, !!user);
+
+  const NavLink = ({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) => (
+    <Link 
+      to={to} 
+      onClick={onClick}
+      className="nav-btn inline-flex items-center justify-center text-center"
+    >
+      {children}
+    </Link>
+  );
+
+  return (
+    <nav style={{ backgroundColor: 'var(--surface)' }} className="text-contrast sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <div className="app-logo">
+              <img src="/logitobarbados.png" alt="Barbados" />
+            </div>
+            <span className="font-extrabold text-xl tracking-[0.08em] text-contrast">BARBADOS</span>
+          </Link>
+
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center gap-3">
+            <NavLink to="/">INICIO</NavLink>
+            <NavLink to="/store">SERVICIOS</NavLink>
+            <NavLink to="/appointments">AGENDAR</NavLink>
+            
+            {user ? (
+              <>
+                {user.role === 'admin' && <NavLink to="/admin">ADMIN</NavLink>}
+                {user.role === 'barber' && user.barber_approved !== false && <NavLink to="/barber">BARBERO</NavLink>}
+                <NavLink to="/chat">CHAT</NavLink>
+                <NavLink to="/profile">PERFIL</NavLink>
+                <button 
+                  onClick={handleLogout} 
+                  className="accent-btn px-4 py-2 rounded-lg font-bold uppercase tracking-wider text-sm"
+                >
+                  SALIR
+                </button>
+              </>
+            ) : (
+              <NavLink to="/login">LOGIN</NavLink>
+            )}
+
+            {user && (
+              <Link to="/chat" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
+                <MessageCircle className="w-7 h-7" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 border-2 border-[#2E5953] text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
+            {canBuyProducts && (
+              <Link to="/cart" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
+                <ShoppingCart className="w-7 h-7" />
+                {totalCartItems > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-600 border-2 border-[#2E5953] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {totalCartItems}
+                  </span>
+                )}
+              </Link>
+            )}
+
+              <div className="flex items-center gap-2">
+                <button onClick={toggleTheme} aria-label="Toggle theme" className="nav-icon-btn text-contrast p-2 rounded-md">
+                  {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+                </button>
+
+              </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center gap-4">
+            {user && (
+              <Link to="/chat" className="relative flex items-center text-contrast">
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 bg-red-600 border-2 text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            {canBuyProducts && (
+              <Link to="/cart" className="relative flex items-center text-contrast">
+                <ShoppingCart className="w-6 h-6" />
+                {totalCartItems > 0 && (
+                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 bg-orange-600 border-2 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {totalCartItems}
+                  </span>
+                )}
+              </Link>
+            )}
+            <button
+              type="button"
+              aria-label="Abrir menu"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-nav-menu"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-contrast"
+            >
+              <Menu className="w-8 h-8" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMenuOpen && (
+          <div id="mobile-nav-menu" className="md:hidden panel-dynamic px-4 py-4 space-y-3 flex flex-col border-t border-white/10">
+           <button
+             type="button"
+             onClick={toggleTheme}
+             className="w-full nav-btn text-center"
+           >
+             {theme === 'dark' ? 'CAMBIAR CLARO' : 'CAMBIAR OSCURO'}
+           </button>
+           <NavLink to="/" onClick={() => setIsMenuOpen(false)}>INICIO</NavLink>
+           <NavLink to="/store" onClick={() => setIsMenuOpen(false)}>SERVICIOS</NavLink>
+           <NavLink to="/appointments" onClick={() => setIsMenuOpen(false)}>AGENDAR</NavLink>
+           {user ? (
+              <>
+                {user.role === 'admin' && <NavLink to="/admin" onClick={() => setIsMenuOpen(false)}>ADMIN</NavLink>}
+                {user.role === 'barber' && user.barber_approved !== false && <NavLink to="/barber" onClick={() => setIsMenuOpen(false)}>BARBERO</NavLink>}
+                <NavLink to="/chat" onClick={() => setIsMenuOpen(false)}>CHAT</NavLink>
+                <NavLink to="/profile" onClick={() => setIsMenuOpen(false)}>PERFIL</NavLink>
+                <button 
+                  onClick={() => { handleLogout(); setIsMenuOpen(false); }} 
+                  className="accent-btn text-white px-5 py-2 rounded-lg font-bold uppercase tracking-wider text-sm transition-all w-full text-center"
+                >
+                  SALIR
+                </button>
+              </>
+            ) : (
+              <NavLink to="/login" onClick={() => setIsMenuOpen(false)}>LOGIN</NavLink>
+            )}
+        </div>
+      )}
+    </nav>
+  );
+}
