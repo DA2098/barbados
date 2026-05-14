@@ -1001,8 +1001,26 @@ app.all(['/api', '/api.php'], async (req, res) => {
         return res.status(403).json({ error: 'No autorizado para eliminar conversación' });
       }
 
+      // Mark conversation as inactive and mark all its messages as deleted
       await pool.query('UPDATE conversations SET is_active = false WHERE id = $1', [id]);
-      return res.json({ message: 'Conversación limpiada' });
+      await pool.query('UPDATE messages SET is_deleted = true WHERE conversation_id = $1', [id]);
+
+      // Recompute last_message_at (set to created_at if no remaining messages)
+      const lastMsgRes = await pool.query('SELECT MAX(created_at) AS last_ts FROM messages WHERE conversation_id = $1 AND is_deleted = false', [id]);
+      const lastTs = lastMsgRes.rows[0]?.last_ts || null;
+      if (lastTs) {
+        await pool.query('UPDATE conversations SET last_message_at = $1 WHERE id = $2', [lastTs, id]);
+      } else {
+        await pool.query('UPDATE conversations SET last_message_at = created_at WHERE id = $1', [id]);
+      }
+
+      // Notify participants that the conversation was removed by admin
+      const participants = await pool.query('SELECT user_id FROM conversation_participants WHERE conversation_id = $1', [id]);
+      for (const p of participants.rows) {
+        await createNotification(p.user_id, 'system', 'Conversación eliminada', 'El administrador eliminó esta conversación', { conversationId: String(id) });
+      }
+
+      return res.json({ message: 'Conversación eliminada' });
     }
 
     if (req.method === 'GET' && action === 'messages') {

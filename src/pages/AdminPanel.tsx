@@ -1033,6 +1033,19 @@ export default function AdminPanel() {
                 <h3 className="text-lg font-bold">Visor de Conversación (Admin)</h3>
                 <div className="flex items-center gap-2">
                   <button onClick={() => { setSelectedConversationId(null); setConversationMessages([]); }} className="px-3 py-1 rounded border">Cerrar</button>
+                  <button onClick={async () => {
+                    if (!selectedConversationId || !user) return;
+                    if (!confirm('¿Eliminar TODA la conversación para todos los participantes? Esta acción no se puede deshacer.')) return;
+                    try {
+                      await api.deleteConversation(selectedConversationId, user.id);
+                      setSelectedConversationId(null);
+                      setConversationMessages([]);
+                      await fetchData();
+                      alert('Conversación eliminada');
+                    } catch (err: any) {
+                      alert(err.message || 'Error al eliminar conversación');
+                    }
+                  }} className="px-3 py-1 rounded bg-red-100 text-red-600">Eliminar conversación</button>
                 </div>
               </div>
 
