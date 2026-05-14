@@ -11,7 +11,7 @@ export default function BarberPanel() {
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
-  const [type, setType] = useState<'Cortes / Barbería' | 'Lancería' | 'Bebidas'>('Cortes / Barbería');
+  const [type, setType] = useState<'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas'>('Cortes');
   const [selectedItemId, setSelectedItemId] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -33,27 +33,31 @@ export default function BarberPanel() {
   };
 
   const fetchCatalogProducts = async () => {
-    const [services, foodProducts, drinkProducts] = await Promise.all([
+    const [services, barberProducts, foodProducts, drinkProducts] = await Promise.all([
       api.getServices(),
+      api.getProducts({ category: 'barber' }),
       api.getProducts({ category: 'food' }),
       api.getProducts({ category: 'drink' })
     ]);
 
     setCatalogProducts([
       ...services.filter((service) => service.is_visible),
+      ...barberProducts.filter((p) => p.is_visible),
       ...foodProducts.filter((product) => product.is_visible),
       ...drinkProducts.filter((product) => product.is_visible)
     ]);
   };
 
-  const getProductsByType = (selectedType: 'Cortes / Barbería' | 'Lancería' | 'Bebidas') => {
-    if (selectedType === 'Cortes / Barbería') return catalogProducts.filter((product) => product.category === 'service');
+  const getProductsByType = (selectedType: 'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas') => {
+    if (selectedType === 'Cortes') return catalogProducts.filter((product) => product.category === 'service');
+    if (selectedType === 'Barbería') return catalogProducts.filter((product) => product.category === 'barber');
     if (selectedType === 'Lancería') return catalogProducts.filter((product) => product.category === 'food');
     return catalogProducts.filter((product) => product.category === 'drink');
   };
 
-  const typeLabel = (value: 'Cortes / Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida') => {
-    if (value === 'Corte' || value === 'Cortes / Barbería') return 'Cortes / Barbería';
+  const typeLabel = (value: 'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida') => {
+    if (value === 'Corte' || value === 'Cortes') return 'Cortes';
+    if (value === 'Barbería') return 'Barbería';
     if (value === 'Menu' || value === 'Lancería') return 'Lancería';
     return 'Bebidas';
   };
@@ -239,7 +243,8 @@ export default function BarberPanel() {
               onChange={(e) => setType(e.target.value as any)}
               className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
             >
-              <option value="Cortes / Barbería">Cortes / Barbería</option>
+              <option value="Cortes">Cortes</option>
+              <option value="Barbería">Barbería</option>
               <option value="Lancería">Lancería</option>
               <option value="Bebidas">Bebidas</option>
             </select>
@@ -283,9 +288,9 @@ export default function BarberPanel() {
             <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Lancería - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.lanceria.toFixed(2)}</p>
           </div>
-          <div className="glass-card p-4 rounded-xl border border-green-100">
-            <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Total Generado Hoy</p>
-            <p className="mt-2 text-3xl font-bold text-emerald-700">${todayTotalComputed.toFixed(2)}</p>
+          <div className="glass-card p-4 rounded-xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Bebidas - Hoy</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.bebidas.toFixed(2)}</p>
           </div>
         </div>
       </div>
