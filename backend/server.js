@@ -13,8 +13,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Inicializar DB al arrancar
-await initializeDatabase();
+// Inicializar DB al arrancar (sin bloquear si falla)
+initializeDatabase().catch(err => {
+  console.warn('⚠ Advertencia: No se pudo inicializar la BD:', err.message);
+  console.warn('⚠ La BD se inicializará automáticamente cuando se conecte.');
+});
 
 // Helpers
 async function getUserById(id) {
