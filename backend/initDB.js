@@ -64,7 +64,7 @@ export async function initializeDatabase() {
         role user_role DEFAULT 'user',
         barber_approved BOOLEAN DEFAULT TRUE,
         phone VARCHAR(20),
-        avatar_url VARCHAR(500),
+        avatar_url TEXT,
         avatar_updated_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -76,7 +76,7 @@ export async function initializeDatabase() {
         name VARCHAR(100) NOT NULL,
         description TEXT,
         price DECIMAL(10,2) NOT NULL,
-        image_url VARCHAR(255),
+        image_url TEXT,
         category product_category DEFAULT 'food',
         is_visible BOOLEAN DEFAULT TRUE,
         stock INT DEFAULT 0,
@@ -230,6 +230,19 @@ export async function initializeDatabase() {
         reviewed_at TIMESTAMP
       );
     `);
+
+    // Migrate existing columns to TEXT for Base64 storage
+    try {
+      await pool.query(`ALTER TABLE users ALTER COLUMN avatar_url TYPE TEXT;`);
+    } catch (err) {
+      // Column might already be TEXT, ignore
+    }
+
+    try {
+      await pool.query(`ALTER TABLE products ALTER COLUMN image_url TYPE TEXT;`);
+    } catch (err) {
+      // Column might already be TEXT, ignore
+    }
 
     console.log('✓ Base de datos inicializada correctamente');
   } catch (error) {
