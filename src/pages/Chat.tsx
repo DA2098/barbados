@@ -187,12 +187,13 @@ export default function Chat() {
               >
                 <div className="flex items-center gap-3">
                   {contact.avatar_url ? (
-                    <img src={contact.avatar_url} alt={contact.name} className="w-10 h-10 rounded-full object-cover border border-white/40 shrink-0" />
-                  ) : (
+                    <img src={contact.avatar_url} alt={contact.name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-10 h-10 rounded-full object-cover border border-white/40 shrink-0" />
+                  ) : null}
+                  {!contact.avatar_url || (contact.avatar_url && !contact.avatar_url) ? (
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${selectedContact?.id === contact.id ? 'bg-white/20 text-contrast' : 'bg-white/10 text-contrast'}`}>
                       {avatarFallback(contact.name)}
                     </div>
-                  )}
+                  ) : null}
                   <div className="min-w-0">
                     <p className="font-semibold truncate">{contact.name}</p>
                     <p className={`text-xs truncate ${selectedContact?.id === contact.id ? 'text-contrast' : 'muted'}`}>{contact.role}</p>
@@ -208,15 +209,14 @@ export default function Chat() {
             <div className="flex items-center gap-3 min-w-0">
               {selectedContact ? (
                 selectedContact.avatar_url ? (
-                  <img src={selectedContact.avatar_url} alt={selectedContact.name} className="w-10 h-10 rounded-full object-cover border" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold uppercase">
-                    {avatarFallback(selectedContact.name)}
-                  </div>
-                )
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold uppercase">?</div>
-              )}
+                  <img src={selectedContact.avatar_url} alt={selectedContact.name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-10 h-10 rounded-full object-cover border" />
+                ) : null
+              ) : null}
+              {!selectedContact || (selectedContact && !selectedContact.avatar_url) ? (
+                <div className="w-10 h-10 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold uppercase">
+                  {selectedContact ? avatarFallback(selectedContact.name) : '?'}
+                </div>
+              ) : null}
               <div className="min-w-0">
                 <h2 className="font-semibold truncate text-contrast">{selectedContact ? selectedContact.name : 'Selecciona un contacto'}</h2>
                 {selectedContact && <p className="text-xs muted capitalize truncate">{selectedContact.role}</p>}
@@ -241,12 +241,13 @@ export default function Chat() {
                 <div key={message.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex items-end gap-2 max-w-[85%] ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
                     {message.senderAvatar ? (
-                      <img src={message.senderAvatar} alt={message.senderName} className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0" />
-                    ) : (
+                      <img src={message.senderAvatar} alt={message.senderName} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0" />
+                    ) : null}
+                    {!message.senderAvatar || (message.senderAvatar && !message.senderAvatar) ? (
                       <div className="w-9 h-9 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold shrink-0">
                         {avatarFallback(message.senderName)}
                       </div>
-                    )}
+                    ) : null}
                     <div className={`rounded-xl p-3 ${isMine ? 'bg-white/15 text-contrast border border-white/20' : 'bg-white/5 border border-white/10'}`}>
                       <p className={`text-xs font-semibold mb-1 ${isMine ? 'text-contrast' : 'muted'}`}>{message.senderName}</p>
                       {message.messageType === 'image' && message.imageUrl && (

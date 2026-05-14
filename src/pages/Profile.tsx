@@ -168,12 +168,13 @@ export default function Profile() {
       <div className="glass-card panel-dynamic p-4 sm:p-6">
         <div className="mb-6 flex flex-col sm:flex-row gap-4 sm:items-start">
           {user.avatar_url ? (
-            <img src={user.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full object-cover border self-start" />
-          ) : (
+            <img src={user.avatar_url} alt="Avatar" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-16 h-16 rounded-full object-cover border self-start" />
+          ) : null}
+          {!user.avatar_url ? (
             <div style={{ backgroundColor: 'var(--card)' }} className="w-16 h-16 text-contrast rounded-full flex items-center justify-center text-2xl font-bold uppercase self-start border border-white/6">
               {(user.name || ' ').charAt(0) || 'U'}
             </div>
-          )}
+          ) : null}
           <div className="min-w-0">
             <h2 className="text-xl font-semibold">{displayOrPlaceholder(user.name, 'Usuario')}</h2>
             <p className="text-gray-300">{displayOrPlaceholder(user.email, 'Sin email')}</p>

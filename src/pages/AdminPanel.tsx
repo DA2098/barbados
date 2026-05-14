@@ -725,12 +725,23 @@ export default function AdminPanel() {
                 <div key={barber.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     {barber.avatar_url ? (
-                      <img src={barber.avatar_url} alt={barber.name} className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold uppercase shrink-0 border border-white/20">
-                        {barber.name.charAt(0)}
-                      </div>
-                    )}
+                      <img
+                        src={barber.avatar_url}
+                        alt={barber.name}
+                        className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                          const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20"
+                      style={{ display: barber.avatar_url ? 'none' : 'flex' }}
+                    >
+                      {barber.name.charAt(0)}
+                    </div>
                     <div className="min-w-0">
                       <p className="font-semibold truncate text-contrast">{barber.name}</p>
                       <p className="text-xs muted truncate">{barber.email}</p>
@@ -751,12 +762,23 @@ export default function AdminPanel() {
                 <div key={client.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
                     {client.avatar_url ? (
-                      <img src={client.avatar_url} alt={client.name} className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold uppercase shrink-0 border border-white/20">
-                        {client.name.charAt(0)}
-                      </div>
-                    )}
+                      <img
+                        src={client.avatar_url}
+                        alt={client.name}
+                        className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
+                        onError={(event) => {
+                          event.currentTarget.style.display = 'none';
+                          const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20"
+                      style={{ display: client.avatar_url ? 'none' : 'flex' }}
+                    >
+                      {client.name.charAt(0)}
+                    </div>
                     <div className="min-w-0">
                       <p className="font-semibold truncate text-contrast">{client.name}</p>
                       <p className="text-xs muted truncate">{client.email}</p>
