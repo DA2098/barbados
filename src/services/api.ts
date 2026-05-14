@@ -108,7 +108,9 @@ export interface BarberApplication {
 const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
 
 const normalizeApiBase = (value?: string) => {
-  const fallback = '/api.php';
+  const fallback = window.location.hostname.includes('onrender.com')
+    ? 'https://barbados-api.onrender.com/api'
+    : '/api.php';
   const trimmed = value?.trim();
   if (!trimmed) return fallback;
 
