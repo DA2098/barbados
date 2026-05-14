@@ -85,7 +85,7 @@ function resolveConversationType(roleA, roleB) {
 
 // --- API ROUTER ---
 app.all('/api', async (req, res) => {
-  const action = (req.method === 'GET' ? req.query.action : req.body.action) || '';
+  const action = req.query.action || req.body.action || '';
 
   try {
     if (req.method === 'GET' && !action) {
