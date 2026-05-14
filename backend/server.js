@@ -232,6 +232,11 @@ app.get('/api', (req, res) => {
   res.status(404).json({ error: `Action "${action}" no encontrada` });
 });
 
+// Root endpoint for Render health/testing
+app.get('/', (req, res) => {
+  res.json({ message: 'Barbados API running', status: 'ok' });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
