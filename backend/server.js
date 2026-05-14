@@ -203,6 +203,39 @@ function normalizeBarberApplication(row) {
   };
 }
 
+async function buildRealtimePayload(userId) {
+  const unreadResult = await pool.query(
+    'SELECT COUNT(*)::int AS unread_count FROM notifications WHERE user_id = $1 AND is_read = false',
+    [userId]
+  );
+
+  const latestConversationResult = await pool.query(
+    `SELECT COALESCE(MAX(EXTRACT(EPOCH FROM COALESCE(c.last_message_at, c.created_at))), 0)::bigint AS latest_conversation_ts
+     FROM conversations c
+     JOIN conversation_participants p ON p.conversation_id = c.id
+     WHERE p.user_id = $1 AND c.is_active = true`,
+    [userId]
+  );
+
+  const avatarPulseResult = await pool.query(
+    'SELECT COALESCE(MAX(EXTRACT(EPOCH FROM COALESCE(avatar_updated_at, created_at))), 0)::bigint AS avatar_pulse FROM users WHERE id = $1',
+    [userId]
+  );
+
+  const unreadCount = Number(unreadResult.rows[0]?.unread_count || 0);
+  const latestConversationTs = Number(latestConversationResult.rows[0]?.latest_conversation_ts || 0);
+  const avatarPulse = Number(avatarPulseResult.rows[0]?.avatar_pulse || 0);
+  const serverTime = new Date().toISOString();
+
+  return {
+    unreadCount,
+    latestConversationTs,
+    avatarPulse,
+    signature: `${userId}:${unreadCount}:${latestConversationTs}:${avatarPulse}`,
+    serverTime
+  };
+}
+
 async function isAdminUser(userId) {
   if (!userId) return false;
   const user = await getUserById(userId);
@@ -295,6 +328,60 @@ async function handleUpload(req, res, action) {
 
   return res.status(404).json({ error: `Action "${action || 'none'}" no encontrada` });
 }
+
+app.get(['/api', '/api.php'], async (req, res, next) => {
+  const action = req.query.action || '';
+  if (action !== 'realtime') {
+    return next();
+  }
+
+  const userId = String(req.query.userId || '').trim();
+  if (!userId) {
+    return res.status(400).json({ error: 'userId requerido' });
+  }
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no'
+  });
+
+  let closed = false;
+  let lastSignature = '';
+
+  const sendEvent = (eventName, payload) => {
+    if (closed) return;
+    res.write(`event: ${eventName}\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  const pushSync = async (force = false) => {
+    try {
+      const payload = await buildRealtimePayload(userId);
+      if (force || payload.signature !== lastSignature) {
+        lastSignature = payload.signature;
+        sendEvent('sync', payload);
+      }
+      sendEvent('heartbeat', { serverTime: payload.serverTime });
+    } catch (error) {
+      sendEvent('heartbeat', { serverTime: new Date().toISOString(), error: 'sync_failed' });
+    }
+  };
+
+  sendEvent('heartbeat', { serverTime: new Date().toISOString() });
+  await pushSync(true);
+
+  const intervalId = setInterval(async () => {
+    await pushSync(false);
+  }, 15000);
+
+  req.on('close', () => {
+    closed = true;
+    clearInterval(intervalId);
+    res.end();
+  });
+});
 
 app.post(['/api', '/api.php'], upload.single('file'), async (req, res, next) => {
   const action = req.query.action || req.body.action || '';
