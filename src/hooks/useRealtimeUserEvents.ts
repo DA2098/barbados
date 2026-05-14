@@ -45,33 +45,69 @@ export function useRealtimeUserEvents(
 
   useEffect(() => {
     if (!enabled || !userId) return;
-
-    const url = new URL(apiBase, window.location.origin);
-    url.searchParams.set('action', 'realtime');
-    url.searchParams.set('userId', userId);
-
+    let stopped = false;
+    let ws: WebSocket | null = null;
     let source: EventSource | null = null;
     let reconnectTimer: number | null = null;
-    let stopped = false;
 
-    const connect = () => {
-      if (stopped) return;
+    const connectSSE = () => {
+      const url = new URL(apiBase, window.location.origin);
+      url.searchParams.set('action', 'realtime');
+      url.searchParams.set('userId', userId);
 
       source = new EventSource(url.toString());
-
       source.addEventListener('sync', handleSync as EventListener);
       source.addEventListener('heartbeat', handleHeartbeat as EventListener);
       source.onerror = () => {
         source?.close();
         source = null;
-
         if (!stopped && reconnectTimer === null) {
           reconnectTimer = window.setTimeout(() => {
             reconnectTimer = null;
-            connect();
+            connectSSE();
           }, 2000);
         }
       };
+    };
+
+    const connectWS = () => {
+      try {
+        const parsed = new URL(apiBase);
+        const wsProtocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${parsed.host}/ws?userId=${encodeURIComponent(userId)}`;
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          // nothing
+        };
+
+        ws.onmessage = (ev) => {
+          try {
+            const obj = JSON.parse(ev.data);
+            if (obj && obj.type === 'sync' && obj.payload) {
+              const payload = obj.payload as RealtimeSyncPayload;
+              lastPayloadRef.current = payload;
+              onSyncRef.current(payload);
+            }
+          } catch {
+            // ignore
+          }
+        };
+
+        ws.onclose = () => {
+          ws = null;
+          if (!stopped) {
+            // fallback to SSE
+            connectSSE();
+          }
+        };
+
+        ws.onerror = () => {
+          try { ws?.close(); } catch {}
+        };
+      } catch {
+        connectSSE();
+      }
     };
 
     const handleSync = (event: MessageEvent) => {
@@ -97,7 +133,8 @@ export function useRealtimeUserEvents(
       onSyncRef.current(fallbackPayload);
     };
 
-    connect();
+    // Try WebSocket first, then fallback to SSE
+    connectWS();
 
     return () => {
       stopped = true;
@@ -105,9 +142,11 @@ export function useRealtimeUserEvents(
         window.clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
+      try { ws?.close(); } catch {}
+      ws = null;
       source?.removeEventListener('sync', handleSync as EventListener);
       source?.removeEventListener('heartbeat', handleHeartbeat as EventListener);
-      source?.close();
+      try { source?.close(); } catch {}
       source = null;
     };
   }, [userId, enabled]);

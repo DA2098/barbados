@@ -1222,7 +1222,56 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+// Start server (keep reference for WebSocket)
+const server = app.listen(PORT, () => {
   console.log(`✓ Servidor iniciado en puerto ${PORT}`);
   console.log(`✓ Entorno: ${process.env.NODE_ENV || 'development'}`);
 });
+
+// --- WebSocket support (optional, faster than SSE) ---
+try {
+  import('ws').then(({ WebSocketServer }) => {
+    const wss = new WebSocketServer({ server, path: '/ws' });
+    console.log('✓ WebSocket server listening on /ws');
+
+    wss.on('connection', async (ws, req) => {
+      try {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const userId = String(url.searchParams.get('userId') || '').trim();
+        if (!userId) {
+          ws.send(JSON.stringify({ error: 'userId required' }));
+          ws.close();
+          return;
+        }
+
+        let closed = false;
+
+        const pushOnce = async () => {
+          if (closed) return;
+          try {
+            const payload = await buildRealtimePayload(userId);
+            ws.send(JSON.stringify({ type: 'sync', payload }));
+          } catch (err) {
+            // ignore
+          }
+        };
+
+        // Send initial payload
+        await pushOnce();
+
+        const interval = setInterval(pushOnce, 10000);
+
+        ws.on('close', () => {
+          closed = true;
+          clearInterval(interval);
+        });
+      } catch (err) {
+        try { ws.close(); } catch(e) {}
+      }
+    });
+  }).catch((err) => {
+    console.warn('WebSocket module load failed:', err.message || err);
+  });
+} catch (err) {
+  console.warn('WebSocket setup skipped:', err.message || err);
+}
