@@ -796,7 +796,7 @@ app.all(['/api', '/api.php'], async (req, res) => {
       const result = await pool.query(
         `SELECT id, name, email, role, barber_approved, phone, avatar_url
          FROM users
-         WHERE id <> $1 AND role = ANY($2::text[])
+         WHERE id <> $1 AND role::text = ANY($2)
          ORDER BY name ASC`,
         [userId, roles]
       );
