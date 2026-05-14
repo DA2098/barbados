@@ -155,11 +155,37 @@ export default function BarberPanel() {
     return <div className="p-8 text-center text-red-600 font-bold">Acceso Denegado. Se requiere rol de Barbero.</div>;
   }
 
-  const todayTotal = logs.reduce((sum, log) => {
-    const today = new Date().toDateString();
-    const logDate = new Date(log.date).toDateString();
-    return today === logDate ? sum + log.price : sum;
-  }, 0);
+  
+
+  const normalizeType = (t: string | undefined) => {
+    if (!t) return 'other';
+    const lower = t.toString().toLowerCase();
+    if (lower.includes('cort') || lower.includes('barber')) return 'barberia';
+    if (lower.includes('menu') || lower.includes('lancer')) return 'lanceria';
+    if (lower.includes('beb') || lower.includes('drink')) return 'bebidas';
+    return 'other';
+  };
+
+  const todayKey = new Date().toDateString();
+  const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+  const todayByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
+  const monthByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
+
+  logs.forEach((log) => {
+    const d = new Date(log.date);
+    const logDay = d.toDateString();
+    const logMonthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const cat = normalizeType(log.type || (log as any).category || log.name);
+    const price = Number(log.price || 0);
+    if (logDay === todayKey) {
+      if (cat in todayByCategory) todayByCategory[cat as keyof typeof todayByCategory] += price;
+    }
+    if (logMonthKey === currentMonthKey) {
+      if (cat in monthByCategory) monthByCategory[cat as keyof typeof monthByCategory] += price;
+    }
+  });
+
+  const todayTotalComputed = Object.values(todayByCategory).reduce((a, b) => a + b, 0);
 
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
@@ -243,9 +269,23 @@ export default function BarberPanel() {
           </button>
         </form>
 
-        <div className="mt-6 glass-card p-6 rounded-xl border border-green-100">
-          <h3 className="text-green-800 font-semibold mb-2">Total Generado Hoy</h3>
-          <p className="text-4xl font-bold text-green-600">${todayTotal.toFixed(2)}</p>
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div className="glass-card p-4 rounded-xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Barbería (Cortes) - Hoy</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.barberia.toFixed(2)}</p>
+          </div>
+          <div className="glass-card p-4 rounded-xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Lancería - Hoy</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.lanceria.toFixed(2)}</p>
+          </div>
+          <div className="glass-card p-4 rounded-xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Bebidas - Hoy</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.bebidas.toFixed(2)}</p>
+          </div>
+          <div className="glass-card p-4 rounded-xl border border-green-100">
+            <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Total Generado Hoy</p>
+            <p className="mt-2 text-3xl font-bold text-emerald-700">${todayTotalComputed.toFixed(2)}</p>
+          </div>
         </div>
       </div>
 

@@ -392,15 +392,37 @@ export default function AdminPanel() {
   const storeProducts = products.filter((p) => p.category !== 'service');
   const todayKey = new Date().toDateString();
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-  const summaryLogs = logs.filter((log) => log.type);
-  const todayTotal = summaryLogs.reduce((sum, log) => {
-    return new Date(log.date).toDateString() === todayKey ? sum + log.price : sum;
-  }, 0);
-  const monthTotal = summaryLogs.reduce((sum, log) => {
-    const logDate = new Date(log.date);
-    const logMonthKey = `${logDate.getFullYear()}-${String(logDate.getMonth() + 1).padStart(2, '0')}`;
-    return logMonthKey === currentMonthKey ? sum + log.price : sum;
-  }, 0);
+  const summaryLogs = logs.filter((log) => log.type || log.name);
+
+  const normalizeType = (t: string | undefined) => {
+    if (!t) return 'other';
+    const lower = t.toString().toLowerCase();
+    if (lower.includes('cort') || lower.includes('barber')) return 'barberia';
+    if (lower.includes('menu') || lower.includes('lancer')) return 'lanceria';
+    if (lower.includes('beb') || lower.includes('drink')) return 'bebidas';
+    return 'other';
+  };
+
+  const todayByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
+  const monthByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
+
+  summaryLogs.forEach((log) => {
+    const d = new Date(log.date || log.created_at || log.createdAt || undefined);
+    const logDay = d.toDateString();
+    const logMonthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const cat = normalizeType(log.type || (log.category as any) || log.name);
+    const price = Number(log.price || 0);
+
+    if (logDay === todayKey) {
+      if (cat in todayByCategory) todayByCategory[cat as keyof typeof todayByCategory] += price;
+    }
+    if (logMonthKey === currentMonthKey) {
+      if (cat in monthByCategory) monthByCategory[cat as keyof typeof monthByCategory] += price;
+    }
+  });
+
+  const todayTotal = Object.values(todayByCategory).reduce((a, b) => a + b, 0);
+  const monthTotal = Object.values(monthByCategory).reduce((a, b) => a + b, 0);
   const monthLosses = 0;
   const categoryLabel = (category: Product['category']) => {
     if (category === 'barber') return 'BARBERÍA';
@@ -1043,6 +1065,42 @@ export default function AdminPanel() {
                 <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Ganado hoy</p>
                 <p className="mt-2 text-2xl font-bold text-emerald-700">${todayTotal.toFixed(2)}</p>
               </div>
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-contrast mb-2">Totales por categoría</h3>
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="text-xs text-muted">
+                      <th className="p-2">Categoría</th>
+                      <th className="p-2">Hoy</th>
+                      <th className="p-2">Mes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Barbería (Cortes)</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.barberia.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.barberia.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Lancería</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.lanceria.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.lanceria.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Bebidas</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.bebidas.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.bebidas.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10 bg-white/5">
+                      <td className="p-2 font-semibold">Total</td>
+                      <td className="p-2 font-semibold">${todayTotal.toFixed(2)}</td>
+                      <td className="p-2 font-semibold">${monthTotal.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Ganado del mes</p>
                 <p className="mt-2 text-2xl font-bold text-slate-800">${monthTotal.toFixed(2)}</p>
