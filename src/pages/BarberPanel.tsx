@@ -160,7 +160,8 @@ export default function BarberPanel() {
   const normalizeType = (t: string | undefined) => {
     if (!t) return 'other';
     const lower = t.toString().toLowerCase();
-    if (lower.includes('cort') || lower.includes('barber')) return 'barberia';
+    if (lower.includes('cort')) return 'cortes';
+    if (lower.includes('barber')) return 'barberia';
     if (lower.includes('menu') || lower.includes('lancer')) return 'lanceria';
     if (lower.includes('beb') || lower.includes('drink')) return 'bebidas';
     return 'other';
@@ -168,8 +169,8 @@ export default function BarberPanel() {
 
   const todayKey = new Date().toDateString();
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-  const todayByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
-  const monthByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
+  const todayByCategory = { cortes: 0, barberia: 0, lanceria: 0, bebidas: 0 };
+  const monthByCategory = { cortes: 0, barberia: 0, lanceria: 0, bebidas: 0 };
 
   logs.forEach((log) => {
     const d = new Date(log.date);
@@ -271,16 +272,16 @@ export default function BarberPanel() {
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div className="glass-card p-4 rounded-xl border border-white/10">
-            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Barbería (Cortes) - Hoy</p>
+            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Cortes - Hoy</p>
+            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.cortes.toFixed(2)}</p>
+          </div>
+          <div className="glass-card p-4 rounded-xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Barbería - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.barberia.toFixed(2)}</p>
           </div>
           <div className="glass-card p-4 rounded-xl border border-white/10">
             <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Lancería - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.lanceria.toFixed(2)}</p>
-          </div>
-          <div className="glass-card p-4 rounded-xl border border-white/10">
-            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Bebidas - Hoy</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.bebidas.toFixed(2)}</p>
           </div>
           <div className="glass-card p-4 rounded-xl border border-green-100">
             <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Total Generado Hoy</p>

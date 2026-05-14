@@ -141,28 +141,33 @@ export default function AdminPanel() {
     try {
       if (newUserForm.role === 'barber') {
         await api.createBarber(user.id, newUserForm.name, newUserForm.email, newUserForm.password, newUserForm.phone);
-      } else {
-        await api.createClient(user.id, newUserForm.name, newUserForm.email, newUserForm.password, newUserForm.phone);
-      }
-      alert(`${newUserForm.role === 'barber' ? 'Barbero' : 'Cliente'} creado exitosamente`);
-      setNewUserForm(emptyNewUser);
-      await fetchData();
-    } catch (error: any) {
-      alert(`Error: ${error.message}`);
-    } finally {
-      setCreatingUser(false);
-    }
-  };
-
-  const handleSubmitProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const payload = {
-      name: productForm.name,
-      description: productForm.description,
-      price: Number(productForm.price),
-      stock: Number(productForm.stock),
-      image_url: productForm.image_url,
+                  <tbody>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Cortes</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.cortes.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.cortes.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Barbería</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.barberia.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.barberia.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Lancería</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.lanceria.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.lanceria.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Bebidas</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.bebidas.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.bebidas.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10 bg-white/5">
+                      <td className="p-2 font-semibold">Total</td>
+                      <td className="p-2 font-semibold">${todayTotal.toFixed(2)}</td>
+                      <td className="p-2 font-semibold">${monthTotal.toFixed(2)}</td>
+                    </tr>
+                  </tbody>
       category: productForm.category,
       is_visible: productForm.is_visible
     } as Omit<Product, 'id'>;
@@ -397,14 +402,15 @@ export default function AdminPanel() {
   const normalizeType = (t: string | undefined) => {
     if (!t) return 'other';
     const lower = t.toString().toLowerCase();
-    if (lower.includes('cort') || lower.includes('barber')) return 'barberia';
+    if (lower.includes('cort')) return 'cortes';
+    if (lower.includes('barber')) return 'barberia';
     if (lower.includes('menu') || lower.includes('lancer')) return 'lanceria';
     if (lower.includes('beb') || lower.includes('drink')) return 'bebidas';
     return 'other';
   };
 
-  const todayByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
-  const monthByCategory = { barberia: 0, lanceria: 0, bebidas: 0 };
+  const todayByCategory = { cortes: 0, barberia: 0, lanceria: 0, bebidas: 0 };
+  const monthByCategory = { cortes: 0, barberia: 0, lanceria: 0, bebidas: 0 };
 
   summaryLogs.forEach((log) => {
     const d = new Date(log.date || log.created_at || log.createdAt || undefined);
@@ -1078,7 +1084,12 @@ export default function AdminPanel() {
                   </thead>
                   <tbody>
                     <tr className="border-t border-white/10">
-                      <td className="p-2 font-medium">Barbería (Cortes)</td>
+                      <td className="p-2 font-medium">Cortes</td>
+                      <td className="p-2 text-green-600 font-bold">${todayByCategory.cortes.toFixed(2)}</td>
+                      <td className="p-2 text-slate-800 font-bold">${monthByCategory.cortes.toFixed(2)}</td>
+                    </tr>
+                    <tr className="border-t border-white/10">
+                      <td className="p-2 font-medium">Barbería</td>
                       <td className="p-2 text-green-600 font-bold">${todayByCategory.barberia.toFixed(2)}</td>
                       <td className="p-2 text-slate-800 font-bold">${monthByCategory.barberia.toFixed(2)}</td>
                     </tr>
@@ -1128,7 +1139,7 @@ export default function AdminPanel() {
                 <tr key={l.id} className="hover:bg-gray-50">
                   <td className="p-4 text-sm">{new Date(l.date).toLocaleString()}</td>
                   <td className="p-4 font-bold">{l.barberName}</td>
-                  <td className="p-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">{l.type === 'Corte' ? 'Barbería' : l.type === 'Menu' ? 'Lancería' : l.type === 'Bebida' ? 'Bebidas' : l.type}</span></td>
+                  <td className="p-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">{(function(t){ if(!t) return ''; const lower=t.toString().toLowerCase(); if(lower.includes('cort')) return 'Cortes'; if(lower.includes('barber')) return 'Barbería'; if(lower.includes('menu')||lower.includes('lancer')) return 'Lancería'; if(lower.includes('beb')) return 'Bebidas'; return t; })(l.type)}</span></td>
                   <td className="p-4">{l.name}</td>
                   <td className="p-4 text-green-600 font-bold">${l.price.toFixed(2)}</td>
                 </tr>
