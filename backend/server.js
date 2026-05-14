@@ -412,8 +412,8 @@ app.all(['/api', '/api.php'], async (req, res) => {
         `UPDATE users
          SET name = COALESCE($1, name),
              phone = COALESCE($2, phone),
-             avatar_url = $3,
-             avatar_updated_at = CASE WHEN $3 IS NOT NULL THEN CURRENT_TIMESTAMP ELSE avatar_updated_at END
+             avatar_url = $3::text,
+             avatar_updated_at = CASE WHEN $3::text IS NOT NULL THEN CURRENT_TIMESTAMP ELSE avatar_updated_at END
          WHERE id = $4
          RETURNING id, name, email, role, barber_approved, phone, avatar_url`,
         [name ?? null, phone ?? null, avatar_url === undefined ? null : avatar_url, id]

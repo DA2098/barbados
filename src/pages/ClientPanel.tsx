@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, Message, AppNotification, Conversation } from '../services/api';
+import { api, Message, AppNotification, User } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 
@@ -8,23 +8,35 @@ export default function ClientPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadConversation = async () => {
+    if (!user?.id) return;
+
+    try {
+      const allUsers = await api.getUsers();
+      const admin = allUsers.find((entry: User) => entry.role === 'admin');
+      if (!admin) {
+        setConversationId(null);
+        setMessages([]);
+        return;
+      }
+
+      const conversation = await api.getOrCreateConversation(user.id, admin.id);
+      setConversationId(conversation.id);
+      const msgs = await api.getMessages(conversation.id, user.id);
+      setMessages(msgs);
+    } catch (error) {
+      console.error('Error fetching conversation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   useEffect(() => {
-    const fetchConversation = async () => {
-      if (!user?.id) return;
-      try {
-        const conversations: Conversation[] = await api.getConversationsByUser(user.id);
-        if (conversations.length > 0) {
-          setConversationId(conversations[0].id);
-          const msgs: Message[] = await api.getMessages(conversations[0].id, user.id);
-          setMessages(msgs);
-        }
-      } catch (error) {
-        console.error('Error fetching conversation:', error);
-      }
-    };
-    fetchConversation();
+    setLoading(true);
+    loadConversation();
   }, [user]);
 
 
@@ -33,13 +45,18 @@ export default function ClientPanel() {
       if (!user?.id || !conversationId) return;
       try {
         const notifications: AppNotification[] = await api.getNotifications(user.id);
-        const newMessageNotification = notifications.find(
-          (notification) => notification.type === 'new_message'
-        );
-        if (newMessageNotification) {
-          alert(`Nuevo mensaje del administrador: ${newMessageNotification.body}`);
+        const conversationNotifications = notifications.filter((notification) => {
+          if (notification.type !== 'new_message' && notification.type !== 'new_image') return false;
+          const payloadConversationId = notification.payload?.conversationId;
+          return !payloadConversationId || String(payloadConversationId) === String(conversationId);
+        });
+
+        if (conversationNotifications.length > 0) {
+          const latest = conversationNotifications[0];
+          alert(`Nuevo mensaje del administrador: ${latest.body}`);
           const msgs: Message[] = await api.getMessages(conversationId, user.id);
-          setMessages((prev: Message[]) => [...prev, ...msgs]);
+          setMessages(msgs);
+          await api.markNotificationsRead(user.id, true);
         }
       } catch (error) {
         console.error('Error al obtener notificaciones:', error);
@@ -54,15 +71,8 @@ export default function ClientPanel() {
     if (!newMessage.trim() || !conversationId || !user?.id) return;
     try {
       await api.sendMessage(conversationId, user.id, { messageType: 'text', body: newMessage });
-      setMessages((prev: Message[]) => [...prev, {
-        id: (Date.now()).toString(),
-        conversationId,
-        senderId: user.id,
-        senderName: user.name,
-        messageType: 'text',
-        body: newMessage,
-        createdAt: new Date().toISOString(),
-      } as Message]);
+      const msgs: Message[] = await api.getMessages(conversationId, user.id);
+      setMessages(msgs);
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -72,6 +82,10 @@ export default function ClientPanel() {
 
   if (!user) {
     return <div className="p-8 text-center text-contrast font-bold" style={{ backgroundColor: 'var(--bg)' }}>Por favor, inicia sesión para acceder al chat.</div>;
+  }
+
+  if (loading) {
+    return <div className="p-8 text-center text-contrast" style={{ backgroundColor: 'var(--bg)' }}>Cargando chat...</div>;
   }
 
   return (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api, User, Product, BarberLog, BarberApplication } from '../services/api';
+import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -51,6 +51,8 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<Product[]>([]);
   const [logs, setLogs] = useState<BarberLog[]>([]);
   const [barberApplications, setBarberApplications] = useState<BarberApplication[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [reviews, setReviews] = useState<AppointmentReview[]>([]);
   const [productForm, setProductForm] = useState<ProductForm>(emptyProduct);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [cutForm, setCutForm] = useState<CutForm>(emptyCut);
@@ -61,16 +63,20 @@ export default function AdminPanel() {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [uData, pData, lData, applicationData] = await Promise.all([
+      const [uData, pData, lData, applicationData, appointmentData, reviewData] = await Promise.all([
         api.getUsers(),
         api.getProducts({ includeHidden: true }),
         api.getBarberLogs(),
-        api.getBarberApplications(user.id)
+        api.getBarberApplications(user.id),
+        api.getAppointments(user.id),
+        api.getAppointmentReviews()
       ]);
       setUsers(uData);
       setProducts(pData);
       setLogs(lData);
       setBarberApplications(applicationData);
+      setAppointments(appointmentData);
+      setReviews(reviewData);
     } catch (error) {
       console.error(error);
     }
@@ -188,6 +194,32 @@ export default function AdminPanel() {
     fetchData();
   };
 
+  const handleAppointmentStatus = async (appointment: Appointment, status: Appointment['status']) => {
+    if (!user) return;
+    await api.updateAppointmentStatus({ appointmentId: appointment.id, actorId: user.id, status });
+    await fetchData();
+  };
+
+  const handleDeleteAppointment = async (appointment: Appointment) => {
+    if (!user) return;
+    if (!confirm('¿Eliminar esta cita?')) return;
+    await api.deleteAppointment(appointment.id, user.id);
+    await fetchData();
+  };
+
+  const handlePublishReview = async (review: AppointmentReview) => {
+    if (!user) return;
+    await api.updateAppointmentReview(review.id, user.id, !review.isPublished);
+    await fetchData();
+  };
+
+  const handleDeleteReview = async (review: AppointmentReview) => {
+    if (!user) return;
+    if (!confirm('¿Eliminar esta opinión?')) return;
+    await api.deleteAppointmentReview(review.id, user.id);
+    await fetchData();
+  };
+
   const handleToggleCutVisibility = async (product: Product) => {
     await api.updateProduct(product.id, {
       name: product.name,
@@ -246,8 +278,6 @@ export default function AdminPanel() {
       alert(error.message);
     }
   };
-
-  // Las funciones relacionadas con citas y reviews han sido eliminadas porque no existen en la API
 
   const handleServiceImageUpload = async (file: File) => {
     if (!user) return;
@@ -313,8 +343,6 @@ export default function AdminPanel() {
     if (category === 'drink') return 'BEBIDA';
     return 'SERVICIO';
   };
-
-  // Las funciones de chat fueron eliminadas porque no existen en la API actual
 
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
@@ -744,9 +772,91 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* Sección de citas eliminada - métodos no disponibles en API */}
+      {activeTab === 'appointments' && (
+        <div className="glass-card rounded-xl overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-white/10">
+            <h2 className="text-lg sm:text-xl font-bold text-contrast">Gestión de Citas</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left">
+              <thead className="border-b border-white/10">
+                <tr>
+                  <th className="p-4 text-contrast font-semibold">Cliente</th>
+                  <th className="p-4 text-contrast font-semibold">Barbero</th>
+                  <th className="p-4 text-contrast font-semibold">Servicio</th>
+                  <th className="p-4 text-contrast font-semibold">Fecha</th>
+                  <th className="p-4 text-contrast font-semibold">Estado</th>
+                  <th className="p-4 text-center text-contrast font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {appointments.length === 0 ? (
+                  <tr><td colSpan={6} className="p-6 text-center muted">No hay citas registradas.</td></tr>
+                ) : appointments.map((appointment) => (
+                  <tr key={appointment.id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-4 text-contrast">{appointment.clientName}</td>
+                    <td className="p-4 text-contrast">{appointment.barberName}</td>
+                    <td className="p-4 text-contrast">{appointment.serviceName}</td>
+                    <td className="p-4 text-contrast">{new Date(appointment.appointmentDate).toLocaleString()}</td>
+                    <td className="p-4 text-contrast uppercase text-xs font-semibold">{appointment.status}</td>
+                    <td className="p-4">
+                      <div className="flex gap-2 flex-wrap justify-center">
+                        <button onClick={() => handleAppointmentStatus(appointment, 'confirmed')} className="px-3 py-1 rounded accent-btn text-sm">Confirmar</button>
+                        <button onClick={() => handleAppointmentStatus(appointment, 'completed')} className="px-3 py-1 rounded border border-white/20 text-contrast text-sm">Completar</button>
+                        <button onClick={() => handleAppointmentStatus(appointment, 'cancelled')} className="px-3 py-1 rounded border border-red-500/30 text-red-400 text-sm">Cancelar</button>
+                        <button onClick={() => handleDeleteAppointment(appointment)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-      {/* Sección de opiniones eliminada - métodos no disponibles en API */}
+      {activeTab === 'reviews' && (
+        <div className="glass-card rounded-xl overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-white/10">
+            <h2 className="text-lg sm:text-xl font-bold text-contrast">Opiniones y Calificaciones</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left">
+              <thead className="border-b border-white/10">
+                <tr>
+                  <th className="p-4 text-contrast font-semibold">Cliente</th>
+                  <th className="p-4 text-contrast font-semibold">Servicio</th>
+                  <th className="p-4 text-contrast font-semibold">Calificación</th>
+                  <th className="p-4 text-contrast font-semibold">Comentario</th>
+                  <th className="p-4 text-contrast font-semibold">Publicada</th>
+                  <th className="p-4 text-center text-contrast font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {reviews.length === 0 ? (
+                  <tr><td colSpan={6} className="p-6 text-center muted">No hay opiniones registradas.</td></tr>
+                ) : reviews.map((review) => (
+                  <tr key={review.id} className="hover:bg-white/5 transition-colors">
+                    <td className="p-4 text-contrast">{review.userName}</td>
+                    <td className="p-4 text-contrast">{review.serviceName}</td>
+                    <td className="p-4 text-contrast font-semibold">{review.rating}/5</td>
+                    <td className="p-4 text-contrast max-w-[420px]">{review.comment}</td>
+                    <td className="p-4 text-contrast">{review.isPublished ? 'Sí' : 'No'}</td>
+                    <td className="p-4">
+                      <div className="flex gap-2 flex-wrap justify-center">
+                        <button onClick={() => handlePublishReview(review)} className="px-3 py-1 rounded accent-btn text-sm">
+                          {review.isPublished ? 'Ocultar' : 'Publicar'}
+                        </button>
+                        <button onClick={() => handleDeleteReview(review)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'logs' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
