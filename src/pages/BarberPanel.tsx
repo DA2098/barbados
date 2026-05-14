@@ -253,15 +253,38 @@ export default function BarberPanel() {
             {getProductsByType(type).length === 0 ? (
               <p className="text-sm text-gray-500">No hay cortes, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
             ) : (
-              <select 
-                value={selectedItemId} 
-                onChange={(e) => setSelectedItemId(e.target.value)}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
-              >
-                {getProductsByType(type).map((item) => (
-                  <option key={item.id} value={item.id}>{item.name} - ${item.price.toFixed(2)}</option>
-                ))}
-              </select>
+              <>
+                <select 
+                  value={selectedItemId} 
+                  onChange={(e) => setSelectedItemId(e.target.value)}
+                  className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+                  {getProductsByType(type).map((item) => (
+                    <option key={item.id} value={item.id}>{item.name} - ${item.price.toFixed(2)}</option>
+                  ))}
+                </select>
+                {selectedItemId && getProductsByType(type).find(p => p.id === selectedItemId) && (
+                  <div className="mt-4 p-3 border rounded bg-gray-50">
+                    {(() => {
+                      const selectedItem = getProductsByType(type).find(p => p.id === selectedItemId);
+                      return selectedItem ? (
+                        <div className="space-y-2">
+                          {selectedItem.image_url && (
+                            <div className="flex justify-center">
+                              <img src={selectedItem.image_url} alt={selectedItem.name} className="w-32 h-32 rounded object-cover border" />
+                            </div>
+                          )}
+                          <p className="font-medium text-sm">{selectedItem.name}</p>
+                          {selectedItem.description && (
+                            <p className="text-xs text-gray-600">{selectedItem.description}</p>
+                          )}
+                          <p className="text-sm font-bold text-emerald-700">${selectedItem.price.toFixed(2)}</p>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -323,7 +346,17 @@ export default function BarberPanel() {
                         {typeLabel(log.type as 'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida')}
                       </span>
                     </td>
-                    <td className="p-4 font-medium">{log.name}</td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const product = catalogProducts.find(p => p.name === log.name);
+                          return product?.image_url ? (
+                            <img src={product.image_url} alt={log.name} className="w-8 h-8 rounded object-cover border" />
+                          ) : null;
+                        })()}
+                        <span className="font-medium">{log.name}</span>
+                      </div>
+                    </td>
                     <td className="p-4 text-green-600 font-bold">${log.price.toFixed(2)}</td>
                   </tr>
                 ))
