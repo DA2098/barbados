@@ -554,10 +554,10 @@ app.all(['/api', '/api.php'], async (req, res) => {
 
     if (req.method === 'GET' && action === 'products') {
       const { category, includeHidden } = req.query;
-      let query = 'SELECT id, name, description, price, image_url, category, is_visible, stock FROM products WHERE 1=1';
-      const params = [];
+      let query = 'SELECT id, name, description, price, image_url, category, is_visible, stock FROM products WHERE category != $1';
+      const params = ['service'];
 
-      if (category && ['service', 'barber', 'food', 'drink'].includes(normalizeProductCategory(category))) {
+      if (category && ['barber', 'food', 'drink'].includes(normalizeProductCategory(category))) {
         query += ` AND category = $${params.length + 1}`;
         params.push(normalizeProductCategory(category));
       }
@@ -578,17 +578,51 @@ app.all(['/api', '/api.php'], async (req, res) => {
         category: product.category,
         is_visible: Boolean(product.is_visible),
         stock: Number(product.stock || 0),
-        duration_minutes: product.category === 'service' ? 30 : 0
+        duration_minutes: 0
+      })));
+    }
+
+    if (req.method === 'GET' && action === 'services') {
+      const { includeHidden } = req.query;
+      let query = 'SELECT id, name, description, price, image_url, is_visible, duration_minutes FROM services WHERE 1=1';
+      const params = [];
+
+      if (includeHidden !== '1') {
+        query += ' AND is_visible = true';
+      }
+
+      query += ' ORDER BY id DESC';
+
+      const result = await pool.query(query, params);
+      return res.json(result.rows.map((service) => ({
+        id: String(service.id),
+        name: service.name,
+        description: service.description || '',
+        price: Number(service.price),
+        image_url: service.image_url || '',
+        category: 'service',
+        is_visible: Boolean(service.is_visible),
+        stock: 0,
+        duration_minutes: Number(service.duration_minutes || 30)
       })));
     }
 
     if (req.method === 'POST' && action === 'products') {
       const { name, price, stock, image_url, description, category, is_visible } = req.body;
       const normalizedCategory = normalizeProductCategory(category);
-      await pool.query(
-        'INSERT INTO products (name, description, price, stock, image_url, category, is_visible) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [name, description || '', price, stock, image_url || '', normalizedCategory, is_visible !== false]
-      );
+      
+      // Si es un servicio, guardarlo en la tabla services
+      if (normalizedCategory === 'service') {
+        await pool.query(
+          'INSERT INTO services (name, description, price, image_url, is_visible, duration_minutes) VALUES ($1, $2, $3, $4, $5, $6)',
+          [name, description || '', price, image_url || '', is_visible !== false, 30]
+        );
+      } else {
+        await pool.query(
+          'INSERT INTO products (name, description, price, stock, image_url, category, is_visible) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [name, description || '', price, stock, image_url || '', normalizedCategory, is_visible !== false]
+        );
+      }
       return res.json({ message: 'Producto creado' });
     }
 
@@ -596,19 +630,42 @@ app.all(['/api', '/api.php'], async (req, res) => {
       const { id } = req.query;
       const { name, price, stock, image_url, description, category, is_visible } = req.body;
       const normalizedCategory = normalizeProductCategory(category);
-      const result = await pool.query(
-        `UPDATE products
-         SET name = $1, description = $2, price = $3, stock = $4, image_url = $5, category = $6, is_visible = $7
-         WHERE id = $8
-         RETURNING id`,
-        [name, description || '', price, stock, image_url || '', normalizedCategory, is_visible !== false, id]
-      );
-      if (!result.rows[0]) return res.status(404).json({ error: 'Producto no encontrado' });
+      
+      if (normalizedCategory === 'service') {
+        const result = await pool.query(
+          `UPDATE services
+           SET name = $1, description = $2, price = $3, image_url = $4, is_visible = $5
+           WHERE id = $6
+           RETURNING id`,
+          [name, description || '', price, image_url || '', is_visible !== false, id]
+        );
+        if (!result.rows[0]) return res.status(404).json({ error: 'Servicio no encontrado' });
+      } else {
+        const result = await pool.query(
+          `UPDATE products
+           SET name = $1, description = $2, price = $3, stock = $4, image_url = $5, category = $6, is_visible = $7
+           WHERE id = $8
+           RETURNING id`,
+          [name, description || '', price, stock, image_url || '', normalizedCategory, is_visible !== false, id]
+        );
+        if (!result.rows[0]) return res.status(404).json({ error: 'Producto no encontrado' });
+      }
       return res.json({ message: 'Producto actualizado' });
     }
 
     if (req.method === 'DELETE' && action === 'products') {
       const { id } = req.query;
+      const { category } = req.body;
+      
+      // Primero intentar eliminar de services si es de esa categoría
+      if (category === 'service') {
+        const result = await pool.query('DELETE FROM services WHERE id = $1 RETURNING id', [id]);
+        if (result.rowCount > 0) {
+          return res.json({ message: 'Servicio eliminado' });
+        }
+      }
+      
+      // Sino, eliminar de products
       await pool.query('DELETE FROM products WHERE id = $1', [id]);
       return res.json({ message: 'Producto eliminado' });
     }
@@ -634,17 +691,26 @@ app.all(['/api', '/api.php'], async (req, res) => {
 
     if (req.method === 'POST' && action === 'appointments') {
       const { userId, barberId, serviceId, serviceName, appointmentDate, notes } = req.body;
-      const serviceResult = serviceId
-        ? await pool.query('SELECT id, name, description, image_url FROM products WHERE id = $1', [serviceId])
+      
+      // Buscar en services primero, luego en products
+      let serviceResult = serviceId
+        ? await pool.query('SELECT id, name, description, image_url FROM services WHERE id = $1', [serviceId])
         : { rows: [] };
-      const service = serviceResult.rows[0] || null;
+      
+      let service = serviceResult.rows[0];
+      
+      if (!service && serviceId) {
+        serviceResult = await pool.query('SELECT id, name, description, image_url FROM products WHERE id = $1', [serviceId]);
+        service = serviceResult.rows[0];
+      }
+      
       const nameToStore = serviceName || service?.name || 'Servicio';
 
       const created = await pool.query(
-        `INSERT INTO appointments (client_id, barber_id, service_product_id, service_name, appointment_date, notes, status)
-         VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+        `INSERT INTO appointments (client_id, barber_id, service_id, service_product_id, service_name, appointment_date, notes, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
          RETURNING id`,
-        [userId, barberId, serviceId || null, nameToStore, appointmentDate, notes || '']
+        [userId, barberId, (service && !serviceId) ? null : (serviceId || null), (service && !serviceId) ? serviceId : null, nameToStore, appointmentDate, notes || '']
       );
 
       await createNotification(barberId, 'new_message', 'Nueva cita asignada', `${nameToStore} fue agendada`, { appointmentId: String(created.rows[0].id) });
@@ -663,10 +729,11 @@ app.all(['/api', '/api.php'], async (req, res) => {
           client.name AS client_name,
           a.barber_id,
           barber.name AS barber_name,
+          a.service_id,
           a.service_product_id,
           a.service_name,
-          p.image_url AS service_image_url,
-          p.description AS service_description,
+          COALESCE(s.image_url, p.image_url) AS service_image_url,
+          COALESCE(s.description, p.description) AS service_description,
           a.appointment_date,
           a.notes,
           a.status,
@@ -674,6 +741,7 @@ app.all(['/api', '/api.php'], async (req, res) => {
         FROM appointments a
         LEFT JOIN users client ON client.id = a.client_id
         LEFT JOIN users barber ON barber.id = a.barber_id
+        LEFT JOIN services s ON s.id = a.service_id
         LEFT JOIN products p ON p.id = a.service_product_id`;
 
       if (userId && !isAdmin) {
@@ -986,6 +1054,52 @@ app.all(['/api', '/api.php'], async (req, res) => {
 
     if (req.method === 'POST' && action === 'toggle_client_messaging') {
       return res.json({ message: 'Permiso actualizado' });
+    }
+
+    if (req.method === 'POST' && action === 'create-user') {
+      const { adminId, name, email, password, role, phone } = req.body;
+      
+      // Verificar que el usuario que hace la solicitud es admin
+      if (!(await isAdminUser(adminId))) {
+        return res.status(403).json({ error: 'Solo un administrador puede crear usuarios' });
+      }
+
+      // Validar datos requeridos
+      if (!name || !email || !password || !role) {
+        return res.status(400).json({ error: 'Nombre, email, contraseña y rol son requeridos' });
+      }
+
+      // Validar que el rol sea válido
+      if (!['admin', 'barber', 'user'].includes(role)) {
+        return res.status(400).json({ error: 'Rol inválido. Debe ser admin, barber o user' });
+      }
+
+      try {
+        // Hash de la contraseña
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Crear usuario
+        const result = await pool.query(
+          `INSERT INTO users (name, email, password, role, barber_approved, phone)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id, name, email, role, barber_approved, phone, avatar_url`,
+          [name, email, hashedPassword, role, role === 'barber' ? true : true, phone || '']
+        );
+
+        if (!result.rows[0]) {
+          return res.status(400).json({ error: 'Error al crear el usuario' });
+        }
+
+        return res.json({ 
+          message: `Usuario ${role} creado exitosamente`,
+          user: normalizeUser(result.rows[0])
+        });
+      } catch (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          return res.status(400).json({ error: 'El email ya está registrado' });
+        }
+        throw error;
+      }
     }
 
     return res.status(404).json({ error: `Action "${action || 'none'}" no encontrada` });

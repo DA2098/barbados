@@ -37,11 +37,24 @@ CREATE TABLE IF NOT EXISTS products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- SERVICES table (para cortes de barbería)
+CREATE TABLE IF NOT EXISTS services (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    image_url VARCHAR(500),
+    is_visible BOOLEAN DEFAULT TRUE,
+    duration_minutes INT DEFAULT 30,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- APPOINTMENTS table
 CREATE TABLE IF NOT EXISTS appointments (
     id SERIAL PRIMARY KEY,
     client_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     barber_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    service_id INT REFERENCES services(id) ON DELETE SET NULL,
     service_product_id INT REFERENCES products(id) ON DELETE SET NULL,
     service_name VARCHAR(150) NOT NULL,
     appointment_date TIMESTAMP NOT NULL,
