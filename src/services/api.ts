@@ -195,15 +195,29 @@ export const api = {
   },
 
   async createBarber(adminId: string, name: string, email: string, password: string, phone?: string): Promise<User> {
-    const res = await fetch(`${API_URL}?action=create-barber`, {
+    const res = await fetch(`${API_URL}?action=create-user`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminId, name, email, password, phone: phone ?? '' })
+      body: JSON.stringify({ adminId, name, email, password, role: 'barber', phone: phone ?? '' })
     });
     if (!res.ok) {
       throw new Error(await parseApiError(res, 'Error al crear barbero'));
     }
-    return await res.json();
+    const data = await res.json();
+    return data.user || data;
+  },
+
+  async createClient(adminId: string, name: string, email: string, password: string, phone?: string): Promise<User> {
+    const res = await fetch(`${API_URL}?action=create-user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminId, name, email, password, role: 'user', phone: phone ?? '' })
+    });
+    if (!res.ok) {
+      throw new Error(await parseApiError(res, 'Error al crear cliente'));
+    }
+    const data = await res.json();
+    return data.user || data;
   },
 
   // --- USERS ---
@@ -344,9 +358,28 @@ export const api = {
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al actualizar producto'));
   },
 
-  async deleteProduct(id: string): Promise<void> {
-    const res = await fetch(`${API_URL}?action=products&id=${id}`, { method: 'DELETE' });
+  async deleteProduct(id: string, category?: 'service' | 'barber' | 'food' | 'drink'): Promise<void> {
+    const res = await fetch(`${API_URL}?action=products&id=${id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: category || 'food' })
+    });
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al eliminar producto'));
+  },
+
+  async getServices(options?: { includeHidden?: boolean }): Promise<Product[]> {
+    const params = new URLSearchParams({ action: 'services' });
+    if (options?.includeHidden) params.set('includeHidden', '1');
+
+    const res = await fetch(`${API_URL}?${params.toString()}`);
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener servicios'));
+    const services = await res.json();
+    return services.map((service: Product & { price: unknown; is_visible?: unknown }) => ({
+      ...service,
+      price: normalizePrice(service.price),
+      category: 'service' as const,
+      is_visible: Boolean(service.is_visible)
+    }));
   },
 
   // --- BARBER LOGS ---

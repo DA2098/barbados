@@ -25,6 +25,14 @@ type CutForm = {
   is_visible: boolean;
 };
 
+type NewUserForm = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  role: 'user' | 'barber';
+};
+
 const emptyProduct: ProductForm = {
   name: '',
   description: '',
@@ -44,6 +52,14 @@ const emptyCut: CutForm = {
   is_visible: true
 };
 
+const emptyNewUser: NewUserForm = {
+  name: '',
+  email: '',
+  password: '',
+  phone: '',
+  role: 'user'
+};
+
 export default function AdminPanel() {
   const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('users');
@@ -57,23 +73,26 @@ export default function AdminPanel() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [cutForm, setCutForm] = useState<CutForm>(emptyCut);
   const [editingCutId, setEditingCutId] = useState<string | null>(null);
+  const [newUserForm, setNewUserForm] = useState<NewUserForm>(emptyNewUser);
+  const [creatingUser, setCreatingUser] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingServiceImage, setUploadingServiceImage] = useState(false);
 
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [uData, pData, lData, applicationData, appointmentData, reviewData] = await Promise.all([
+      const [uData, pData, sData, lData, applicationData, appointmentData, reviewData] = await Promise.all([
         api.getUsers(),
         api.getProducts({ includeHidden: true }),
+        api.getServices({ includeHidden: true }),
         api.getBarberLogs(),
         api.getBarberApplications(user.id),
         api.getAppointments(user.id),
         api.getAppointmentReviews()
       ]);
-      console.log('✓ Datos cargados - Products:', pData);
+      console.log('✓ Datos cargados - Products:', pData, 'Services:', sData);
       setUsers(uData);
-      setProducts(pData);
+      setProducts([...pData, ...sData]);
       setLogs(lData);
       setBarberApplications(applicationData);
       setAppointments(appointmentData);
@@ -108,6 +127,30 @@ export default function AdminPanel() {
       await fetchData();
     } catch (error: any) {
       alert(error.message);
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !newUserForm.name || !newUserForm.email || !newUserForm.password) {
+      alert('Por favor llena todos los campos');
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      if (newUserForm.role === 'barber') {
+        await api.createBarber(user.id, newUserForm.name, newUserForm.email, newUserForm.password, newUserForm.phone);
+      } else {
+        await api.createClient(user.id, newUserForm.name, newUserForm.email, newUserForm.password, newUserForm.phone);
+      }
+      alert(`${newUserForm.role === 'barber' ? 'Barbero' : 'Cliente'} creado exitosamente`);
+      setNewUserForm(emptyNewUser);
+      await fetchData();
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -180,9 +223,9 @@ export default function AdminPanel() {
     });
   };
 
-  const handleDeleteProduct = async (id: string) => {
+  const handleDeleteProduct = async (id: string, category: Product['category']) => {
     if (!confirm('¿Eliminar producto?')) return;
-    await api.deleteProduct(id);
+    await api.deleteProduct(id, category);
     fetchData();
   };
 
@@ -200,7 +243,7 @@ export default function AdminPanel() {
 
   const handleDeleteCut = async (id: string) => {
     if (!confirm('¿Eliminar corte?')) return;
-    await api.deleteProduct(id);
+    await api.deleteProduct(id, 'service');
     fetchData();
   };
 
@@ -444,6 +487,11 @@ export default function AdminPanel() {
         }`}>
           <Users className="w-5 h-5" /> <span className="hidden sm:inline">Usuarios</span><span className="sm:hidden">Us</span>
         </button>
+        <button onClick={() => setActiveTab('create-user')} className={`px-4 sm:px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${
+          activeTab === 'create-user' ? 'accent-btn' : 'nav-btn'
+        }`}>
+          <Users className="w-5 h-5" /> <span className="hidden sm:inline">Crear Usuario</span><span className="sm:hidden">+Us</span>
+        </button>
         <button onClick={() => setActiveTab('products')} className={`px-4 sm:px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${
           activeTab === 'products' ? 'accent-btn' : 'nav-btn'
         }`}>
@@ -475,6 +523,87 @@ export default function AdminPanel() {
           <ClipboardList className="w-5 h-5" /> <span className="hidden sm:inline">Registros</span><span className="sm:hidden">Reg</span>
         </button>
       </div>
+
+      {activeTab === 'create-user' && (
+        <div className="glass-card rounded-xl overflow-hidden max-w-2xl mx-auto">
+          <div className="p-4 sm:p-6 border-b border-white/10">
+            <h2 className="text-lg sm:text-xl font-bold text-contrast">Crear Nuevo Usuario</h2>
+            <p className="text-sm muted mt-2">Crea barberos y clientes directamente con credenciales de acceso</p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-contrast mb-2">Nombre completo *</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="Ej: Juan García"
+                    value={newUserForm.name}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })}
+                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-contrast mb-2">Correo electrónico *</label>
+                  <input
+                    required
+                    type="email"
+                    placeholder="Ej: juan@ejemplo.com"
+                    value={newUserForm.email}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-contrast mb-2">Contraseña *</label>
+                  <input
+                    required
+                    type="password"
+                    placeholder="Contraseña segura"
+                    value={newUserForm.password}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-contrast mb-2">Teléfono</label>
+                  <input
+                    type="tel"
+                    placeholder="Ej: +1234567890"
+                    value={newUserForm.phone}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
+                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-contrast mb-2">Tipo de usuario *</label>
+                <select
+                  value={newUserForm.role}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value as 'user' | 'barber' })}
+                  className="w-full p-2 form-input border border-white/20 rounded-lg"
+                >
+                  <option value="user">Cliente</option>
+                  <option value="barber">Barbero</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={creatingUser}
+                className="w-full accent-btn py-3 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {creatingUser ? 'Creando usuario...' : 'Crear usuario'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {activeTab === 'users' && (
         <div className="glass-card rounded-xl overflow-hidden">
@@ -613,7 +742,7 @@ export default function AdminPanel() {
                         <button onClick={() => handleEditProduct(p)} className="p-2 text-contrast hover:opacity-70 transition-opacity"><Pencil className="w-4 h-4" /></button>
                         <button onClick={() => handleToggleVisibility(p)} className="px-2 py-1 text-xs rounded nav-btn">{p.is_visible ? 'Ocultar' : 'Mostrar'}</button>
                         <button onClick={() => handleRemoveProductImage(p)} className="px-2 py-1 text-xs rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">Quitar imagen</button>
-                        <button onClick={() => handleDeleteProduct(p.id)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDeleteProduct(p.id, p.category)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
