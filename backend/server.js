@@ -290,7 +290,12 @@ async function findOrCreateConversation(requesterId, peerId) {
 }
 
 async function uploadStoredFile(file, req) {
-  const publicHost = req.get('origin') || `${req.protocol}://${req.get('host')}`;
+  // Use backend host/protocol to build public URL. Avoid using `Origin` header
+  // because it reflects the frontend origin (which would make the file URL
+  // point to the frontend domain and therefore be broken).
+  const proto = (req.get('x-forwarded-proto') || req.protocol || 'http').split(',')[0].trim();
+  const host = req.get('x-forwarded-host') || req.get('host') || req.hostname;
+  const publicHost = `${proto}://${host}`;
   return `${publicHost}/uploads/${file.filename}`;
 }
 

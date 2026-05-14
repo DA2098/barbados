@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "cd backend && npm start"
+    "start": "cd backend && npm start",
+    "start-all": "node scripts/startAll.js"
   },
   "dependencies": {
     "clsx": "2.1.1",
