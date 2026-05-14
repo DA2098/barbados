@@ -926,8 +926,10 @@ app.all(['/api', '/api.php'], async (req, res) => {
         return res.status(403).json({ error: 'No autorizado. Solo administradores pueden ver esto.' });
       }
 
+      // Use DISTINCT ON over the user pair (LEAST, GREATEST) to avoid duplicate rows
+      // that can appear when multiple conversation records or participant rows exist.
       const result = await pool.query(
-        `SELECT 
+        `SELECT DISTINCT ON (LEAST(p1.user_id, p2.user_id), GREATEST(p1.user_id, p2.user_id))
            c.id AS conversation_id,
            c.conversation_type,
            c.last_message_at,
@@ -947,7 +949,7 @@ app.all(['/api', '/api.php'], async (req, res) => {
          JOIN users u1 ON p1.user_id = u1.id
          JOIN users u2 ON p2.user_id = u2.id
          WHERE c.is_active = true
-         ORDER BY COALESCE(c.last_message_at, c.created_at) DESC`,
+         ORDER BY LEAST(p1.user_id, p2.user_id), GREATEST(p1.user_id, p2.user_id), COALESCE(c.last_message_at, c.created_at) DESC`,
         []
       );
 
