@@ -17,14 +17,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadsDir,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname || '').toLowerCase();
-      const safeExt = ext || '.bin';
-      cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`);
-    }
-  })
+  storage: multer.memoryStorage()
 });
 
 // Middleware
@@ -290,13 +283,11 @@ async function findOrCreateConversation(requesterId, peerId) {
 }
 
 async function uploadStoredFile(file, req) {
-  // Use backend host/protocol to build public URL. Avoid using `Origin` header
-  // because it reflects the frontend origin (which would make the file URL
-  // point to the frontend domain and therefore be broken).
-  const proto = (req.get('x-forwarded-proto') || req.protocol || 'http').split(',')[0].trim();
-  const host = req.get('x-forwarded-host') || req.get('host') || req.hostname;
-  const publicHost = `${proto}://${host}`;
-  return `${publicHost}/uploads/${file.filename}`;
+  // Convert file to base64 data URL for persistent storage in database
+  // This avoids issues with ephemeral filesystems (Render, Heroku, etc.)
+  const mimeType = file.mimetype || 'application/octet-stream';
+  const base64Data = file.buffer.toString('base64');
+  return `data:${mimeType};base64,${base64Data}`;
 }
 
 async function handleUpload(req, res, action) {
