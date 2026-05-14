@@ -15,14 +15,18 @@ export function useRealtimeUserEvents(
 ) {
   const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
   const apiBase = (() => {
-    const fallback = '/api.php';
+    const fallback = window.location.hostname.includes('onrender.com')
+      ? 'https://barbados-api.onrender.com/api'
+      : '/api.php';
     const trimmed = env?.VITE_API_URL?.trim();
     if (!trimmed) return fallback;
 
     try {
       const parsed = new URL(trimmed, window.location.origin);
       if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname) {
-        return parsed.toString().replace(/\/$/, '');
+        const hasApiPath = parsed.pathname !== '/' && parsed.pathname !== '';
+        const resolvedPath = hasApiPath ? parsed.pathname : '/api';
+        return `${parsed.origin}${resolvedPath}${parsed.search}`.replace(/\/$/, '');
       }
       return fallback;
     } catch {

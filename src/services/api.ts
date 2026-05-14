@@ -119,7 +119,10 @@ const normalizeApiBase = (value?: string) => {
 
     if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
       if (!parsed.hostname) return fallback;
-      return parsed.toString().replace(/\/$/, '');
+
+      const hasApiPath = parsed.pathname !== '/' && parsed.pathname !== '';
+      const resolvedPath = hasApiPath ? parsed.pathname : '/api';
+      return `${parsed.origin}${resolvedPath}${parsed.search}`.replace(/\/$/, '');
     }
 
     return fallback;
