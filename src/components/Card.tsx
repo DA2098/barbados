@@ -30,24 +30,24 @@ const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, c
   };
 
   return (
-    <div className={`card-3d ${className}`}>
+    <div className={`card-3d h-full ${className}`}>
       <div
-        className={`card-inner glass-card ${clickableClass}`}
+        className={`card-inner glass-card h-full flex flex-col overflow-hidden ${clickableClass}`}
         onClick={onClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         {image && (
-          <div className="h-48 bg-cover bg-center overflow-hidden rounded-t-lg">
-            <a href={image} target="_blank" rel="noreferrer">
-              <img src={image} alt={title || 'card-image'} className="w-full h-full object-cover" />
+          <div className="aspect-[4/3] w-full bg-white/70 dark:bg-black/20 overflow-hidden border-b border-white/10">
+            <a href={image} target="_blank" rel="noreferrer" className="block h-full w-full">
+              <img src={image} alt={title || 'card-image'} className="h-full w-full object-contain p-2 sm:p-3" />
             </a>
           </div>
         )}
-        <div className="p-4">
+        <div className="p-4 flex-1 flex flex-col">
           {title && <h3 className="text-lg font-bold mb-1 card-title">{title}</h3>}
           {subtitle && <p className="text-sm muted mb-3">{subtitle}</p>}
-          <div className="card-body">{children}</div>
+          <div className="card-body flex-1">{children}</div>
           {footer && <div className="mt-4">{footer}</div>}
         </div>
       </div>
