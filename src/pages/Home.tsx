@@ -116,36 +116,40 @@ export default function Home() {
             </p>
           </div>
 
-          {featuredCuts.length === 0 ? (
-            <div className="glass-card rounded-2xl p-8 text-center muted font-medium">
-              El administrador aun no ha publicado servicios destacados.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-              {featuredCuts.map((cut) => (
-                <Card
-                  key={cut.id}
-                  title={cut.name}
-                  subtitle={`${cut.duration_minutes || 30} min`}
-                  image={cut.image_url || 'https://via.placeholder.com/320x220?text=Corte'}
-                  className="relative transition-all duration-300 hover:shadow-2xl"
-                  footer={
-                    <Link to="/appointments" className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1">
-                      Agendar corte
-                    </Link>
-                  }
-                >
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-4xl font-extrabold text-accent-1">{`$${cut.price.toFixed(0)}`}</span>
-                    </div>
-                    <p className="text-xs text-muted font-semibold uppercase tracking-wider">USD</p>
-                  </div>
-                  <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
-                </Card>
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
+  {featuredCuts.map((cut) => (
+    <Card
+      key={cut.id}
+      title={cut.name}
+      subtitle={`${cut.duration_minutes || 30} min`}
+      image={cut.image_url || 'https://via.placeholder.com/320x220?text=Corte'}
+      className="relative transition-all duration-300 hover:shadow-2xl w-full max-w-[280px] mx-auto"
+      footer={
+        <Link
+          to="/appointments"
+          className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
+        >
+          Agendar corte
+        </Link>
+      }
+    >
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-3xl font-extrabold text-accent-1">
+            {`$${cut.price.toFixed(0)}`}
+          </span>
+        </div>
+        <p className="text-xs text-muted font-semibold uppercase tracking-wider">
+          USD
+        </p>
+      </div>
+
+      <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">
+        {cut.description || 'Corte profesional personalizado.'}
+      </p>
+    </Card>
+  ))}
+</div>
         </div>
       </section>
 
