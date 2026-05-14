@@ -223,6 +223,15 @@ app.post('/api', async (req, res) => {
   }
 });
 
+// Default GET /api (para testing)
+app.get('/api', (req, res) => {
+  const { action } = req.query;
+  if (!action) {
+    return res.json({ message: 'API Barbados - Use action parameter', status: 'ok' });
+  }
+  res.status(404).json({ error: `Action "${action}" no encontrada` });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
