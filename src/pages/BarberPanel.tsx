@@ -190,8 +190,6 @@ export default function BarberPanel() {
     }
   });
 
-  const todayTotalComputed = Object.values(todayByCategory).reduce((a, b) => a + b, 0);
-
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
       <div className="md:col-span-3 glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -319,10 +317,10 @@ export default function BarberPanel() {
                     <td className="p-4 text-sm">{new Date(log.date).toLocaleString()}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium 
-                        ${(log.type === 'Corte' || log.type === 'Barbería' || log.type === 'Cortes / Barbería') ? 'bg-blue-100 text-blue-700' : 
+                        ${(log.type === 'Corte' || log.type === 'Cortes' || log.type === 'Barbería') ? 'bg-blue-100 text-blue-700' : 
                           (log.type === 'Menu' || log.type === 'Lancería') ? 'bg-orange-100 text-orange-700' : 
                           'bg-purple-100 text-purple-700'}`}>
-                        {typeLabel(log.type as 'Cortes / Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida')}
+                        {typeLabel(log.type as 'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida')}
                       </span>
                     </td>
                     <td className="p-4 font-medium">{log.name}</td>
