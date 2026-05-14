@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
