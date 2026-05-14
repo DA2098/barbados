@@ -1,33 +1,20 @@
-services:
-  - type: web
-    name: barbados-frontend
-    plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm run preview
-    envVars:
-      - key: VITE_API_URL
-        value: https://barbados-api.onrender.com/api
-    routes:
-      - path: /
-        index: dist/index.html
-    staticSite: true
-    buildDir: dist
-    rootDir: .
+# Render Blueprint - Barbados App
+# Para desplegar manualmente en Render sin este archivo
 
-  - type: web
-    name: barbados-api
-    plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        sync: false
-    port: 3000
-    rootDir: backend
+# Frontend: Static Site
+# - Selecciona rama main
+# - Build: npm install && npm run build  
+# - Publish: dist
+# - Env: VITE_API_URL=https://barbados-api.onrender.com/api
 
-databases:
-  - name: barbados-db
-    plan: free
-    provider: postgresql
+# Backend: Web Service
+# - Selecciona rama main
+# - Root Dir: backend
+# - Build: npm install
+# - Start: npm start
+# - Port: 3000
+# - Env: DATABASE_URL=[tu_postgres_url]
+
+# PostgreSQL Database
+# - Nombre: barbados-db
+# - Copia CONNECTION STRING y pégalo en Backend como DATABASE_URL
