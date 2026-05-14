@@ -53,7 +53,7 @@ export default function BarberPanel() {
   };
 
   const typeLabel = (value: 'Corte' | 'Menu' | 'Bebida') => {
-    if (value === 'Corte') return 'Corte';
+    if (value === 'Corte') return 'Barbería';
     if (value === 'Menu') return 'Lancería';
     return 'Bebidas';
   };
@@ -212,7 +212,7 @@ export default function BarberPanel() {
               onChange={(e) => setType(e.target.value as any)}
               className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
             >
-              <option value="Corte">Corte / Barbería</option>
+              <option value="Corte">Barbería</option>
               <option value="Menu">Lancería</option>
               <option value="Bebida">Bebidas</option>
             </select>
@@ -221,7 +221,7 @@ export default function BarberPanel() {
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1">Servicio / Producto</label>
             {getProductsByType(type).length === 0 ? (
-              <p className="text-sm text-gray-500">No hay cortes, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
+              <p className="text-sm text-gray-500">No hay barbería, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
             ) : (
               <select 
                 value={selectedItemId} 

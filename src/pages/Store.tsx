@@ -33,7 +33,7 @@ export default function Store() {
   useAutoRefresh(() => loadProducts(true), { intervalMs: 30000 });
 
   const categoryLabel = (c: 'barber' | 'food' | 'drink' | 'service') => {
-    if (c === 'barber') return 'Cortes';
+    if (c === 'barber') return 'Barbería';
     if (c === 'food') return 'Lanceria';
     if (c === 'drink') return 'Bebidas';
     return 'Servicios';
@@ -51,7 +51,7 @@ export default function Store() {
           onClick={() => setCategory('barber')}
           className={`px-4 py-2 rounded-lg font-semibold ${category === 'barber' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
         >
-          Cortes
+          Barbería
         </button>
         <button
           onClick={() => setCategory('food')}

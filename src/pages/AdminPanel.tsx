@@ -391,10 +391,10 @@ export default function AdminPanel() {
   const cuts = products.filter((p) => p.category === 'service');
   const storeProducts = products.filter((p) => p.category !== 'service');
   const categoryLabel = (category: Product['category']) => {
-    if (category === 'barber') return 'CORTES';
+    if (category === 'barber') return 'BARBERÍA';
     if (category === 'food') return 'LANCERIA';
     if (category === 'drink') return 'BEBIDA';
-    return 'CORTES';
+    return 'BARBERÍA';
   };
 
   return (
@@ -500,7 +500,7 @@ export default function AdminPanel() {
         <button onClick={() => setActiveTab('cuts')} className={`px-4 sm:px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${
           activeTab === 'cuts' ? 'accent-btn' : 'nav-btn'
         }`}>
-          <Scissors className="w-5 h-5" /> <span className="hidden sm:inline">Cortes</span><span className="sm:hidden">Ctr</span>
+          <Scissors className="w-5 h-5" /> <span className="hidden sm:inline">Barbería</span><span className="sm:hidden">Barb</span>
         </button>
         <button onClick={() => setActiveTab('chatAdmin')} className={`px-4 sm:px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${
           activeTab === 'chatAdmin' ? 'accent-btn' : 'nav-btn'
@@ -654,7 +654,7 @@ export default function AdminPanel() {
               <input required type="text" placeholder="Nombre" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} className="w-full p-2 border rounded" />
               <textarea placeholder="Descripción" value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="w-full p-2 border rounded" rows={2} />
               <select value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value as ProductForm['category'] })} className="w-full p-2 border rounded">
-                <option value="barber">Cortes (Tienda)</option>
+                <option value="barber">Barbería (Tienda)</option>
                 <option value="food">Lanceria (Tienda)</option>
                 <option value="drink">Bebida (Tienda)</option>
               </select>
