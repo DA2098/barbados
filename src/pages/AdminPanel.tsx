@@ -390,6 +390,18 @@ export default function AdminPanel() {
   const applicationByUserId = new Map(barberApplications.map((app) => [app.userId, app]));
   const cuts = products.filter((p) => p.category === 'service');
   const storeProducts = products.filter((p) => p.category !== 'service');
+  const todayKey = new Date().toDateString();
+  const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+  const summaryLogs = logs.filter((log) => log.type);
+  const todayTotal = summaryLogs.reduce((sum, log) => {
+    return new Date(log.date).toDateString() === todayKey ? sum + log.price : sum;
+  }, 0);
+  const monthTotal = summaryLogs.reduce((sum, log) => {
+    const logDate = new Date(log.date);
+    const logMonthKey = `${logDate.getFullYear()}-${String(logDate.getMonth() + 1).padStart(2, '0')}`;
+    return logMonthKey === currentMonthKey ? sum + log.price : sum;
+  }, 0);
+  const monthLosses = 0;
   const categoryLabel = (category: Product['category']) => {
     if (category === 'barber') return 'BARBERÍA';
     if (category === 'food') return 'LANCERIA';
@@ -1021,7 +1033,27 @@ export default function AdminPanel() {
 
       {activeTab === 'logs' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-gray-100"><h2 className="text-lg sm:text-xl font-bold">Actividad de Barberos</h2></div>
+          <div className="p-4 sm:p-6 border-b border-gray-100 space-y-4">
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-bold">Actividad de Barberos</h2>
+              <p className="text-sm text-gray-500">Resumen del trabajo registrado por el equipo.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Ganado hoy</p>
+                <p className="mt-2 text-2xl font-bold text-emerald-700">${todayTotal.toFixed(2)}</p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Ganado del mes</p>
+                <p className="mt-2 text-2xl font-bold text-slate-800">${monthTotal.toFixed(2)}</p>
+              </div>
+              <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                <p className="text-xs uppercase tracking-wide text-red-700 font-semibold">Pérdidas del mes</p>
+                <p className="mt-2 text-2xl font-bold text-red-700">${monthLosses.toFixed(2)}</p>
+                <p className="mt-1 text-xs text-red-700/80">No hay egresos registrados todavía.</p>
+              </div>
+            </div>
+          </div>
           <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left">
             <thead className="bg-gray-50 text-gray-500">
@@ -1038,7 +1070,7 @@ export default function AdminPanel() {
                 <tr key={l.id} className="hover:bg-gray-50">
                   <td className="p-4 text-sm">{new Date(l.date).toLocaleString()}</td>
                   <td className="p-4 font-bold">{l.barberName}</td>
-                  <td className="p-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">{l.type}</span></td>
+                  <td className="p-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">{l.type === 'Corte' ? 'Barbería' : l.type === 'Menu' ? 'Lancería' : l.type === 'Bebida' ? 'Bebidas' : l.type}</span></td>
                   <td className="p-4">{l.name}</td>
                   <td className="p-4 text-green-600 font-bold">${l.price.toFixed(2)}</td>
                 </tr>
