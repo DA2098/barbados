@@ -85,6 +85,9 @@ function ensure_schema(PDO $pdo): void
     if (!column_exists($pdo, 'products', 'description')) {
         $pdo->exec("ALTER TABLE products ADD COLUMN description TEXT DEFAULT NULL AFTER name");
     }
+    if (!column_exists($pdo, 'products', 'duration_minutes')) {
+        $pdo->exec("ALTER TABLE products ADD COLUMN duration_minutes INT NOT NULL DEFAULT 30 AFTER image_url");
+    }
 
     if (!table_exists($pdo, 'appointments')) {
         $pdo->exec(
