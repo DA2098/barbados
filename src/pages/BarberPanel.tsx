@@ -155,6 +155,16 @@ export default function BarberPanel() {
     }
   };
 
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm('¿Eliminar este registro? No se puede deshacer.')) return;
+    try {
+      await api.deleteBarberLog(logId);
+      await fetchLogs();
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
   if ((user?.role !== 'barber' && user?.role !== 'admin') || (user?.role === 'barber' && user?.barber_approved === false)) {
     return <div className="p-8 text-center text-red-600 font-bold">Acceso Denegado. Se requiere rol de Barbero.</div>;
   }
@@ -327,6 +337,7 @@ export default function BarberPanel() {
                 <th className="p-4 font-medium text-gray-500">Tipo</th>
                 <th className="p-4 font-medium text-gray-500">Detalle</th>
                 <th className="p-4 font-medium text-gray-500">Precio</th>
+                <th className="p-4 text-center font-medium text-gray-500">Acción</th>
               </tr>
             </thead>
             <tbody>
@@ -358,6 +369,11 @@ export default function BarberPanel() {
                       </div>
                     </td>
                     <td className="p-4 text-green-600 font-bold">${log.price.toFixed(2)}</td>
+                    <td className="p-4 text-center">
+                      <button onClick={() => handleDeleteLog(log.id)} className="px-2 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 transition">
+                        Eliminar
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}

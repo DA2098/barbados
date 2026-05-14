@@ -689,6 +689,13 @@ app.all(['/api', '/api.php'], async (req, res) => {
       return res.json(result.rows.map(normalizeBarberLog));
     }
 
+    if (req.method === 'DELETE' && action === 'logs') {
+      const { id } = req.query;
+      if (!id) return res.status(400).json({ error: 'Log ID required' });
+      await pool.query('DELETE FROM barber_logs WHERE id = $1', [id]);
+      return res.json({ message: 'Log eliminado' });
+    }
+
     if (req.method === 'POST' && action === 'appointments') {
       const { userId, barberId, serviceId, serviceName, appointmentDate, notes } = req.body;
       

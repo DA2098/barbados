@@ -407,6 +407,13 @@ export const api = {
     }));
   },
 
+  async deleteBarberLog(logId: string): Promise<void> {
+    const res = await fetch(`${API_URL}?action=logs&id=${logId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al eliminar registro'));
+  },
+
   // --- APPOINTMENTS ---
   async createAppointment(payload: {
     userId: string;
