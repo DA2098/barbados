@@ -690,10 +690,39 @@ app.all(['/api', '/api.php'], async (req, res) => {
     }
 
     if (req.method === 'DELETE' && action === 'logs') {
-      const { id } = req.query;
-      if (!id) return res.status(400).json({ error: 'Log ID required' });
-      await pool.query('DELETE FROM barber_logs WHERE id = $1', [id]);
-      return res.json({ message: 'Log eliminado' });
+      const { id, dateRange } = req.query;
+      
+      if (id) {
+        // Eliminar un log específico
+        await pool.query('DELETE FROM barber_logs WHERE id = $1', [id]);
+        return res.json({ message: 'Log eliminado' });
+      }
+      
+      if (dateRange) {
+        // Eliminar logs por rango de fechas (hoy, mes, año)
+        let query = 'DELETE FROM barber_logs WHERE ';
+        const now = new Date();
+        
+        if (dateRange === 'today') {
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+          query += 'created_at >= $1 AND created_at < $2';
+          await pool.query(query, [todayStart, todayEnd]);
+        } else if (dateRange === 'month') {
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+          query += 'created_at >= $1 AND created_at < $2';
+          await pool.query(query, [monthStart, monthEnd]);
+        } else if (dateRange === 'year') {
+          const yearStart = new Date(now.getFullYear(), 0, 1);
+          const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
+          query += 'created_at >= $1 AND created_at < $2';
+          await pool.query(query, [yearStart, yearEnd]);
+        }
+        return res.json({ message: `Logs eliminados (${dateRange})` });
+      }
+      
+      return res.status(400).json({ error: 'id o dateRange requerido' });
     }
 
     if (req.method === 'POST' && action === 'appointments') {

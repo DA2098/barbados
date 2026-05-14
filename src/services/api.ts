@@ -414,6 +414,13 @@ export const api = {
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al eliminar registro'));
   },
 
+  async deleteBarberLogsByRange(dateRange: 'today' | 'month' | 'year'): Promise<void> {
+    const res = await fetch(`${API_URL}?action=logs&dateRange=${dateRange}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error(await parseApiError(res, `Error al eliminar logs de ${dateRange}`));
+  },
+
   // --- APPOINTMENTS ---
   async createAppointment(payload: {
     userId: string;

@@ -253,6 +253,28 @@ export default function AdminPanel() {
     await fetchData();
   };
 
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm('¿Eliminar este registro de barbero?')) return;
+    try {
+      await api.deleteBarberLog(logId);
+      await fetchData();
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteLogsByRange = async (dateRange: 'today' | 'month' | 'year') => {
+    const labels = { today: 'hoy', month: 'este mes', year: 'este año' };
+    if (!confirm(`¿Eliminar TODOS los registros de ${labels[dateRange]}? No se puede deshacer.`)) return;
+    try {
+      await api.deleteBarberLogsByRange(dateRange);
+      await fetchData();
+      alert(`Registros de ${labels[dateRange]} eliminados`);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
   const handleDeleteAppointment = async (appointment: Appointment) => {
     if (!user) return;
     if (!confirm('¿Eliminar esta cita?')) return;
@@ -1061,6 +1083,17 @@ export default function AdminPanel() {
               <h2 className="text-lg sm:text-xl font-bold">Actividad de Barberos</h2>
               <p className="text-sm text-gray-500">Resumen del trabajo registrado por el equipo.</p>
             </div>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => handleDeleteLogsByRange('today')} className="px-3 py-2 rounded text-sm bg-red-100 text-red-600 hover:bg-red-200 transition">
+                Borrar registros de hoy
+              </button>
+              <button onClick={() => handleDeleteLogsByRange('month')} className="px-3 py-2 rounded text-sm bg-orange-100 text-orange-600 hover:bg-orange-200 transition">
+                Borrar registros del mes
+              </button>
+              <button onClick={() => handleDeleteLogsByRange('year')} className="px-3 py-2 rounded text-sm bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
+                Borrar registros del año
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
                 <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Ganado hoy</p>
@@ -1119,7 +1152,7 @@ export default function AdminPanel() {
             </div>
           </div>
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left">
+          <table className="w-full min-w-[760px] text-left">
             <thead className="bg-gray-50 text-gray-500">
               <tr>
                 <th className="p-4">Fecha</th>
@@ -1127,6 +1160,7 @@ export default function AdminPanel() {
                 <th className="p-4">Categoría</th>
                 <th className="p-4">Detalle</th>
                 <th className="p-4">Monto</th>
+                <th className="p-4 text-center">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -1137,6 +1171,11 @@ export default function AdminPanel() {
                   <td className="p-4"><span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium">{(function(t){ if(!t) return ''; const lower=t.toString().toLowerCase(); if(lower.includes('cort')) return 'Cortes'; if(lower.includes('barber')) return 'Barbería'; if(lower.includes('menu')||lower.includes('lancer')) return 'Lancería'; if(lower.includes('beb')) return 'Bebidas'; return t; })(l.type)}</span></td>
                   <td className="p-4">{l.name}</td>
                   <td className="p-4 text-green-600 font-bold">${l.price.toFixed(2)}</td>
+                  <td className="p-4 text-center">
+                    <button onClick={() => handleDeleteLog(l.id)} className="px-2 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 transition">
+                      Eliminar
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
