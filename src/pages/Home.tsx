@@ -29,9 +29,9 @@ export default function Home() {
     const loadHomeData = async () => {
       try {
         const [serviceData, reviewData] = await Promise.all([
-          api.getProducts({ category: 'service' }),
-          api.getAppointmentReviews(undefined, true)
-        ]);
+            api.getServices(),
+            api.getAppointmentReviews(undefined, true)
+          ]);
         setCuts(serviceData);
         setReviews(reviewData);
       } catch (error) {
@@ -45,7 +45,7 @@ export default function Home() {
   useAutoRefresh(async () => {
     try {
       const [serviceData, reviewData] = await Promise.all([
-        api.getProducts({ category: 'service' }),
+        api.getServices(),
         api.getAppointmentReviews(undefined, true)
       ]);
       setCuts(serviceData);
@@ -58,7 +58,7 @@ export default function Home() {
   useRealtimeUserEvents(user?.id, async () => {
     try {
       const [serviceData, reviewData] = await Promise.all([
-        api.getProducts({ category: 'service' }),
+        api.getServices(),
         api.getAppointmentReviews(undefined, true)
       ]);
       setCuts(serviceData);

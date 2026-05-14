@@ -599,7 +599,7 @@ export default function AdminPanel() {
         <button onClick={() => setActiveTab('cuts')} className={`px-4 sm:px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${
           activeTab === 'cuts' ? 'accent-btn' : 'nav-btn'
         }`}>
-          <Scissors className="w-5 h-5" /> <span className="hidden sm:inline">Barbería</span><span className="sm:hidden">Barb</span>
+          <Scissors className="w-5 h-5" /> <span className="hidden sm:inline">Cortes</span><span className="sm:hidden">Cort</span>
         </button>
         <button onClick={() => setActiveTab('chatAdmin')} className={`px-4 sm:px-6 py-3 rounded-xl font-medium flex items-center gap-2 ${
           activeTab === 'chatAdmin' ? 'accent-btn' : 'nav-btn'
