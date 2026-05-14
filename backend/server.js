@@ -749,7 +749,25 @@ app.all(['/api', '/api.php'], async (req, res) => {
         [userId, barberId, (service && !serviceId) ? null : (serviceId || null), (service && !serviceId) ? serviceId : null, nameToStore, appointmentDate, notes || '']
       );
 
-      await createNotification(barberId, 'new_message', 'Nueva cita asignada', `${nameToStore} fue agendada`, { appointmentId: String(created.rows[0].id) });
+      // Ensure there is a conversation between client and barber, then insert an initial message
+      try {
+        const conv = await findOrCreateConversation(userId, barberId);
+        const conversationId = conv.id;
+
+        const messageBody = `Cita agendada: ${nameToStore} - ${new Date(appointmentDate).toLocaleString()}`;
+        const insertedMsg = await pool.query(
+          'INSERT INTO messages (conversation_id, sender_id, message_type, body) VALUES ($1, $2, $3, $4) RETURNING id',
+          [conversationId, userId, 'text', messageBody]
+        );
+
+        await pool.query('UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = $1', [conversationId]);
+
+        // Notify the barber about the new appointment and the message
+        await createNotification(barberId, 'new_message', 'Nueva cita asignada', `${nameToStore} fue agendada`, { appointmentId: String(created.rows[0].id), conversationId });
+      } catch (err) {
+        console.warn('No se pudo crear conversación/mensaje inicial para la cita:', err.message);
+      }
+
       return res.json({ message: 'Cita creada', id: String(created.rows[0].id) });
     }
 
