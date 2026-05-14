@@ -78,6 +78,16 @@ export default function AdminPanel() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingServiceImage, setUploadingServiceImage] = useState(false);
   const [chats, setChats] = useState<AdminChatSession[]>([]);
+  
+  const chatCountsByBarber = useMemo(() => {
+    const map: Record<string, number> = {};
+    chats.forEach((c) => {
+      const id = c.barber?.id;
+      if (!id) return;
+      map[id] = (map[id] || 0) + 1;
+    });
+    return map;
+  }, [chats]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -1008,7 +1018,14 @@ export default function AdminPanel() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-semibold truncate text-contrast">{barber.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold truncate text-contrast">{barber.name}</p>
+                          {chatCountsByBarber[barber.id] ? (
+                            <span className="inline-flex items-center justify-center text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                              {chatCountsByBarber[barber.id]}
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="text-xs muted truncate">{barber.email}</p>
                       </div>
                     </div>
