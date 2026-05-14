@@ -122,15 +122,19 @@ export default function AdminPanel() {
       is_visible: productForm.is_visible
     } as Omit<Product, 'id'>;
 
-    if (editingProductId) {
-      await api.updateProduct(editingProductId, payload);
-    } else {
-      await api.addProduct(payload);
-    }
+    try {
+      if (editingProductId) {
+        await api.updateProduct(editingProductId, payload);
+      } else {
+        await api.addProduct(payload);
+      }
 
-    setProductForm(emptyProduct);
-    setEditingProductId(null);
-    fetchData();
+      setProductForm(emptyProduct);
+      setEditingProductId(null);
+      await fetchData();
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
+    }
   };
 
   const handleSubmitCut = async (e: React.FormEvent) => {
@@ -146,15 +150,19 @@ export default function AdminPanel() {
       is_visible: cutForm.is_visible
     } as Omit<Product, 'id'>;
 
-    if (editingCutId) {
-      await api.updateProduct(editingCutId, payload);
-    } else {
-      await api.addProduct(payload);
-    }
+    try {
+      if (editingCutId) {
+        await api.updateProduct(editingCutId, payload);
+      } else {
+        await api.addProduct(payload);
+      }
 
-    setCutForm(emptyCut);
-    setEditingCutId(null);
-    fetchData();
+      setCutForm(emptyCut);
+      setEditingCutId(null);
+      await fetchData();
+    } catch (error: any) {
+      alert(`Error: ${error.message}`);
+    }
   };
 
   const handleEditProduct = (product: Product) => {
