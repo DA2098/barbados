@@ -1301,7 +1301,9 @@ const server = app.listen(PORT, () => {
 // --- WebSocket support (optional, faster than SSE) ---
 try {
   import('ws').then(({ WebSocketServer }) => {
+    // Expose wss globally so other handlers can broadcast events
     const wss = new WebSocketServer({ server, path: '/ws' });
+    global.wss = wss;
     console.log('✓ WebSocket server listening on /ws');
 
     wss.on('connection', async (ws, req) => {
@@ -1313,6 +1315,9 @@ try {
           ws.close();
           return;
         }
+
+        // Tag socket with userId for targeted broadcasts
+        ws.userId = userId;
 
         let closed = false;
 
@@ -1344,4 +1349,23 @@ try {
   });
 } catch (err) {
   console.warn('WebSocket setup skipped:', err.message || err);
+}
+
+// Helper to broadcast an event to a specific userId (if connected via WebSocket)
+function broadcastToUser(userId, type, payload) {
+  try {
+    const wssLocal = global.wss;
+    if (!wssLocal || !wssLocal.clients) return;
+    wssLocal.clients.forEach((client) => {
+      try {
+        if (client && client.readyState === 1 && client.userId && String(client.userId) === String(userId)) {
+          client.send(JSON.stringify({ type, payload }));
+        }
+      } catch (e) {
+        // ignore send errors
+      }
+    });
+  } catch (e) {
+    // ignore
+  }
 }
