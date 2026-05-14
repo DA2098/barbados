@@ -33,8 +33,17 @@ export default function BarberPanel() {
   };
 
   const fetchCatalogProducts = async () => {
-    const allProducts = await api.getProducts();
-    setCatalogProducts(allProducts.filter((product) => ['service', 'food', 'drink'].includes(product.category) && product.is_visible));
+    const [services, foodProducts, drinkProducts] = await Promise.all([
+      api.getServices(),
+      api.getProducts({ category: 'food' }),
+      api.getProducts({ category: 'drink' })
+    ]);
+
+    setCatalogProducts([
+      ...services.filter((service) => service.is_visible),
+      ...foodProducts.filter((product) => product.is_visible),
+      ...drinkProducts.filter((product) => product.is_visible)
+    ]);
   };
 
   const getProductsByType = (selectedType: 'Corte' | 'Menu' | 'Bebida') => {
