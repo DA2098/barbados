@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession } from '../services/api';
+import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession, Message } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -78,6 +78,9 @@ export default function AdminPanel() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingServiceImage, setUploadingServiceImage] = useState(false);
   const [chats, setChats] = useState<AdminChatSession[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
+  const [messageText, setMessageText] = useState('');
   
   const chatCountsByBarber = useMemo(() => {
     const map: Record<string, number> = {};
@@ -113,6 +116,29 @@ export default function AdminPanel() {
     } catch (error: any) {
       console.error('Error en fetchData:', error);
       alert(`Error al cargar datos: ${error.message}`);
+    }
+  };
+
+  const loadConversationMessages = async (conversationId: string | null) => {
+    if (!user || !conversationId) return;
+    try {
+      const msgs = await api.getMessages(conversationId, user.id);
+      setConversationMessages(msgs);
+    } catch (err: any) {
+      console.error('Error cargando mensajes de conversación:', err.message);
+      setConversationMessages([]);
+    }
+  };
+
+  const sendAdminMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!user || !selectedConversationId || !messageText.trim()) return;
+    try {
+      await api.sendMessage(selectedConversationId, user.id, { messageType: 'text', body: messageText.trim() });
+      setMessageText('');
+      await loadConversationMessages(selectedConversationId);
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -987,9 +1013,9 @@ export default function AdminPanel() {
                           {new Date(chat.createdAt).toLocaleString()}
                         </td>
                         <td className="p-4 text-center">
-                          <Link to={`/chat?peerId=${chat.barber.id}`} className="px-3 py-1.5 rounded text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition">
+                          <button onClick={async () => { setSelectedConversationId(chat.conversationId); await loadConversationMessages(chat.conversationId); }} className="px-3 py-1.5 rounded text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition">
                             Ver Chat
-                          </Link>
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -998,6 +1024,34 @@ export default function AdminPanel() {
               </table>
             </div>
           </div>
+          {selectedConversationId && (
+            <div className="glass-card rounded-xl p-4 mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold">Visor de Conversación (Admin)</h3>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { setSelectedConversationId(null); setConversationMessages([]); }} className="px-3 py-1 rounded border">Cerrar</button>
+                </div>
+              </div>
+
+              <div className="max-h-72 overflow-y-auto p-2 space-y-3 border rounded mb-3 bg-white/5">
+                {conversationMessages.length === 0 ? (
+                  <p className="text-sm text-gray-400 p-4">No hay mensajes en esta conversación.</p>
+                ) : (
+                  conversationMessages.map((m) => (
+                    <div key={m.id} className="p-2">
+                      <div className="text-xs text-gray-400">{m.senderName} · {new Date(m.createdAt).toLocaleString()}</div>
+                      <div className="mt-1 bg-white/5 p-2 rounded">{m.messageType === 'image' ? (<a href={m.imageUrl} target="_blank" rel="noreferrer"><img src={m.imageUrl} className="max-h-40 rounded" /></a>) : m.body}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <form onSubmit={sendAdminMessage} className="flex gap-2">
+                <input value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Escribe un mensaje como admin..." className="flex-1 p-2 border rounded" />
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Enviar</button>
+              </form>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="glass-card rounded-xl p-4 sm:p-5">
