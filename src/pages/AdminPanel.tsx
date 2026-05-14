@@ -71,14 +71,16 @@ export default function AdminPanel() {
         api.getAppointments(user.id),
         api.getAppointmentReviews()
       ]);
+      console.log('✓ Datos cargados - Products:', pData);
       setUsers(uData);
       setProducts(pData);
       setLogs(lData);
       setBarberApplications(applicationData);
       setAppointments(appointmentData);
       setReviews(reviewData);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Error en fetchData:', error);
+      alert(`Error al cargar datos: ${error.message}`);
     }
   };
 
