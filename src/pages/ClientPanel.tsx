@@ -112,16 +112,17 @@ export default function ClientPanel() {
   }
 
   return (
-    <div className="p-4" style={{ backgroundColor: 'var(--bg)' }}>
-      <h1 className="text-2xl font-bold mb-4 text-contrast">Chat con el Administrador</h1>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de Servicios</h1>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-contrast mb-2">Servicios</h2>
-        <div className="flex gap-3 mb-4">
-          <button onClick={() => navigate('/store?category=barber')} className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast">Barbería</button>
-          <button onClick={() => navigate('/store?category=food')} className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card">Lancería</button>
-          <button onClick={() => navigate('/store?category=drink')} className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card">Bebidas</button>
+        <div className="mb-6">
+          <span className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast">Servicios</span>
         </div>
-
+        <div className="mb-4 flex flex-wrap gap-3 rounded-2xl p-2 glass-card w-fit">
+          <button onClick={() => navigate('/store?category=barber')} className={`px-4 py-2 rounded-lg font-semibold ${'accent-btn text-contrast'}`}>Barbería</button>
+          <button onClick={() => navigate('/store?category=food')} className={`px-4 py-2 rounded-lg font-semibold ${'text-contrast'}`}>Lancería</button>
+          <button onClick={() => navigate('/store?category=drink')} className={`px-4 py-2 rounded-lg font-semibold ${'text-contrast'}`}>Bebidas</button>
+        </div>
         {loadingServices ? (
           <p className="muted">Cargando servicios...</p>
         ) : services.length === 0 ? (
