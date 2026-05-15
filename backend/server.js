@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config.js';
 import { initializeDatabase } from './scripts/initDB.js';
+import { buildInvoicePdfBuffer, confirmPayment, createCheckoutSession, getInvoiceById, listInvoicesForUser } from './scripts/payments.js';
 import pool from './db.js';
 import bcrypt from 'bcrypt';
 import multer from 'multer';
@@ -1129,6 +1130,92 @@ app.all(['/api', '/api.php'], async (req, res) => {
       const { user_id, type, title, body } = req.body;
       await createNotification(user_id, type, title, body, {});
       return res.json({ message: 'Notificación enviada' });
+    }
+
+    if (req.method === 'POST' && action === 'payments') {
+      const { intent, userId, kind, method, cartItems, appointment, provider, referenceId } = req.body;
+      const user = await getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+
+      if (intent === 'create') {
+        const checkout = await createCheckoutSession({ user, kind, method, cartItems, appointment });
+        return res.json(checkout);
+      }
+
+      if (intent === 'confirm') {
+        const invoice = await confirmPayment({ provider, referenceId });
+
+        try {
+          await createNotification(
+            invoice.userId,
+            'system',
+            'Pago confirmado',
+            `Tu factura ${invoice.invoiceNumber} ya está disponible`,
+            { invoiceId: String(invoice.id), paymentReference: invoice.paymentReference }
+          );
+        } catch (error) {
+          console.warn('No se pudo notificar la factura emitida:', error.message);
+        }
+
+        if (invoice.kind === 'appointment') {
+          try {
+            const appointmentData = invoice.payload?.appointment || {};
+            if (appointmentData.appointmentId && appointmentData.barberId) {
+              const conversation = await findOrCreateConversation(invoice.userId, appointmentData.barberId);
+              await pool.query(
+                'INSERT INTO messages (conversation_id, sender_id, message_type, body) VALUES ($1, $2, $3, $4)',
+                [conversation.id, invoice.userId, 'text', `Cita pagada: ${appointmentData.serviceName} - ${new Date(appointmentData.appointmentDate).toLocaleString()}`]
+              );
+              await pool.query('UPDATE conversations SET last_message_at = CURRENT_TIMESTAMP WHERE id = $1', [conversation.id]);
+              await createNotification(
+                appointmentData.barberId,
+                'system',
+                'Nueva cita pagada',
+                `${invoice.billingName} pagó la cita ${appointmentData.serviceName}`,
+                { appointmentId: String(appointmentData.appointmentId), invoiceId: String(invoice.id) }
+              );
+            }
+          } catch (error) {
+            console.warn('No se pudo notificar la cita pagada:', error.message);
+          }
+        }
+
+        return res.json(invoice);
+      }
+
+      return res.status(400).json({ error: 'Intent de pago inválido' });
+    }
+
+    if (req.method === 'GET' && action === 'invoices') {
+      const { userId, id, download } = req.query;
+      const requester = userId ? await getUserById(userId) : null;
+      if (!requester) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+
+      if (id) {
+        const invoice = await getInvoiceById(id);
+        if (!invoice) {
+          return res.status(404).json({ error: 'Factura no encontrada' });
+        }
+        if (requester.role !== 'admin' && String(invoice.userId) !== String(userId)) {
+          return res.status(403).json({ error: 'No autorizado para ver esta factura' });
+        }
+
+        if (download === '1') {
+          const pdfBuffer = await buildInvoicePdfBuffer(invoice);
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="factura-${invoice.invoiceNumber}.pdf"`);
+          return res.send(pdfBuffer);
+        }
+
+        return res.json(invoice);
+      }
+
+      const invoices = await listInvoicesForUser(userId, requester.role === 'admin');
+      return res.json(invoices);
     }
 
     if (req.method === 'POST' && action === 'barber-applications') {

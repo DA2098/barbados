@@ -10,6 +10,8 @@ Backend Node.js/Express + PostgreSQL para la aplicación Barbershop.
 - ✓ Autenticación con bcrypt
 - ✓ CORS habilitado
 - ✓ Inicialización automática de tablas
+- ✓ Pagos reales con Stripe y PayPal
+- ✓ Facturas PDF descargables con marca Barbados
 
 ## Setup Local
 
@@ -41,6 +43,21 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/barbados
 ```bash
 cp .env.example .env
 # Editar .env con tus credenciales
+```
+
+### 4. Configurar pagos
+
+Si vas a cobrar con tarjeta o PayPal, completa estas variables:
+
+```bash
+FRONTEND_URL=http://localhost:5173
+PAYMENT_CURRENCY=usd
+INVOICE_TAX_RATE=0.13
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+PAYPAL_ENV=sandbox
+PAYPAL_CLIENT_ID=...
+PAYPAL_CLIENT_SECRET=...
 ```
 
 ### 4. Iniciar servidor
@@ -127,6 +144,14 @@ Push a GitHub y Railway despliega automáticamente.
 | `DATABASE_URL` | Connection string PostgreSQL | postgresql://localhost:5432/barbados |
 | `PORT` | Puerto del servidor | 3000 |
 | `NODE_ENV` | Entorno (development/production) | development |
+| `FRONTEND_URL` | URL del frontend para retornos de pago | http://localhost:5173 |
+| `PAYMENT_CURRENCY` | Moneda de cobro | usd |
+| `INVOICE_TAX_RATE` | IVA de factura | 0.13 |
+| `STRIPE_SECRET_KEY` | Clave privada de Stripe | - |
+| `STRIPE_PUBLISHABLE_KEY` | Clave pública de Stripe | - |
+| `PAYPAL_CLIENT_ID` | Cliente PayPal | - |
+| `PAYPAL_CLIENT_SECRET` | Secreto PayPal | - |
+| `PAYPAL_ENV` | sandbox o live | sandbox |
 
 ## Estructura de archivos
 
@@ -135,6 +160,7 @@ backend/
 ├── server.js                   # Servidor principal
 ├── db.js                       # Conexión PostgreSQL
 ├── scripts/initDB.js           # Inicialización de tablas (moved)
+├── scripts/payments.js         # Pagos, facturas y PDF
 ├── package.json
 ├── .env.example
 ├── .env                        # (local, no versionar)

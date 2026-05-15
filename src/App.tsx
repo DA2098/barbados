@@ -12,6 +12,8 @@ import Store from './pages/Store';
 import Appointments from './pages/Appointments';
 import Cart from './pages/Cart';
 import Profile from './pages/Profile';
+import PaymentReturn from './pages/PaymentReturn';
+import Invoices from './pages/Invoices';
 import BarberPanel from './pages/BarberPanel';
 import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
@@ -33,6 +35,8 @@ function App() {
                   <Route path="/appointments" element={<Appointments />} />
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/payments/return" element={<PaymentReturn />} />
+                  <Route path="/invoices" element={<Invoices />} />
                   <Route path="/barber" element={<BarberPanel />} />
                   <Route path="/admin" element={<AdminPanel />} />
                   <Route path="/chat" element={<Chat />} />

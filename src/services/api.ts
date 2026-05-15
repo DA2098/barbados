@@ -115,6 +115,33 @@ export interface BarberApplication {
   reviewedAt?: string | null;
 }
 
+export interface PaymentCheckoutResponse {
+  provider: 'stripe' | 'paypal';
+  paymentMethod: 'card' | 'paypal';
+  kind: 'cart' | 'appointment';
+  referenceId: string;
+  checkoutUrl: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  userId: string;
+  kind: 'cart' | 'appointment';
+  paymentMethod: 'card' | 'paypal';
+  paymentProvider: 'stripe' | 'paypal';
+  paymentReference: string;
+  currency: string;
+  subtotal: number;
+  taxAmount: number;
+  total: number;
+  billingName: string;
+  billingEmail: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+  paidAt?: string;
+}
+
 const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
 
 const normalizeApiBase = (value?: string) => {
@@ -331,6 +358,54 @@ export const api = {
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al subir imagen del servicio'));
     const data = await res.json();
     return data.image_url as string;
+  },
+
+  async createPaymentSession(payload: {
+    userId: string;
+    kind: 'cart' | 'appointment';
+    method: 'card' | 'paypal';
+    cartItems?: Array<{ productId: string; name: string; price: number; quantity: number; description?: string }>;
+    appointment?: {
+      barberId: string;
+      barberName: string;
+      serviceId?: string | null;
+      serviceName: string;
+      servicePrice: number;
+      appointmentDate: string;
+      notes?: string;
+    };
+  }): Promise<PaymentCheckoutResponse> {
+    const res = await fetch(`${API_URL}?action=payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intent: 'create', ...payload })
+    });
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al iniciar el pago'));
+    return await res.json();
+  },
+
+  async confirmPayment(payload: {
+    provider: 'stripe' | 'paypal';
+    referenceId: string;
+    userId: string;
+  }): Promise<Invoice> {
+    const res = await fetch(`${API_URL}?action=payments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intent: 'confirm', ...payload })
+    });
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al confirmar el pago'));
+    return await res.json();
+  },
+
+  async getInvoices(userId: string): Promise<Invoice[]> {
+    const res = await fetch(`${API_URL}?action=invoices&userId=${userId}`);
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener facturas'));
+    return await res.json();
+  },
+
+  getInvoiceDownloadUrl(invoiceId: string, userId: string): string {
+    return `${API_URL}?action=invoices&id=${invoiceId}&userId=${userId}&download=1`;
   },
 
   // --- PRODUCTS ---

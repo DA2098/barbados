@@ -108,9 +108,22 @@ export async function initializeDatabase() {
         appointment_date TIMESTAMP NOT NULL,
         notes TEXT,
         status appointment_status DEFAULT 'pending',
+        payment_status VARCHAR(20) DEFAULT 'unpaid',
+        payment_method VARCHAR(20),
+        payment_provider VARCHAR(20),
+        payment_reference VARCHAR(150),
+        currency VARCHAR(10) DEFAULT 'usd',
+        invoice_id INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'unpaid';`);
+    await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20);`);
+    await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_provider VARCHAR(20);`);
+    await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(150);`);
+    await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'usd';`);
+    await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS invoice_id INT;`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -118,7 +131,69 @@ export async function initializeDatabase() {
         user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         total DECIMAL(10,2) NOT NULL,
         status order_status DEFAULT 'pending',
+        payment_method VARCHAR(20),
+        payment_provider VARCHAR(20),
+        payment_reference VARCHAR(150),
+        currency VARCHAR(10) DEFAULT 'usd',
+        invoice_id INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20);`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_provider VARCHAR(20);`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(150);`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'usd';`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_id INT;`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        product_id INT REFERENCES products(id) ON DELETE SET NULL,
+        item_name VARCHAR(150) NOT NULL,
+        unit_price DECIMAL(10,2) NOT NULL,
+        quantity INT NOT NULL DEFAULT 1,
+        line_total DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS payment_sessions (
+        id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        kind VARCHAR(30) NOT NULL,
+        provider VARCHAR(20) NOT NULL,
+        provider_reference VARCHAR(150) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        currency VARCHAR(10) DEFAULT 'usd',
+        amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+        payload JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP,
+        UNIQUE (provider, provider_reference)
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invoices (
+        id SERIAL PRIMARY KEY,
+        invoice_number VARCHAR(50) UNIQUE,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        kind VARCHAR(30) NOT NULL,
+        payment_method VARCHAR(20) NOT NULL,
+        payment_provider VARCHAR(20) NOT NULL,
+        payment_reference VARCHAR(150) NOT NULL,
+        currency VARCHAR(10) DEFAULT 'usd',
+        subtotal DECIMAL(10,2) NOT NULL,
+        tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+        total DECIMAL(10,2) NOT NULL,
+        billing_name VARCHAR(150) NOT NULL,
+        billing_email VARCHAR(150) NOT NULL,
+        payload JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 

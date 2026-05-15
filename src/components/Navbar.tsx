@@ -112,6 +112,7 @@ export default function Navbar() {
                 {user.role === 'admin' && <NavLink to="/admin">ADMIN</NavLink>}
                 {user.role === 'barber' && user.barber_approved !== false && <NavLink to="/barber">BARBERO</NavLink>}
                 <NavLink to="/chat">CHAT</NavLink>
+                <NavLink to="/invoices">FACTURAS</NavLink>
                 <NavLink to="/profile">PERFIL</NavLink>
                 <button 
                   onClick={handleLogout} 
@@ -208,6 +209,7 @@ export default function Navbar() {
                 {user.role === 'admin' && <NavLink to="/admin" onClick={() => setIsMenuOpen(false)}>ADMIN</NavLink>}
                 {user.role === 'barber' && user.barber_approved !== false && <NavLink to="/barber" onClick={() => setIsMenuOpen(false)}>BARBERO</NavLink>}
                 <NavLink to="/chat" onClick={() => setIsMenuOpen(false)}>CHAT</NavLink>
+                <NavLink to="/invoices" onClick={() => setIsMenuOpen(false)}>FACTURAS</NavLink>
                 <NavLink to="/profile" onClick={() => setIsMenuOpen(false)}>PERFIL</NavLink>
                 <button 
                   onClick={() => { handleLogout(); setIsMenuOpen(false); }} 

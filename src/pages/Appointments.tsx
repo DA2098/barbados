@@ -22,12 +22,18 @@ export default function Appointments() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loadedOnce, setLoadedOnce] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal'>('card');
 
   const canSchedule = user?.role === 'user';
 
   const selectedService = useMemo(
     () => services.find((service) => service.id === serviceId),
     [services, serviceId]
+  );
+
+  const selectedBarber = useMemo(
+    () => barbers.find((barber) => barber.id === barberId),
+    [barbers, barberId]
   );
 
   const reviewedAppointmentIds = useMemo(() => new Set(reviews.map((r) => r.appointmentId)), [reviews]);
@@ -107,17 +113,21 @@ export default function Appointments() {
 
     setSaving(true);
     try {
-      await api.createAppointment({
+      const checkout = await api.createPaymentSession({
         userId: user.id,
-        barberId,
-        serviceId,
-        serviceName: selectedService.name,
-        appointmentDate,
-        notes
+        kind: 'appointment',
+        method: paymentMethod,
+        appointment: {
+          barberId,
+          barberName: selectedBarber?.name || '',
+          serviceId,
+          serviceName: selectedService.name,
+          servicePrice: selectedService.price,
+          appointmentDate,
+          notes
+        }
       });
-      setNotes('');
-      await loadData();
-      alert('Cita agendada. El barbero fue notificado.');
+      window.location.href = checkout.checkoutUrl;
     } catch (error: any) {
       alert(error.message);
     } finally {
@@ -239,11 +249,31 @@ export default function Appointments() {
               </div>
             )}
 
+            <div>
+              <label className="block text-sm font-medium mb-1">Método de pago</label>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('card')}
+                  className={`px-4 py-2 rounded-lg font-semibold ${paymentMethod === 'card' ? 'accent-btn' : 'glass-card border border-white/10 text-contrast'}`}
+                >
+                  Tarjeta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('paypal')}
+                  className={`px-4 py-2 rounded-lg font-semibold ${paymentMethod === 'paypal' ? 'accent-btn' : 'glass-card border border-white/10 text-contrast'}`}
+                >
+                  PayPal
+                </button>
+              </div>
+            </div>
+
             <button
               disabled={!canSchedule || saving}
               className="w-full accent-btn py-2 rounded font-semibold disabled:opacity-50"
             >
-              {saving ? 'Agendando...' : 'Agendar Cita'}
+              {saving ? 'Redirigiendo al pago...' : 'Pagar y agendar cita'}
             </button>
           </form>
         )}
