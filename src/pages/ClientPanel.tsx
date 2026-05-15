@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { api, Message, AppNotification, User, Product } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
@@ -9,7 +8,6 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 export default function ClientPanel() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [services, setServices] = useState<Product[]>([]);
   const [category, setCategory] = useState<'barber' | 'food' | 'drink' | 'service'>('barber');
@@ -42,7 +40,9 @@ export default function ClientPanel() {
     }
   };
 
-  const loadProducts = async (cat: typeof category, background = false) => {
+  type Cat = 'barber' | 'food' | 'drink' | 'service';
+
+  const loadProducts = async (cat: Cat, background = false) => {
     if (!background) setLoadingServices(true);
     try {
       const items = await api.getProducts({ category: cat });
@@ -68,6 +68,13 @@ export default function ClientPanel() {
   }, [category]);
 
   useAutoRefresh(() => void loadProducts(category, true), { intervalMs: 30000, enabled: true });
+
+  const categoryLabel = (c: Cat) => {
+    if (c === 'barber') return 'Barbería';
+    if (c === 'food') return 'Lencería';
+    if (c === 'drink') return 'Bebidas';
+    return 'Servicios';
+  };
 
 
   useEffect(() => {
