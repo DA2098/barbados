@@ -423,9 +423,14 @@ app.post(['/api', '/api.php'], upload.single('file'), async (req, res, next) => 
 
 // --- API ROUTER ---
 // Webhooks
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+// Initialize Stripe only when a secret key is provided and PAYMENT_MOCK is not enabled.
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+const paymentMock = (process.env.PAYMENT_MOCK || '').toString() === '1';
+const stripe = (!paymentMock && stripeSecretKey) ? new Stripe(stripeSecretKey) : null;
 
 app.post('/webhooks/stripe', async (req, res) => {
+  if (!stripe) return res.status(400).send('Stripe not configured on this instance');
+
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
