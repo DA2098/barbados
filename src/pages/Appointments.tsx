@@ -39,7 +39,7 @@ export default function Appointments() {
     }
     try {
       const [serviceData, userData, appointmentData] = await Promise.all([
-        api.getProducts({ category: 'service' }),
+        api.getServices(),
         api.getUsers(),
         api.getAppointments(user.id)
       ]);

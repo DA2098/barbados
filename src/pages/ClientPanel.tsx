@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api, Message, AppNotification, User } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 
 export default function ClientPanel() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -91,6 +93,29 @@ export default function ClientPanel() {
   return (
     <div className="p-4" style={{ backgroundColor: 'var(--bg)' }}>
       <h1 className="text-2xl font-bold mb-4 text-contrast">Chat con el Administrador</h1>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-contrast mb-2">Servicios</h2>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('/store?category=barber')}
+            className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast"
+          >
+            Barbería
+          </button>
+          <button
+            onClick={() => navigate('/store?category=food')}
+            className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card"
+          >
+            Lancería
+          </button>
+          <button
+            onClick={() => navigate('/store?category=drink')}
+            className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card"
+          >
+            Bebidas
+          </button>
+        </div>
+      </div>
       <div className="glass-card p-4 rounded-md h-96 overflow-y-scroll">
         {messages.map((msg) => (
           <div

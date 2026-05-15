@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api, Product } from '../services/api';
 import Card from '../components/Card';
 import { useCart } from '../context/CartContext';
@@ -26,7 +27,18 @@ export default function Store() {
     }
   };
 
+  const location = useLocation();
+
   useEffect(() => {
+    // If URL has ?category=..., use it first
+    const params = new URLSearchParams(location.search);
+    const q = params.get('category');
+    if (q && (q === 'barber' || q === 'food' || q === 'drink' || q === 'service')) {
+      setCategory(q as any);
+      void loadProducts(false);
+      return;
+    }
+
     // If current user is a client, default to services (cortes)
     if (user?.role === 'user') {
       if (category !== 'service') {
@@ -38,7 +50,7 @@ export default function Store() {
     }
 
     void loadProducts(false);
-  }, [category]);
+  }, [location.search, category]);
 
   useAutoRefresh(() => loadProducts(true), { intervalMs: 30000 });
 
