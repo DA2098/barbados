@@ -836,9 +836,9 @@ export default function AdminPanel() {
                   <tr key={p.id} className="hover:bg-white/5 transition-colors">
                     <td className="pt-0 pb-6 align-top">
                       <div className="flex items-start gap-3">
-                        <div className="relative w-14 flex-shrink-0 overflow-visible">
-                          <a href={p.image_url || 'https://via.placeholder.com/480?text=Item'} target="_blank" rel="noreferrer" className="absolute left-0 -top-5">
-                            <img src={p.image_url || 'https://via.placeholder.com/480?text=Item'} alt={p.name} className="w-44 h-44 object-contain rounded bg-white/5 p-1" />
+                        <div className="relative w-16 flex-shrink-0 overflow-visible">
+                          <a href={p.image_url || 'https://via.placeholder.com/480?text=Item'} target="_blank" rel="noreferrer" className="absolute left-0 top-1">
+                            <img src={p.image_url || 'https://via.placeholder.com/480?text=Item'} alt={p.name} className="w-44 h-44 object-contain object-center rounded bg-white/5 p-1" />
                           </a>
                         </div>
                         <div>
@@ -956,9 +956,9 @@ export default function AdminPanel() {
                   <tr key={cut.id} className="hover:bg-white/5 transition-colors">
                     <td className="pt-0 pb-6 align-top">
                       <div className="flex items-start gap-3">
-                        <div className="relative w-14 flex-shrink-0 overflow-visible">
-                          <a href={cut.image_url || 'https://via.placeholder.com/480?text=Corte'} target="_blank" rel="noreferrer" className="absolute left-0 -top-5">
-                            <img src={cut.image_url || 'https://via.placeholder.com/480?text=Corte'} alt={cut.name} className="w-44 h-44 object-contain rounded bg-white/5 p-1" />
+                        <div className="relative w-16 flex-shrink-0 overflow-visible">
+                          <a href={cut.image_url || 'https://via.placeholder.com/480?text=Corte'} target="_blank" rel="noreferrer" className="absolute left-0 top-1">
+                            <img src={cut.image_url || 'https://via.placeholder.com/480?text=Corte'} alt={cut.name} className="w-44 h-44 object-contain object-center rounded bg-white/5 p-1" />
                           </a>
                         </div>
                         <div>
