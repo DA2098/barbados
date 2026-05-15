@@ -154,6 +154,26 @@ export default function AdminPanel() {
     }
   }, user?.role === 'admin');
 
+  // Polling fallback: when admin opens a conversation, poll messages periodically
+  // to ensure near-real-time updates if the realtime stream fails or is delayed.
+  useEffect(() => {
+    if (!user || user.role !== 'admin' || !selectedConversationId) return;
+    let mounted = true;
+    const interval = window.setInterval(async () => {
+      if (!mounted) return;
+      try {
+        await loadConversationMessages(selectedConversationId);
+      } catch (e) {
+        // ignore polling errors
+      }
+    }, 2500);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, [user, selectedConversationId]);
+
   if (user?.role !== 'admin') {
     return <div className="p-8 text-center text-red-600 font-bold">Acceso Denegado. Exclusivo de Administrador.</div>;
   }
@@ -1003,7 +1023,6 @@ export default function AdminPanel() {
                   <tr>
                     <th className="p-4">Barbero</th>
                     <th className="p-4">Cliente</th>
-                    <th className="p-4">Mensajes</th>
                     <th className="p-4">Último Mensaje</th>
                     <th className="p-4">Iniciado</th>
                     <th className="p-4 text-center">Acción</th>
@@ -1012,7 +1031,7 @@ export default function AdminPanel() {
                 <tbody className="divide-y">
                   {chats.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-gray-400">No hay conversaciones activas aún.</td>
+                      <td colSpan={5} className="p-8 text-center text-gray-400">No hay conversaciones activas aún.</td>
                     </tr>
                   ) : (
                     chats.map((chat) => (
@@ -1041,9 +1060,7 @@ export default function AdminPanel() {
                             <span className="font-medium">{chat.client.name}</span>
                           </div>
                         </td>
-                        <td className="p-4">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">{chat.messageCount}</span>
-                        </td>
+                        {/* mensajes count removed per request */}
                         <td className="p-4 text-sm text-gray-600">
                           {chat.lastMessageAt ? new Date(chat.lastMessageAt).toLocaleString() : 'Nunca'}
                         </td>
@@ -1146,11 +1163,7 @@ export default function AdminPanel() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-semibold truncate text-contrast">{barber.name}</p>
-                          {chatCountsByBarber[barber.id] ? (
-                            <span className="inline-flex items-center justify-center text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                              {chatCountsByBarber[barber.id]}
-                            </span>
-                          ) : null}
+                          {/* per-request: hide chat count badges for now */}
                         </div>
                         <p className="text-xs muted truncate">{barber.email}</p>
                       </div>
