@@ -11,8 +11,7 @@ export default function ClientPanel() {
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingServices, setLoadingServices] = useState(true);
-  const { addToCart } = useCart();
+  
 
   const loadConversation = async () => {
     if (!user?.id) return;
