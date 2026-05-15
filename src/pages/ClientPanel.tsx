@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, Message, AppNotification, User } from '../services/api';
+import { api, Message, AppNotification, User, Product } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import Card from '../components/Card';
+import { useCart } from '../context/CartContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 
 export default function ClientPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [services, setServices] = useState<Product[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingServices, setLoadingServices] = useState(true);
+  const { addToCart } = useCart();
 
   const loadConversation = async () => {
     if (!user?.id) return;
@@ -35,11 +41,26 @@ export default function ClientPanel() {
     }
   };
 
+  const loadServices = async (background = false) => {
+    if (!background) setLoadingServices(true);
+    try {
+      const svc = await api.getServices();
+      setServices(svc);
+    } catch (err) {
+      console.error('Error cargando servicios:', err);
+    } finally {
+      setLoadingServices(false);
+    }
+  };
+
 
   useEffect(() => {
     setLoading(true);
     loadConversation();
+    void loadServices();
   }, [user]);
+
+  useAutoRefresh(() => void loadServices(true), { intervalMs: 30000, enabled: true });
 
 
   useEffect(() => {
@@ -95,26 +116,40 @@ export default function ClientPanel() {
       <h1 className="text-2xl font-bold mb-4 text-contrast">Chat con el Administrador</h1>
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-contrast mb-2">Servicios</h2>
-        <div className="flex gap-3">
-          <button
-            onClick={() => navigate('/store?category=barber')}
-            className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast"
-          >
-            Barbería
-          </button>
-          <button
-            onClick={() => navigate('/store?category=food')}
-            className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card"
-          >
-            Lancería
-          </button>
-          <button
-            onClick={() => navigate('/store?category=drink')}
-            className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card"
-          >
-            Bebidas
-          </button>
+        <div className="flex gap-3 mb-4">
+          <button onClick={() => navigate('/store?category=barber')} className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast">Barbería</button>
+          <button onClick={() => navigate('/store?category=food')} className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card">Lancería</button>
+          <button onClick={() => navigate('/store?category=drink')} className="px-4 py-2 rounded-lg font-semibold text-contrast glass-card">Bebidas</button>
         </div>
+
+        {loadingServices ? (
+          <p className="muted">Cargando servicios...</p>
+        ) : services.length === 0 ? (
+          <div className="glass-card p-6 rounded">No hay servicios publicados por el admin.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {services.map((product) => (
+              <Card
+                key={product.id}
+                title={product.name}
+                subtitle={`Stock: ${product.stock}`}
+                image={product.image_url || 'https://via.placeholder.com/300?text=Servicio'}
+                className="relative"
+                footer={
+                  <button onClick={() => addToCart(product)} className="w-full accent-btn flex items-center justify-center gap-2 py-2.5">
+                    Agregar
+                  </button>
+                }
+              >
+                <p className="text-sm muted mb-3 line-clamp-3 min-h-[60px]">{product.description?.trim() ? product.description : 'Sin descripcion disponible.'}</p>
+                <div className="flex justify-between items-center mt-3">
+                  <span className="text-xl font-bold card-title">${product.price.toFixed(2)}</span>
+                  <span className="text-xs px-2 py-1 rounded-full border border-white/15 muted uppercase tracking-wide">Servicios</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
       <div className="glass-card p-4 rounded-md h-96 overflow-y-scroll">
         {messages.map((msg) => (
