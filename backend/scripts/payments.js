@@ -186,6 +186,27 @@ export async function createCheckoutSession({ user, kind, method, cartItems = []
     throw new Error('No hay monto válido para cobrar');
   }
 
+  // Local mock mode: create a fake completed payment session and invoice
+  // Useful for development without calling external payment providers.
+  const paymentMock = (process.env.PAYMENT_MOCK || '').toString() === '1';
+  if (paymentMock) {
+    const provider = paymentMethod === 'card' ? 'stripe' : 'paypal';
+    const mockRef = `MOCK_${provider}_${user.id}_${Date.now()}`;
+    const payloadForDb = payload;
+    const amountValue = paymentKind === 'appointment'
+      ? Number(payloadForDb.appointment?.servicePrice || subtotal)
+      : subtotal;
+
+    // Return a mock checkout URL that redirects immediately to the frontend return route.
+    return {
+      provider,
+      paymentMethod,
+      kind: paymentKind,
+      referenceId: mockRef,
+      checkoutUrl: `${frontendBaseUrl}/#/payments/return?provider=${provider}&kind=${paymentKind}&session_id=${mockRef}`
+    };
+  }
+
   if (paymentMethod === 'card') {
     ensureStripeConfigured();
 
@@ -258,9 +279,6 @@ export async function createCheckoutSession({ user, kind, method, cartItems = []
       referenceId: session.id,
       checkoutUrl: session.url
     };
-  } finally {
-    // no-op here; session creation already completed
-  }
   }
 
   ensurePayPalConfigured();
@@ -588,6 +606,42 @@ function resolveInvoiceData(row) {
 export async function confirmPayment({ provider, referenceId }) {
   if (!referenceId) {
     throw new Error('Falta el identificador de pago');
+  }
+
+  // Support mocked payments created locally (referenceId starts with MOCK_)
+  if (String(referenceId || '').startsWith('MOCK_')) {
+    // Build a synthetic invoice for the mock reference. Format: MOCK_<provider>_<userId>_<ts>
+    const parts = String(referenceId).split('_');
+    const provider = parts[1] || 'stripe';
+    const userId = Number(parts[2] || 0);
+    if (!userId) throw new Error('Mock reference inválida');
+    const userResult = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [userId]);
+    const user = userResult.rows[0];
+    if (!user) throw new Error('Usuario no encontrado para mock');
+
+    const kind = 'cart';
+    const subtotal = 5.00;
+    const taxAmount = roundAmount(subtotal * invoiceTaxRate);
+    const total = roundAmount(subtotal + taxAmount);
+
+    return {
+      id: null,
+      invoiceNumber: `MOCK-${Date.now()}`,
+      userId: String(user.id),
+      kind,
+      paymentMethod: provider === 'paypal' ? 'paypal' : 'card',
+      paymentProvider: provider,
+      paymentReference: referenceId,
+      currency: paymentCurrency,
+      subtotal,
+      taxAmount,
+      total,
+      billingName: user.name,
+      billingEmail: user.email,
+      payload: {},
+      createdAt: new Date().toISOString(),
+      paidAt: new Date().toISOString()
+    };
   }
 
   let paymentProvider = provider === 'paypal' ? 'paypal' : 'stripe';
