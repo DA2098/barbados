@@ -836,7 +836,7 @@ export default function AdminPanel() {
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <a href={p.image_url || 'https://via.placeholder.com/80?text=Item'} target="_blank" rel="noreferrer">
-                          <img src={p.image_url || 'https://via.placeholder.com/160?text=Item'} alt={p.name} className="w-28 h-28 rounded object-contain bg-white/5 p-1" />
+                          <img src={p.image_url || 'https://via.placeholder.com/240?text=Item'} alt={p.name} className="w-36 h-36 rounded object-contain bg-white/5 p-1" />
                         </a>
                         <div>
                           <p className="font-semibold text-contrast">{p.name}</p>
@@ -954,7 +954,7 @@ export default function AdminPanel() {
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <a href={cut.image_url || 'https://via.placeholder.com/80?text=Corte'} target="_blank" rel="noreferrer">
-                          <img src={cut.image_url || 'https://via.placeholder.com/160?text=Corte'} alt={cut.name} className="w-28 h-28 rounded object-contain bg-white/5 p-1" />
+                          <img src={cut.image_url || 'https://via.placeholder.com/240?text=Corte'} alt={cut.name} className="w-36 h-36 rounded object-contain bg-white/5 p-1" />
                         </a>
                         <div>
                           <p className="font-semibold text-contrast">{cut.name}</p>
