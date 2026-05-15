@@ -39,24 +39,14 @@ export default function Store() {
       return;
     }
 
-    // If current user is a client, default to services (cortes)
-    if (user?.role === 'user') {
-      if (category !== 'service') {
-        setCategory('service');
-        return; // category change will retrigger effect and loadProducts
-      }
       void loadProducts(false);
-      return;
-    }
-
-    void loadProducts(false);
   }, [location.search, category]);
 
   useAutoRefresh(() => loadProducts(true), { intervalMs: 30000 });
 
   const categoryLabel = (c: 'barber' | 'food' | 'drink' | 'service') => {
     if (c === 'barber') return 'Barbería';
-    if (c === 'food') return 'Lanceria';
+    if (c === 'food') return 'Lencería';
     if (c === 'drink') return 'Bebidas';
     return 'Servicios';
   };
@@ -68,33 +58,26 @@ export default function Store() {
         <p className="muted text-sm sm:text-base">Productos seleccionados para una experiencia premium.</p>
       </div>
 
-      {/* If user is a client, show Services only; otherwise show category selector */}
-      {user?.role === 'user' ? (
-        <div className="mb-6 flex items-center gap-3">
-          <span className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast">Servicios</span>
-        </div>
-      ) : (
-        <div className="mb-6 flex flex-wrap gap-3 rounded-2xl p-2 glass-card w-fit">
-          <button
-            onClick={() => setCategory('barber')}
-            className={`px-4 py-2 rounded-lg font-semibold ${category === 'barber' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
-          >
-            Barbería
-          </button>
-          <button
-            onClick={() => setCategory('food')}
-            className={`px-4 py-2 rounded-lg font-semibold ${category === 'food' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
-          >
-            Lancería
-          </button>
-          <button
-            onClick={() => setCategory('drink')}
-            className={`px-4 py-2 rounded-lg font-semibold ${category === 'drink' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
-          >
-            Bebidas
-          </button>
-        </div>
-      )}
+      <div className="mb-6 flex flex-wrap gap-3 rounded-2xl p-2 glass-card w-fit">
+        <button
+          onClick={() => setCategory('barber')}
+          className={`px-4 py-2 rounded-lg font-semibold ${category === 'barber' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
+        >
+          Barbería
+        </button>
+        <button
+          onClick={() => setCategory('food')}
+          className={`px-4 py-2 rounded-lg font-semibold ${category === 'food' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
+        >
+          Lencería
+        </button>
+        <button
+          onClick={() => setCategory('drink')}
+          className={`px-4 py-2 rounded-lg font-semibold ${category === 'drink' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
+        >
+          Bebidas
+        </button>
+      </div>
 
       {loading ? (
         <p className="muted">Cargando productos...</p>
