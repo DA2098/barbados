@@ -469,6 +469,7 @@ export default function AdminPanel() {
   const pendingBarbers = users.filter((u) => !u.barber_approved);
   const applicationByUserId = new Map(barberApplications.map((app) => [app.userId, app]));
   const cuts = products.filter((p) => p.category === 'service');
+  
   const storeProducts = products.filter((p) => p.category !== 'service');
   const todayKey = new Date().toDateString();
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -834,9 +835,9 @@ export default function AdminPanel() {
                 {storeProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-8 align-top">
-                      <div className="flex items-center gap-3">
-                        <a href={p.image_url || 'https://via.placeholder.com/480?text=Item'} target="_blank" rel="noreferrer">
-                          <img src={p.image_url || 'https://via.placeholder.com/480?text=Item'} alt={p.name} className="w-80 h-80 object-contain shrink-0 rounded bg-white/5 p-1" />
+                      <div className="flex items-start gap-3">
+                        <a href={p.image_url || 'https://via.placeholder.com/640?text=Item'} target="_blank" rel="noreferrer">
+                          <img src={p.image_url || 'https://via.placeholder.com/640?text=Item'} alt={p.name} className="w-96 h-96 object-contain shrink-0 rounded bg-white/5 p-1" />
                         </a>
                         <div>
                           <p className="font-semibold text-contrast">{p.name}</p>
@@ -952,9 +953,9 @@ export default function AdminPanel() {
                 {cuts.map((cut) => (
                   <tr key={cut.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-8 align-top">
-                      <div className="flex items-center gap-3">
-                        <a href={cut.image_url || 'https://via.placeholder.com/480?text=Corte'} target="_blank" rel="noreferrer">
-                          <img src={cut.image_url || 'https://via.placeholder.com/480?text=Corte'} alt={cut.name} className="w-80 h-80 object-contain shrink-0 rounded bg-white/5 p-1" />
+                      <div className="flex items-start gap-3">
+                        <a href={cut.image_url || 'https://via.placeholder.com/640?text=Corte'} target="_blank" rel="noreferrer">
+                          <img src={cut.image_url || 'https://via.placeholder.com/640?text=Corte'} alt={cut.name} className="w-96 h-96 object-contain shrink-0 rounded bg-white/5 p-1" />
                         </a>
                         <div>
                           <p className="font-semibold text-contrast">{cut.name}</p>
