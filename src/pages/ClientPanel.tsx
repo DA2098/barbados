@@ -10,7 +10,7 @@ export default function ClientPanel() {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [category, setCategory] = useState<'barber' | 'food' | 'drink'>('barber');
+  const [category, setCategory] = useState<'barber' | 'food' | 'drink' | 'service'>('barber');
   const { addToCart } = useCart();
   
   const [newMessage, setNewMessage] = useState('');
@@ -44,6 +44,12 @@ export default function ClientPanel() {
   useEffect(() => {
     setLoading(true);
     loadConversation();
+    // si es cliente (user), por defecto mostrar servicios
+    if (user?.role === 'user') {
+      setCategory('service');
+      void loadProducts('service');
+      return;
+    }
     void loadProducts(category);
   }, [user]);
 
@@ -56,7 +62,12 @@ export default function ClientPanel() {
   const loadProducts = async (cat: typeof category, background = false) => {
     if (!background) setLoading(true);
     try {
-      const items = await api.getProducts({ category: cat as any });
+      let items: Product[] = [];
+      if (cat === 'service') {
+        items = await api.getServices();
+      } else {
+        items = await api.getProducts({ category: cat as any });
+      }
       setProducts(items);
     } catch (err) {
       console.error('Error cargando productos:', err);
