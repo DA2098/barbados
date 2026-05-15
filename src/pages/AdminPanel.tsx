@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession, Message } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
@@ -229,6 +229,13 @@ export default function AdminPanel() {
   const handleSubmitCut = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Normalize and validate duration minutes
+    const duration = Math.max(0, Math.floor(Number(cutForm.duration_minutes || 0)));
+    if (isNaN(duration) || duration <= 0) {
+      alert('Por favor ingresa una duración válida en minutos (mayor que 0)');
+      return;
+    }
+
     const payload = {
       name: cutForm.name,
       description: cutForm.description,
@@ -236,7 +243,7 @@ export default function AdminPanel() {
       stock: Number(cutForm.stock),
       image_url: cutForm.image_url,
       category: 'service',
-      duration_minutes: Number(cutForm.duration_minutes || 0),
+      duration_minutes: duration,
       is_visible: cutForm.is_visible
     } as Omit<Product, 'id'>;
 
@@ -282,7 +289,7 @@ export default function AdminPanel() {
       price: String(product.price),
       stock: String(product.stock),
       image_url: product.image_url,
-      duration_minutes: String(product.duration_minutes || 30),
+      duration_minutes: String(Math.floor(product.duration_minutes || 30)),
       is_visible: product.is_visible
     });
   };
@@ -349,6 +356,7 @@ export default function AdminPanel() {
       stock: product.stock,
       image_url: product.image_url,
       category: 'service',
+      duration_minutes: product.duration_minutes ?? 0,
       is_visible: !product.is_visible
     });
     fetchData();
@@ -362,6 +370,7 @@ export default function AdminPanel() {
       stock: product.stock,
       image_url: product.image_url,
       category: product.category,
+      duration_minutes: product.duration_minutes ?? 0,
       is_visible: !product.is_visible
     });
     fetchData();
@@ -435,6 +444,7 @@ export default function AdminPanel() {
       stock: product.stock,
       image_url: '',
       category: product.category,
+      duration_minutes: product.duration_minutes ?? 0,
       is_visible: product.is_visible
     });
     await fetchData();
@@ -449,6 +459,7 @@ export default function AdminPanel() {
       stock: product.stock,
       image_url: '',
       category: 'service',
+      duration_minutes: product.duration_minutes ?? 0,
       is_visible: product.is_visible
     });
     await fetchData();
@@ -476,10 +487,11 @@ export default function AdminPanel() {
   const monthByCategory = { cortes: 0, barberia: 0, lanceria: 0, bebidas: 0 };
 
   summaryLogs.forEach((log) => {
-    const d = new Date(log.date || log.created_at || log.createdAt || undefined);
+    // BarberLog only exposes `date` and `name`/`type`/`price` per interface
+    const d = new Date(log.date ?? '');
     const logDay = d.toDateString();
     const logMonthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const cat = normalizeType(log.type || (log.category as any) || log.name);
+    const cat = normalizeType(log.type || log.name);
     const price = Number(log.price || 0);
 
     if (logDay === todayKey) {
@@ -866,7 +878,21 @@ export default function AdminPanel() {
               <input required type="text" placeholder="Nombre del corte" value={cutForm.name} onChange={(e) => setCutForm({ ...cutForm, name: e.target.value })} className="w-full p-2 form-input" />
               <textarea required placeholder="Información del corte" value={cutForm.description} onChange={(e) => setCutForm({ ...cutForm, description: e.target.value })} className="w-full p-2 form-input" rows={3} />
               <input required type="number" step="0.01" placeholder="Precio" value={cutForm.price} onChange={(e) => setCutForm({ ...cutForm, price: e.target.value })} className="w-full p-2 form-input" />
-              <input required type="number" placeholder="Duración (min)" value={cutForm.duration_minutes} onChange={(e) => setCutForm({ ...cutForm, duration_minutes: e.target.value })} className="w-full p-2 form-input" />
+              <input
+                required
+                type="number"
+                min={1}
+                step={1}
+                placeholder="Duración (min)"
+                value={cutForm.duration_minutes}
+                onChange={(e) => {
+                  // keep only integer minutes
+                  const raw = e.target.value;
+                  const num = raw === '' ? '' : String(Math.max(0, Math.floor(Number(raw))));
+                  setCutForm({ ...cutForm, duration_minutes: num });
+                }}
+                className="w-full p-2 form-input"
+              />
               <input type="url" placeholder="URL Imagen" value={cutForm.image_url} onChange={(e) => setCutForm({ ...cutForm, image_url: e.target.value })} className="w-full p-2 form-input" />
               {cutForm.image_url && (
                 <div className="space-y-2">
@@ -1078,7 +1104,13 @@ export default function AdminPanel() {
                           }} className="text-xs text-red-500">Eliminar</button>
                         </div>
                       </div>
-                      <div className="mt-1 bg-white/5 p-2 rounded">{m.messageType === 'image' ? (<a href={m.imageUrl} target="_blank" rel="noreferrer"><img src={m.imageUrl} className="max-h-40 rounded" /></a>) : m.body}</div>
+                          <div className="mt-1 bg-white/5 p-2 rounded">
+                            {m.messageType === 'image' && m.imageUrl ? (
+                              <a href={m.imageUrl} target="_blank" rel="noreferrer"><img src={m.imageUrl} className="max-h-40 rounded" /></a>
+                            ) : (
+                              m.body
+                            )}
+                          </div>
                     </div>
                   ))
                 )}
