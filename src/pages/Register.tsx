@@ -62,7 +62,7 @@ export default function Register() {
                   required 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 form-input" 
+                  className="w-full pr-4 py-3 form-input icon-left" 
                   placeholder="Tu nombre"
                 />
               </div>
@@ -77,7 +77,7 @@ export default function Register() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 form-input" 
+                  className="w-full pr-4 py-3 form-input icon-left" 
                   placeholder="tu@email.com"
                 />
               </div>
@@ -104,7 +104,7 @@ export default function Register() {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 form-input" 
+                  className="w-full pr-4 py-3 form-input icon-left" 
                   placeholder="••••••••"
                 />
               </div>

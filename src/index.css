@@ -203,6 +203,11 @@ a {
   outline: none;
 }
 
+/* When an input contains a left-positioned icon, increase left padding */
+.form-input.icon-left {
+  padding-left: 3rem;
+}
+
 .theme-select {
   border: 1px solid var(--border-soft);
   background: color-mix(in srgb, var(--surface) 80%, transparent);
