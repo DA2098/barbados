@@ -44,7 +44,9 @@ app.use(helmet.contentSecurityPolicy({
 // Rate limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  // Temporarily increase limit to reduce login blocking during testing/deploy.
+  // Adjust down later to a safer value for production.
+  max: 1000, // limit each IP to 1000 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false
 });
