@@ -226,6 +226,9 @@ export async function createCheckoutSession({ user, kind, method, cartItems = []
         method: paymentMethod,
         payload: JSON.stringify(payload)
       }
+    }, {
+      // Use an idempotency key to reduce risk of duplicate charges
+      idempotencyKey: `checkout_${user.id}_${Date.now()}`
     });
 
     return {

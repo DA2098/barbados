@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config.js';
+import Stripe from 'stripe';
 import { initializeDatabase } from './scripts/initDB.js';
 import { buildInvoicePdfBuffer, confirmPayment, createCheckoutSession, getInvoiceById, listInvoicesForUser } from './scripts/payments.js';
 import pool from './db.js';
@@ -23,7 +24,8 @@ const upload = multer({
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
+// Capture raw body for webhook signature verification (Stripe)
+app.use(express.json({ limit: '50mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(uploadsDir));
 
@@ -394,6 +396,112 @@ app.post(['/api', '/api.php'], upload.single('file'), async (req, res, next) => 
 });
 
 // --- API ROUTER ---
+// Webhooks
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+
+app.post('/webhooks/stripe', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    return res.status(400).send('Stripe webhook secret not configured');
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error('Stripe webhook construct failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      // Confirm payment flow in our system
+      await confirmPayment({ provider: 'stripe', referenceId: session.id });
+    }
+  } catch (err) {
+    console.error('Error handling stripe webhook event:', err.message);
+  }
+
+  res.json({ received: true });
+});
+
+app.post('/webhooks/paypal', async (req, res) => {
+  // Minimal PayPal webhook verification using verify-webhook-signature
+  try {
+    const transmissionId = req.headers['paypal-transmission-id'];
+    const transmissionTime = req.headers['paypal-transmission-time'];
+    const certUrl = req.headers['paypal-cert-url'];
+    const authAlgo = req.headers['paypal-auth-algo'];
+    const transmissionSig = req.headers['paypal-transmission-sig'];
+    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+
+    if (!webhookId) return res.status(400).send('PayPal webhook id not configured');
+
+    const paypalEnv = (process.env.PAYPAL_ENV || 'sandbox').toLowerCase() === 'live' ? 'live' : 'sandbox';
+    const paypalBaseUrl = paypalEnv === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+    // get access token
+    const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+    const tokenRes = await fetch(`${paypalBaseUrl}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'grant_type=client_credentials'
+    });
+    if (!tokenRes.ok) {
+      const txt = await tokenRes.text();
+      console.error('PayPal token error', txt);
+      return res.status(400).send('PayPal token error');
+    }
+    const tokenJson = await tokenRes.json();
+    const accessToken = tokenJson.access_token;
+
+    const verifyRes = await fetch(`${paypalBaseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        auth_algo: authAlgo,
+        cert_url: certUrl,
+        transmission_id: transmissionId,
+        transmission_sig: transmissionSig,
+        transmission_time: transmissionTime,
+        webhook_id: webhookId,
+        webhook_event: req.body
+      })
+    });
+
+    if (!verifyRes.ok) {
+      const txt = await verifyRes.text();
+      console.error('PayPal verify error', txt);
+      return res.status(400).send('PayPal verify failed');
+    }
+
+    const verifyJson = await verifyRes.json();
+    if (verifyJson.verification_status !== 'SUCCESS') {
+      console.error('PayPal webhook verification failed', verifyJson);
+      return res.status(400).send('PayPal verification failed');
+    }
+
+    // Handle event types
+    const event = req.body;
+    const eventType = event.event_type;
+    let referenceId = event.resource?.id;
+    if (eventType === 'PAYMENT.CAPTURE.COMPLETED' && event.resource?.supplementary_data?.related_ids?.order_id) {
+      referenceId = event.resource.supplementary_data.related_ids.order_id;
+    }
+
+    try {
+      await confirmPayment({ provider: 'paypal', referenceId });
+    } catch (err) {
+      console.error('Error handling PayPal webhook event:', err.message);
+    }
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('PayPal webhook general error:', err.message);
+    res.status(500).send('Webhook error');
+  }
+});
 app.all(['/api', '/api.php'], async (req, res) => {
   const action = req.query.action || req.body.action || '';
 
