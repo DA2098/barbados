@@ -132,12 +132,12 @@ Push a GitHub y Railway despliega automáticamente.
 
 ```
 backend/
-├── server.js          # Servidor principal
-├── db.js              # Conexión PostgreSQL
-├── initDB.js          # Inicialización de tablas
+├── server.js                   # Servidor principal
+├── db.js                       # Conexión PostgreSQL
+├── scripts/initDB.js           # Inicialización de tablas (moved)
 ├── package.json
 ├── .env.example
-├── .env               # (local, no versionar)
+├── .env                        # (local, no versionar)
 └── .gitignore
 ```
 

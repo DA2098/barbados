@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config.js';
-import { initializeDatabase } from './initDB.js';
+import { initializeDatabase } from './scripts/initDB.js';
 import pool from './db.js';
 import bcrypt from 'bcrypt';
 import multer from 'multer';

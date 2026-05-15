@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-const { spawn } = require('child_process');
-const path = require('path');
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 function runCommand(command, args, cwd) {
   const child = spawn(command, args, { stdio: 'inherit', shell: true, cwd });
@@ -17,10 +18,12 @@ function runCommand(command, args, cwd) {
   return child;
 }
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 
 console.log('Starting backend and frontend...');
-// Start backend (uses root package.json "start" which cd into backend)
+// Start backend
 runCommand('npm', ['run', 'start'], root);
 // Start frontend dev server
 runCommand('npm', ['run', 'dev'], root);
