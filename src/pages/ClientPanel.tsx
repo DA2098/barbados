@@ -127,12 +127,6 @@ export default function ClientPanel() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
-      const categoryLabel = (c: typeof category) => {
-        if (c === 'barber') return 'Barbería';
-        if (c === 'food') return 'Lencería';
-        if (c === 'drink') return 'Bebidas';
-        return 'Servicios';
-      };
 
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de {categoryLabel(category)}</h1>
       <div className="mb-6">
