@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession, Message } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
@@ -84,15 +84,7 @@ export default function AdminPanel() {
   const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState('');
   
-  const chatCountsByBarber = useMemo(() => {
-    const map: Record<string, number> = {};
-    chats.forEach((c) => {
-      const id = c.barber?.id;
-      if (!id) return;
-      map[id] = (map[id] || 0) + 1;
-    });
-    return map;
-  }, [chats]);
+  
 
   const fetchData = async () => {
     if (!user) return;
