@@ -11,6 +11,7 @@ export default function ClientPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<'barber' | 'food' | 'drink'>('barber');
+  const { addToCart } = useCart();
   
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
