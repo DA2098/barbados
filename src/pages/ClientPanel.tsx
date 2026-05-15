@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
-import { api, Message, AppNotification, User, Product } from '../services/api';
+import { api, Message, AppNotification, User } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import Card from '../components/Card';
 import Store from './Store';
-import { useCart } from '../context/CartContext';
-import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 
 export default function ClientPanel() {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [services, setServices] = useState<Product[]>([]);
-  const [category, setCategory] = useState<'barber' | 'food' | 'drink' | 'service'>('barber');
+  
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,41 +37,10 @@ export default function ClientPanel() {
     }
   };
 
-  type Cat = 'barber' | 'food' | 'drink' | 'service';
-
-  const loadProducts = async (cat: Cat, background = false) => {
-    if (!background) setLoadingServices(true);
-    try {
-      const items = await api.getProducts({ category: cat });
-      setServices(items);
-    } catch (err) {
-      console.error('Error cargando productos:', err);
-      setServices([]);
-    } finally {
-      setLoadingServices(false);
-    }
-  };
-
-
   useEffect(() => {
     setLoading(true);
     loadConversation();
-    void loadProducts(category);
   }, [user]);
-
-  useEffect(() => {
-    // when category changes, reload products
-    void loadProducts(category);
-  }, [category]);
-
-  useAutoRefresh(() => void loadProducts(category, true), { intervalMs: 30000, enabled: true });
-
-  const categoryLabel = (c: Cat) => {
-    if (c === 'barber') return 'Barbería';
-    if (c === 'food') return 'Lencería';
-    if (c === 'drink') return 'Bebidas';
-    return 'Servicios';
-  };
 
 
   useEffect(() => {
