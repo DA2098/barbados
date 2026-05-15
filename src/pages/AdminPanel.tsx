@@ -208,6 +208,7 @@ export default function AdminPanel() {
       stock: Number(productForm.stock),
       image_url: productForm.image_url,
       category: productForm.category,
+      duration_minutes: 0,
       is_visible: productForm.is_visible
     } as Omit<Product, 'id'>;
 
