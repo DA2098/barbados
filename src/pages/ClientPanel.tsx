@@ -12,6 +12,7 @@ export default function ClientPanel() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [services, setServices] = useState<Product[]>([]);
+  const [category, setCategory] = useState<'barber' | 'food' | 'drink' | 'service'>('barber');
   const [newMessage, setNewMessage] = useState('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,13 +42,14 @@ export default function ClientPanel() {
     }
   };
 
-  const loadServices = async (background = false) => {
+  const loadProducts = async (cat: typeof category, background = false) => {
     if (!background) setLoadingServices(true);
     try {
-      const svc = await api.getServices();
-      setServices(svc);
+      const items = await api.getProducts({ category: cat });
+      setServices(items);
     } catch (err) {
-      console.error('Error cargando servicios:', err);
+      console.error('Error cargando productos:', err);
+      setServices([]);
     } finally {
       setLoadingServices(false);
     }
@@ -57,10 +59,15 @@ export default function ClientPanel() {
   useEffect(() => {
     setLoading(true);
     loadConversation();
-    void loadServices();
+    void loadProducts(category);
   }, [user]);
 
-  useAutoRefresh(() => void loadServices(true), { intervalMs: 30000, enabled: true });
+  useEffect(() => {
+    // when category changes, reload products
+    void loadProducts(category);
+  }, [category]);
+
+  useAutoRefresh(() => void loadProducts(category, true), { intervalMs: 30000, enabled: true });
 
 
   useEffect(() => {
@@ -113,20 +120,27 @@ export default function ClientPanel() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de Servicios</h1>
+      const categoryLabel = (c: typeof category) => {
+        if (c === 'barber') return 'Barbería';
+        if (c === 'food') return 'Lencería';
+        if (c === 'drink') return 'Bebidas';
+        return 'Servicios';
+      };
+
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de {categoryLabel(category)}</h1>
       <div className="mb-6">
         <div className="mb-6">
           <span className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast">Servicios</span>
         </div>
         <div className="mb-4 flex flex-wrap gap-3 rounded-2xl p-2 glass-card w-fit">
-          <button onClick={() => navigate('/store?category=barber')} className={`px-4 py-2 rounded-lg font-semibold ${'accent-btn text-contrast'}`}>Barbería</button>
-          <button onClick={() => navigate('/store?category=food')} className={`px-4 py-2 rounded-lg font-semibold ${'text-contrast'}`}>Lancería</button>
-          <button onClick={() => navigate('/store?category=drink')} className={`px-4 py-2 rounded-lg font-semibold ${'text-contrast'}`}>Bebidas</button>
+          <button onClick={() => setCategory('barber')} className={`px-4 py-2 rounded-lg font-semibold ${category === 'barber' ? 'accent-btn text-contrast' : 'text-contrast'}`}>Barbería</button>
+          <button onClick={() => setCategory('food')} className={`px-4 py-2 rounded-lg font-semibold ${category === 'food' ? 'accent-btn text-contrast' : 'text-contrast'}`}>Lencería</button>
+          <button onClick={() => setCategory('drink')} className={`px-4 py-2 rounded-lg font-semibold ${category === 'drink' ? 'accent-btn text-contrast' : 'text-contrast'}`}>Bebidas</button>
         </div>
         {loadingServices ? (
-          <p className="muted">Cargando servicios...</p>
+          <p className="muted">Cargando productos...</p>
         ) : services.length === 0 ? (
-          <div className="glass-card p-6 rounded">No hay servicios publicados por el admin.</div>
+          <div className="glass-card p-6 rounded">No hay productos publicados por el admin para esta categoría.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {services.map((product) => (
@@ -145,7 +159,7 @@ export default function ClientPanel() {
                 <p className="text-sm muted mb-3 line-clamp-3 min-h-[60px]">{product.description?.trim() ? product.description : 'Sin descripcion disponible.'}</p>
                 <div className="flex justify-between items-center mt-3">
                   <span className="text-xl font-bold card-title">${product.price.toFixed(2)}</span>
-                  <span className="text-xs px-2 py-1 rounded-full border border-white/15 muted uppercase tracking-wide">Servicios</span>
+                  <span className="text-xs px-2 py-1 rounded-full border border-white/15 muted uppercase tracking-wide">{categoryLabel(product.category as any)}</span>
                 </div>
               </Card>
             ))}
