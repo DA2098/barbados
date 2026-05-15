@@ -230,6 +230,26 @@ export async function createCheckoutSession({ user, kind, method, cartItems = []
       // Use an idempotency key to reduce risk of duplicate charges
       idempotencyKey: `checkout_${user.id}_${Date.now()}`
     });
+    // Persist a pending payment session so we can reconcile and avoid duplicates
+    try {
+      const client = await pool.connect();
+      try {
+        await upsertPaymentSession(client, {
+          userId: String(user.id),
+          kind: paymentKind,
+          provider: 'stripe',
+          providerReference: session.id,
+          status: 'pending',
+          currency: paymentCurrency,
+          amount: Number(session.amount_total || 0) / 100,
+          payload: JSON.parse(session.metadata?.payload || '{}')
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      console.warn('Warning: could not write pending Stripe session:', err.message);
+    }
 
     return {
       provider: 'stripe',
@@ -238,6 +258,9 @@ export async function createCheckoutSession({ user, kind, method, cartItems = []
       referenceId: session.id,
       checkoutUrl: session.url
     };
+  } finally {
+    // no-op here; session creation already completed
+  }
   }
 
   ensurePayPalConfigured();
@@ -299,6 +322,27 @@ export async function createCheckoutSession({ user, kind, method, cartItems = []
   const approvalUrl = order.links?.find((link) => link.rel === 'approve')?.href || null;
   if (!approvalUrl) {
     throw new Error('PayPal no devolvió una URL de aprobación');
+  }
+  // Store a pending payment session to avoid duplicates and allow reconciliation
+  try {
+    const client = await pool.connect();
+    try {
+      await upsertPaymentSession(client, {
+        userId: String(user.id),
+        kind: paymentKind,
+        provider: 'paypal',
+        providerReference: order.id,
+        status: 'pending',
+        currency: paymentCurrency,
+        amount: subtotal,
+        payload
+      });
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    // don't block checkout on DB write failures, but log
+    console.warn('Warning: could not write pending PayPal session:', err.message);
   }
 
   return {
