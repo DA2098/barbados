@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api, Message, AppNotification, User, Product } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
+import Store from './Store';
 import { useCart } from '../context/CartContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
@@ -128,45 +129,7 @@ export default function ClientPanel() {
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
 
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de {categoryLabel(category)}</h1>
-      <div className="mb-6">
-        <div className="mb-6">
-          <span className="px-4 py-2 rounded-lg font-semibold accent-btn text-contrast">Servicios</span>
-        </div>
-        <div className="mb-4 flex flex-wrap gap-3 rounded-2xl p-2 glass-card w-fit">
-          <button onClick={() => setCategory('barber')} className={`px-4 py-2 rounded-lg font-semibold ${category === 'barber' ? 'accent-btn text-contrast' : 'text-contrast'}`}>Barbería</button>
-          <button onClick={() => setCategory('food')} className={`px-4 py-2 rounded-lg font-semibold ${category === 'food' ? 'accent-btn text-contrast' : 'text-contrast'}`}>Lencería</button>
-          <button onClick={() => setCategory('drink')} className={`px-4 py-2 rounded-lg font-semibold ${category === 'drink' ? 'accent-btn text-contrast' : 'text-contrast'}`}>Bebidas</button>
-        </div>
-        {loadingServices ? (
-          <p className="muted">Cargando productos...</p>
-        ) : services.length === 0 ? (
-          <div className="glass-card p-6 rounded">No hay productos publicados por el admin para esta categoría.</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {services.map((product) => (
-              <Card
-                key={product.id}
-                title={product.name}
-                subtitle={`Stock: ${product.stock}`}
-                image={product.image_url || 'https://via.placeholder.com/300?text=Servicio'}
-                className="relative"
-                footer={
-                  <button onClick={() => addToCart(product)} className="w-full accent-btn flex items-center justify-center gap-2 py-2.5">
-                    Agregar
-                  </button>
-                }
-              >
-                <p className="text-sm muted mb-3 line-clamp-3 min-h-[60px]">{product.description?.trim() ? product.description : 'Sin descripcion disponible.'}</p>
-                <div className="flex justify-between items-center mt-3">
-                  <span className="text-xl font-bold card-title">${product.price.toFixed(2)}</span>
-                  <span className="text-xs px-2 py-1 rounded-full border border-white/15 muted uppercase tracking-wide">{categoryLabel(product.category as any)}</span>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+      <Store />
       <div className="glass-card p-4 rounded-md h-96 overflow-y-scroll">
         {messages.map((msg) => (
           <div
