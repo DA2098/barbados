@@ -95,8 +95,8 @@ export default function Navbar() {
           
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="app-logo">
-              <img src="/logitobarbados.png" alt="Barbados" />
+            <div className="app-logo flex items-start">
+              <img src="/logitobarbados.png" alt="Barbados" className="w-12 h-12 object-contain -mt-3" />
             </div>
             <span className="font-extrabold text-xl tracking-[0.08em] text-contrast">BARBADOS</span>
           </Link>
