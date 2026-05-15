@@ -17,7 +17,7 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
     proxy: {
-      '/api.php': {
+      '/api': {
         target: proxyTarget,
         changeOrigin: true,
       },
