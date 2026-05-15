@@ -1,0 +1,23 @@
+name: Security checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
+      - name: Run secrets scanner
+        run: node ../scripts/check-secrets.cjs
+      - name: Run npm audit
+        working-directory: backend
+        run: npm audit --audit-level=moderate || true

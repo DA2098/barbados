@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import 'dotenv/config.js';
 import Stripe from 'stripe';
 import { initializeDatabase } from './scripts/initDB.js';
@@ -24,6 +26,30 @@ const upload = multer({
 
 // Middleware
 app.use(cors());
+// Security headers
+app.use(helmet());
+// Basic CSP - adjust directives for your frontend/resources
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", 'data:'],
+    connectSrc: ["'self'", 'https://api.stripe.com', 'https://api-m.sandbox.paypal.com', 'https://api-m.paypal.com'],
+    objectSrc: ["'none'"],
+    upgradeInsecureRequests: []
+  }
+}));
+
+// Rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use(limiter);
+
 // Capture raw body for webhook signature verification (Stripe)
 app.use(express.json({ limit: '50mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
