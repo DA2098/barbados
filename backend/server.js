@@ -608,14 +608,15 @@ app.all(['/api', '/api.php'], async (req, res) => {
     }
 
     if (req.method === 'POST' && action === 'products') {
-      const { name, price, stock, image_url, description, category, is_visible } = req.body;
+      const { name, price, stock, image_url, description, category, is_visible, duration_minutes } = req.body;
       const normalizedCategory = normalizeProductCategory(category);
-      
-      // Si es un servicio, guardarlo en la tabla services
+
+      // Si es un servicio, guardarlo en la tabla services (usar duration_minutes si viene en el body)
       if (normalizedCategory === 'service') {
+        const duration = Number(duration_minutes || 30);
         await pool.query(
           'INSERT INTO services (name, description, price, image_url, is_visible, duration_minutes) VALUES ($1, $2, $3, $4, $5, $6)',
-          [name, description || '', price, image_url || '', is_visible !== false, 30]
+          [name, description || '', price, image_url || '', is_visible !== false, duration]
         );
       } else {
         await pool.query(
@@ -632,12 +633,13 @@ app.all(['/api', '/api.php'], async (req, res) => {
       const normalizedCategory = normalizeProductCategory(category);
       
       if (normalizedCategory === 'service') {
+        const duration = Number(req.body.duration_minutes || 30);
         const result = await pool.query(
           `UPDATE services
-           SET name = $1, description = $2, price = $3, image_url = $4, is_visible = $5
-           WHERE id = $6
+           SET name = $1, description = $2, price = $3, image_url = $4, is_visible = $5, duration_minutes = $6
+           WHERE id = $7
            RETURNING id`,
-          [name, description || '', price, image_url || '', is_visible !== false, id]
+          [name, description || '', price, image_url || '', is_visible !== false, duration, id]
         );
         if (!result.rows[0]) return res.status(404).json({ error: 'Servicio no encontrado' });
       } else {
