@@ -1,0 +1,11 @@
+#!/bin/sh
+# Pre-commit hook to prevent committing secrets detected by scripts/check-secrets.js
+echo "Running secrets check..."
+node scripts/check-secrets.cjs
+rc=$?
+if [ $rc -ne 0 ]; then
+  echo "Secrets check failed. Fix issues before committing." >&2
+  exit $rc
+fi
+echo "Secrets check passed." 
+exit 0

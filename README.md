@@ -145,21 +145,12 @@ La carpeta `src` es el código fuente del frontend React.
 
 ### Componentes
 
-- `components/Navbar.tsx`: navegación principal, estado de sesión, contador del carrito, contador de notificaciones y cambio de tema.
-- `components/Card.tsx`: tarjeta visual con efecto 3D, reutilizada en home y tienda.
-
-### Contextos
-
-- `context/AuthContext.tsx`: guarda el usuario autenticado, sincroniza sesión con `localStorage` y se actualiza por eventos en tiempo real.
 - `context/ThemeContext.tsx`: gestiona modo claro / oscuro y persistencia en `localStorage`.
-- `context/CartContext.tsx`: gestiona el carrito global, cantidades y total.
 
 ### Hooks
 
 - `hooks/useAutoRefresh.ts`: ejecuta recargas periódicas y también refresca al volver a enfocar la pestaña.
 - `hooks/useRealtimeUserEvents.ts`: abre una conexión SSE al backend para escuchar cambios de sincronización del usuario.
-
-### Servicios
 
 - `services/api.ts`: cliente central para llamar la API PHP. Aquí están todos los métodos de red y los tipos TypeScript del dominio.
 
@@ -171,8 +162,6 @@ La carpeta `src` es el código fuente del frontend React.
 - `pages/Store.tsx`: tienda por categorías con productos visibles y botón de carrito.
 - `pages/Appointments.tsx`: agenda de citas, listado de citas, confirmación y calificación.
 - `pages/Cart.tsx`: carrito de compras.
-- `pages/Profile.tsx`: perfil editable, avatar y postulación formal a barbero.
-- `pages/BarberPanel.tsx`: panel operativo del barbero.
 - `pages/AdminPanel.tsx`: panel maestro del administrador.
 - `pages/Chat.tsx`: mensajería entre roles.
 - `pages/ClientPanel.tsx`: archivo presente en el workspace, aunque la navegación principal actual se concentra en las pantallas anteriores.
@@ -721,5 +710,6 @@ Vite compila el TypeScript, empaqueta React, procesa CSS y copia assets. Con `vi
 - `database.sql` define la base inicial.
 - `dist` contiene el build final generado.
 
-Barbados combina landing pública, tienda, agenda, chat, panel de barbero y panel de admin en un solo sistema basado en roles.#   b a r b a d o s  
+Barbados combina landing pública, tienda, agenda, chat, panel de barbero y panel de admin en un solo sistema basado en roles.#   b a r b a d o s 
+ 
  

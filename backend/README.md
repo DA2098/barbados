@@ -50,14 +50,17 @@ cp .env.example .env
 Si vas a cobrar con tarjeta o PayPal, completa estas variables:
 
 ```bash
+# Valores de ejemplo: sustituir por tus valores reales en `.env` o en el panel del hosting
 FRONTEND_URL=http://localhost:5173
 PAYMENT_CURRENCY=usd
 INVOICE_TAX_RATE=0.13
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
+# Stripe (usar claves de prueba en desarrollo)
+STRIPE_SECRET_KEY=sk_test_REPLACE_ME
+STRIPE_PUBLISHABLE_KEY=pk_test_REPLACE_ME
+# PayPal (sandbox en desarrollo)
 PAYPAL_ENV=sandbox
-PAYPAL_CLIENT_ID=...
-PAYPAL_CLIENT_SECRET=...
+PAYPAL_CLIENT_ID=PAYPAL_CLIENT_ID_REPLACE_ME
+PAYPAL_CLIENT_SECRET=PAYPAL_CLIENT_SECRET_REPLACE_ME
 ```
 
 ### 4. Iniciar servidor
