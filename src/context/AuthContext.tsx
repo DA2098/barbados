@@ -219,6 +219,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handleConflict = () => {
       console.warn('🟢 Session conflict event received in AuthContext');
+      console.warn('  Current user:', user?.id);
       if (!user) {
         console.warn('  ⚠️  No user logged in, ignoring conflict');
         return;
@@ -243,9 +244,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       startDuplicateCountdown();
     };
 
+    // Register listener once on mount, never remove it
+    // The handler closure will always see the current `user` value
     window.addEventListener('barbados:session-conflict', handleConflict as EventListener);
-    return () => window.removeEventListener('barbados:session-conflict', handleConflict as EventListener);
-  }, [user?.id]);
+    
+    // No cleanup - keep the listener active for the lifetime of the app
+    // This prevents race conditions where events are missed during listener re-registration
+  }, []);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
