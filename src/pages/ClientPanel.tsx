@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { api, Message, AppNotification, User, Product } from '../services/api';
+import { api, Message, User, Product } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import { useCart } from '../context/CartContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
-import NotificationsList from '../components/NotificationsList';
 
 
 export default function ClientPanel() {
@@ -68,40 +67,6 @@ export default function ClientPanel() {
   };
 
 
-  useEffect(() => {
-    const handleNewMessageNotification = async () => {
-      if (!user?.id || !conversationId) return;
-      try {
-        const notifications: AppNotification[] = await api.getNotifications(user.id);
-        const conversationNotifications = notifications.filter((notification) => {
-          if (notification.type !== 'new_message' && notification.type !== 'new_image') return false;
-          const payloadConversationId = notification.payload?.conversationId;
-          return !payloadConversationId || String(payloadConversationId) === String(conversationId);
-        });
-
-        if (conversationNotifications.length > 0) {
-          // Asegurarse de que estén ordenadas por fecha (más reciente primero)
-          conversationNotifications.sort((a, b) => {
-            const ta = new Date(a.createdAt).getTime() || 0;
-            const tb = new Date(b.createdAt).getTime() || 0;
-            return tb - ta;
-          });
-
-          const latest = conversationNotifications[0];
-          alert(`Nuevo mensaje del administrador: ${latest.body}`);
-          const msgs: Message[] = await api.getMessages(conversationId, user.id);
-          setMessages(msgs);
-          await api.markNotificationsRead(user.id, true);
-        }
-      } catch (error) {
-        console.error('Error al obtener notificaciones:', error);
-      }
-    };
-    const interval = setInterval(handleNewMessageNotification, 10000); // Verificar cada 10 segundos
-    return () => clearInterval(interval);
-  }, [user, conversationId]);
-
-
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !conversationId || !user?.id) return;
     try {
@@ -129,9 +94,6 @@ export default function ClientPanel() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <div className="col-span-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de {category === 'barber' ? 'Barbería' : category === 'food' ? 'Lencería' : 'Bebidas'}</h1>
-        </div>
-        <div className="col-span-1">
-          <NotificationsList />
         </div>
       </div>
 

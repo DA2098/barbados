@@ -5,7 +5,6 @@ import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scisso
 import { Link } from 'react-router-dom';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
-import NotificationsList from '../components/NotificationsList';
 
 type ProductForm = {
   name: string;
@@ -567,10 +566,6 @@ export default function AdminPanel() {
             Quitar foto
           </button>
         )}
-      </div>
-
-      <div className="mb-6">
-        <NotificationsList />
       </div>
 
       {pendingBarbers.length > 0 && (

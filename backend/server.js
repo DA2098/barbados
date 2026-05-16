@@ -178,25 +178,9 @@ function normalizeProductCategory(category) {
 }
 
 async function createNotification(userId, type, title, body, payload) {
-  const result = await pool.query(
-    'INSERT INTO notifications (user_id, type, title, body, payload) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, type, title, body, payload, is_read, created_at, read_at',
-    [userId, type, title, body, JSON.stringify(payload || {})]
-  );
-
-  const created = result.rows[0];
-  const normalized = normalizeNotification(created);
-
-  // Try to notify connected clients via WebSocket (if available).
-  // Also push a full sync so clients relying on `sync` update unread counters.
-  try {
-    const realtime = await buildRealtimePayload(userId);
-    broadcastToUser(userId, 'sync', realtime);
-    broadcastToUser(userId, 'notification', normalized);
-  } catch (e) {
-    // don't block on realtime errors
-  }
-
-  return normalized;
+  // Notifications are disabled in this build to keep the UI and behavior consistent.
+  // Keep the call sites safe without storing or broadcasting anything.
+  return null;
 }
 
 function resolveConversationType(roleA, roleB) {
@@ -307,11 +291,6 @@ function normalizeBarberApplication(row) {
 }
 
 async function buildRealtimePayload(userId) {
-  const unreadResult = await pool.query(
-    'SELECT COUNT(*)::int AS unread_count FROM notifications WHERE user_id = $1 AND is_read = false',
-    [userId]
-  );
-
   const latestConversationResult = await pool.query(
     `SELECT COALESCE(MAX(EXTRACT(EPOCH FROM COALESCE(c.last_message_at, c.created_at))), 0)::bigint AS latest_conversation_ts
      FROM conversations c
@@ -325,7 +304,7 @@ async function buildRealtimePayload(userId) {
     [userId]
   );
 
-  const unreadCount = Number(unreadResult.rows[0]?.unread_count || 0);
+  const unreadCount = 0;
   const latestConversationTs = Number(latestConversationResult.rows[0]?.latest_conversation_ts || 0);
   const avatarPulse = Number(avatarPulseResult.rows[0]?.avatar_pulse || 0);
   const serverTime = new Date().toISOString();
@@ -1334,45 +1313,19 @@ app.all(['/api', '/api.php'], async (req, res) => {
     }
 
     if (req.method === 'GET' && action === 'notifications') {
-      const { userId } = req.query;
-      const result = await pool.query(
-        'SELECT id, type, title, body, payload, is_read, created_at, read_at FROM notifications WHERE user_id = $1 ORDER BY created_at DESC',
-        [userId]
-      );
-      return res.json(result.rows.map(normalizeNotification));
+      return res.json([]);
     }
 
     if (req.method === 'PUT' && action === 'notifications') {
-      const { userId, id } = req.query;
-      const { markAll } = req.body;
-
-      if (markAll === false && id) {
-        await pool.query('UPDATE notifications SET is_read = true, read_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2', [id, userId]);
-      } else {
-        await pool.query('UPDATE notifications SET is_read = true, read_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND is_read = false', [userId]);
-      }
-
-      return res.json({ message: 'Notificaciones actualizadas' });
+      return res.json({ message: 'Notificaciones desactivadas' });
     }
 
     if (req.method === 'DELETE' && action === 'notifications') {
-      const { userId, id } = req.query;
-      if (!userId) return res.status(400).json({ error: 'userId requerido' });
-
-      if (id) {
-        await pool.query('DELETE FROM notifications WHERE id = $1 AND user_id = $2', [id, userId]);
-        return res.json({ message: 'Notificación eliminada' });
-      }
-
-      // If no id provided, delete all notifications for user
-      await pool.query('DELETE FROM notifications WHERE user_id = $1', [userId]);
-      return res.json({ message: 'Todas las notificaciones eliminadas' });
+      return res.json({ message: 'Notificaciones desactivadas' });
     }
 
     if (req.method === 'POST' && action === 'send_notification') {
-      const { user_id, type, title, body } = req.body;
-      await createNotification(user_id, type, title, body, {});
-      return res.json({ message: 'Notificación enviada' });
+      return res.json({ message: 'Notificaciones desactivadas' });
     }
 
     if (req.method === 'POST' && action === 'payments') {

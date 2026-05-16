@@ -1,11 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, Menu, MessageCircle, Bell, Sun, Moon } from 'lucide-react';
+import { ShoppingCart, Menu, MessageCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef, useState } from 'react';
-import { api, AppNotification } from '../services/api';
-import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { api } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
@@ -14,7 +13,6 @@ export default function Navbar() {
   const { items } = useCart();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const lastAdminMessageIdRef = useRef<string | null>(null);
   const checkingAdminMessageRef = useRef(false);
 
@@ -58,16 +56,6 @@ export default function Navbar() {
     }
   };
 
-  useAutoRefresh(async () => {
-    if (!user) return;
-    try {
-      const response = await api.getNotifications(user.id);
-      setUnreadCount(Array.isArray(response) ? response.filter((n: AppNotification) => !n.isRead).length : 0);
-    } catch {
-      setUnreadCount(0);
-    }
-  }, { intervalMs: 20000, enabled: !!user });
-
   useEffect(() => {
     if (!user || user.role === 'admin') return;
     void syncLatestAdminMessage();
@@ -75,18 +63,10 @@ export default function Navbar() {
 
   useRealtimeUserEvents(
     user?.id,
-    (payload) => {
-      setUnreadCount(payload.unreadCount || 0);
+    () => {
       void syncLatestAdminMessage();
     },
-    !!user,
-    (notification) => {
-      try {
-        // Increment unread counter immediately for better UX; periodic fetch will reconcile.
-        if (!notification) return;
-        setUnreadCount((prev) => prev + (notification.isRead ? 0 : 1));
-      } catch {}
-    }
+    !!user
   );
 
   const NavLink = ({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) => (
@@ -139,11 +119,6 @@ export default function Navbar() {
             {user && (
               <Link to="/chat" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
                 <MessageCircle className="w-7 h-7" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-2 -right-2 badge-danger text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center" style={{ border: '2px solid var(--surface)' }}>
-                    {unreadCount}
-                  </span>
-                )}
               </Link>
             )}
 
@@ -170,12 +145,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-4">
             {user && (
               <Link to="/chat" className="relative flex items-center text-contrast">
-                <Bell className="w-6 h-6" />
-                {unreadCount > 0 && (
-                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 badge-danger border-2 text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
+                <MessageCircle className="w-6 h-6" />
               </Link>
             )}
             {canBuyProducts && (

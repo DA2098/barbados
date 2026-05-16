@@ -59,17 +59,6 @@ export interface AdminChatSession {
   messageCount: number;
 }
 
-export interface AppNotification {
-  id: string;
-  type: 'new_message' | 'new_image' | 'system';
-  title: string;
-  body: string;
-  payload?: Record<string, unknown> | null;
-  isRead: boolean;
-  createdAt: string;
-  readAt?: string | null;
-}
-
 export interface Appointment {
   id: string;
   clientId: string;
@@ -666,74 +655,6 @@ export const api = {
     const res = await fetch(`${API_URL}?action=admin-chat-monitor&adminId=${adminId}`);
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener chats'));
     return await res.json();
-  },
-
-  // --- NOTIFICATIONS ---
-  async sendNotification(payload: { user_id: string; type: 'new_message' | 'new_image' | 'system'; title: string; body: string }): Promise<void> {
-    const res = await fetch(`${API_URL}?action=send_notification`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error(await parseApiError(res, 'Error al enviar notificación'));
-  },
-
-  async getNotifications(userId: string): Promise<AppNotification[]> {
-    const res = await fetch(`${API_URL}?action=notifications&userId=${userId}`);
-    if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener notificaciones'));
-    const data = await res.json();
-
-    // Normalize different response shapes and ensure predictable ordering
-    let items: AppNotification[] = [];
-    if (Array.isArray(data)) items = data as AppNotification[];
-    else if (Array.isArray(data?.items)) items = data.items as AppNotification[];
-
-    // Defensive normalization: ensure fields exist and types are consistent
-    items = items.map((n) => ({
-      id: String(n.id || ''),
-      type: (n.type as AppNotification['type']) || 'system',
-      title: n.title || '',
-      body: n.body || '',
-      payload: n.payload ?? null,
-      isRead: !!n.isRead,
-      createdAt: n.createdAt || (n.readAt ?? new Date().toISOString()),
-      readAt: n.readAt ?? null
-    }));
-
-    // Sort newest first so UI can rely on order
-    items.sort((a, b) => {
-      const ta = new Date(a.createdAt).getTime() || 0;
-      const tb = new Date(b.createdAt).getTime() || 0;
-      return tb - ta;
-    });
-
-    return items;
-  },
-
-  async markNotificationsRead(userId: string, markAll: boolean = true, notificationId?: string): Promise<void> {
-    const params = new URLSearchParams({ action: 'notifications', userId });
-    if (!markAll && notificationId) {
-      params.set('id', notificationId);
-    }
-
-    const res = await fetch(`${API_URL}?${params.toString()}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ markAll })
-    });
-
-    if (!res.ok) throw new Error(await parseApiError(res, 'Error al marcar notificaciones como leídas'));
-  },
-
-  async deleteNotifications(userId: string, notificationId?: string): Promise<void> {
-    const params = new URLSearchParams({ action: 'notifications', userId });
-    if (notificationId) params.set('id', notificationId);
-
-    const res = await fetch(`${API_URL}?${params.toString()}`, {
-      method: 'DELETE'
-    });
-
-    if (!res.ok) throw new Error(await parseApiError(res, 'Error al eliminar notificaciones'));
   },
 
   async getConversationsByUser(userId: string): Promise<Conversation[]> {

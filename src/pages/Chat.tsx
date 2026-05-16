@@ -69,7 +69,6 @@ export default function Chat() {
     setConversation(convo);
     const msgs = await api.getMessages(convo.id, user.id);
     setMessages(msgs);
-    await api.markNotificationsRead(user.id, true);
   };
 
   const loadMessages = async () => {
