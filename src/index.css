@@ -192,7 +192,7 @@ a {
   position: relative;
   display: inline-block;
   padding-bottom: 0;
-  transform: translateY(4px); /* lower the text a bit */
+  transform: translateY(6px); /* lower the text a bit more for precise alignment */
 }
 
 .form-input {
