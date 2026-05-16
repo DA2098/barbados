@@ -64,6 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [sessionExitReason, setSessionExitReason] = useState<SessionExitReason>(null);
   const sessionIdRef = useRef<string | null>(null);
   const duplicateDeadlineRef = useRef<number | null>(null);
+  const userRef = useRef<User | null>(null);
 
   const persistSessionMeta = (userId: string | null, sessionId: string) => {
     localStorage.setItem(
@@ -115,47 +116,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
-    setUser(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem(SESSION_META_KEY);
-    if (targetUserId) {
-      localStorage.removeItem(getLockKey(targetUserId));
-    }
-    sessionIdRef.current = null;
-    clearDuplicateState();
-    setSessionExitReason(reason);
-    // Ensure any local-only logout flag is cleared on a full logout.
-    clearTabLocalLogout();
-  };
+    useEffect(() => {
+      // Keep a ref with the latest user so event listeners registered once can access current user
+      userRef.current = user;
+    }, [user]);
 
-  const performLocalOnlyLogout = (reason: SessionExitReason = null) => {
-    // Mark this tab as locally logged out (so other tabs/devices aren't affected).
-    setTabLocalLogout();
-    setUser(null);
-    // Do not clear shared localStorage session metadata or locks here — this action must not
-    // affect other tabs or devices. Keep session meta intact so the other device remains active.
-    sessionIdRef.current = null;
-    clearDuplicateState();
-    setSessionExitReason(reason);
-    // Clear app-specific localStorage keys to remove transient local data (telemetry, cached choices, etc.)
-    try {
-      for (const key of Object.keys(localStorage)) {
-        if (key.startsWith('barbados_')) {
-          localStorage.removeItem(key);
+    // Register global session-conflict event once (listener uses userRef)
+    useEffect(() => {
+      const handleConflict = () => {
+        const currentUser = userRef.current;
+        console.warn('🟢 Session conflict event received in AuthContext');
+        console.warn('  Current user:', currentUser?.id ?? '(none)');
+        if (!currentUser) {
+          console.warn('  ⚠️  No user logged in, ignoring conflict');
+          return;
         }
-      }
-    } catch {
-      // ignore storage errors
-    }
+        try {
+          const raw = localStorage.getItem('barbados_session_choice');
+          if (raw) {
+            const parsed = JSON.parse(raw) as { userId?: string; action?: string; expiresAt?: number };
+            if (parsed?.userId === currentUser.id && parsed?.action === 'both' && parsed.expiresAt && parsed.expiresAt > Date.now()) {
+              // user previously allowed both sessions — do not start countdown
+              console.warn('  ℹ️  Both sessions allowed, clearing duplicate state');
+              clearDuplicateState();
+              return;
+            }
+          }
+        } catch {
+          // ignore parse errors
+        }
 
-    // Notify other contexts in this tab that a local-only logout occurred so they can clear in-memory state.
-    try {
-      window.dispatchEvent(new CustomEvent('barbados:local-logout'));
-    } catch {
-      // ignore
-    }
-    try {
-      window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'other' } }));
+        console.warn(`  ⏱️  Starting countdown: ${DUPLICATE_SESSION_GRACE_SECONDS}s`);
+        startDuplicateCountdown();
+      };
+
+      // Register listener once on mount, never remove it
+      // The handler closure will always see the current `user` value
+      window.addEventListener('barbados:session-conflict', handleConflict as EventListener);
+    
+      // No cleanup - keep the listener active for the lifetime of the app
+      // This prevents race conditions where events are missed during listener re-registration
+    }, []);
     } catch {}
   };
 
