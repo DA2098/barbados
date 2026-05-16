@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { api, Product } from '../services/api';
+import { api, Product, isSessionConflictError } from '../services/api';
 import Card from '../components/Card';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,13 @@ export default function Store() {
       const data = await api.getProducts({ category });
       setProducts(data);
       setLoadedOnce(true);
+    } catch (err: any) {
+      if (isSessionConflictError(err)) {
+        console.warn('Ignored session conflict while loading products');
+      } else {
+        console.error('Error loading products:', err);
+        setProducts([]);
+      }
     } finally {
       if (!background || !loadedOnce) setLoading(false);
     }

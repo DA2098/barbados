@@ -191,6 +191,17 @@ const patchGlobalFetchForSessionHeaders = () => {
   const globalRef = window as Window & { __barbadosFetchPatched?: boolean };
   if (globalRef.__barbadosFetchPatched) return;
 
+  class SessionConflictError extends Error {
+    public response: Response | null = null;
+    constructor(message = 'session_conflict', response: Response | null = null) {
+      super(message);
+      this.name = 'SessionConflictError';
+      this.response = response;
+    }
+  }
+
+  (window as any).__SessionConflictError = SessionConflictError;
+
   const nativeFetch = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const mergedHeaders = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
@@ -214,7 +225,11 @@ const patchGlobalFetchForSessionHeaders = () => {
 
     const response = await nativeFetch(input, { ...init, headers: mergedHeaders });
     if (response.status === 409 && response.headers.get('x-session-conflict') === '1') {
-      window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
+      try {
+        window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
+      } catch {}
+      // Throw a specific error so higher-level code can handle it differently
+      throw new SessionConflictError('Session conflict detected', response);
     }
 
     return response;
@@ -224,6 +239,19 @@ const patchGlobalFetchForSessionHeaders = () => {
 };
 
 patchGlobalFetchForSessionHeaders();
+
+export const isSessionConflictError = (err: unknown) => {
+  try {
+    if (!err || typeof err !== 'object') return false;
+    // If SessionConflictError class was attached on window, prefer instanceof
+    const win = window as any;
+    if (typeof win.__SessionConflictError === 'function' && err instanceof win.__SessionConflictError) return true;
+    const name = (err as any).name || '';
+    return String(name).toLowerCase() === 'sessionconflicterror' || String((err as any).message || '').toLowerCase().includes('session_conflict');
+  } catch {
+    return false;
+  }
+};
 
 const normalizePrice = (value: unknown) => Number(value);
 

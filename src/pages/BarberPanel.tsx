@@ -17,35 +17,67 @@ export default function BarberPanel() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const fetchLogs = async () => {
-    const allLogs = await api.getBarberLogs();
-    setLogs(allLogs.filter(log => log.barberId === user?.id));
+    try {
+      const allLogs = await api.getBarberLogs();
+      setLogs(allLogs.filter(log => log.barberId === user?.id));
+    } catch (err: any) {
+      if ((err && (err.name === 'SessionConflictError' || String(err.message || '').toLowerCase().includes('session_conflict')))) {
+        console.warn('Ignored session_conflict in fetchLogs');
+      } else {
+        console.error('Error fetching logs:', err);
+      }
+    }
   };
 
   const fetchRegisteredUsers = async () => {
-    const allUsers = await api.getUsers();
-    setRegisteredUsers(allUsers.filter((u) => u.role === 'user'));
+    try {
+      const allUsers = await api.getUsers();
+      setRegisteredUsers(allUsers.filter((u) => u.role === 'user'));
+    } catch (err: any) {
+      if ((err && (err.name === 'SessionConflictError' || String(err.message || '').toLowerCase().includes('session_conflict')))) {
+        console.warn('Ignored session_conflict in fetchRegisteredUsers');
+      } else {
+        console.error('Error fetching users:', err);
+      }
+    }
   };
 
   const fetchAppointments = async () => {
     if (!user) return;
-    const allAppointments = await api.getAppointments(user.id);
-    setAppointments(allAppointments);
+    try {
+      const allAppointments = await api.getAppointments(user.id);
+      setAppointments(allAppointments);
+    } catch (err: any) {
+      if ((err && (err.name === 'SessionConflictError' || String(err.message || '').toLowerCase().includes('session_conflict')))) {
+        console.warn('Ignored session_conflict in fetchAppointments');
+      } else {
+        console.error('Error fetching appointments:', err);
+      }
+    }
   };
 
   const fetchCatalogProducts = async () => {
-    const [services, barberProducts, foodProducts, drinkProducts] = await Promise.all([
-      api.getServices(),
-      api.getProducts({ category: 'barber' }),
-      api.getProducts({ category: 'food' }),
-      api.getProducts({ category: 'drink' })
-    ]);
+    try {
+      const [services, barberProducts, foodProducts, drinkProducts] = await Promise.all([
+        api.getServices(),
+        api.getProducts({ category: 'barber' }),
+        api.getProducts({ category: 'food' }),
+        api.getProducts({ category: 'drink' })
+      ]);
 
-    setCatalogProducts([
-      ...services.filter((service) => service.is_visible),
-      ...barberProducts.filter((p) => p.is_visible),
-      ...foodProducts.filter((product) => product.is_visible),
-      ...drinkProducts.filter((product) => product.is_visible)
-    ]);
+      setCatalogProducts([
+        ...services.filter((service) => service.is_visible),
+        ...barberProducts.filter((p) => p.is_visible),
+        ...foodProducts.filter((product) => product.is_visible),
+        ...drinkProducts.filter((product) => product.is_visible)
+      ]);
+    } catch (err: any) {
+      if ((err && (err.name === 'SessionConflictError' || String(err.message || '').toLowerCase().includes('session_conflict')))) {
+        console.warn('Ignored session_conflict in fetchCatalogProducts');
+      } else {
+        console.error('Error fetching catalog products:', err);
+      }
+    }
   };
 
   const getProductsByType = (selectedType: 'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas') => {

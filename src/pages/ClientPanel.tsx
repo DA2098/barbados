@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, Message, User, Product } from '../services/api';
+import { api, Message, User, Product, isSessionConflictError } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import { useCart } from '../context/CartContext';
@@ -35,7 +35,11 @@ export default function ClientPanel() {
       const msgs = await api.getMessages(conversation.id, user.id);
       setMessages(msgs);
     } catch (error) {
-      console.error('Error fetching conversation:', error);
+      if (isSessionConflictError(error)) {
+        console.warn('Ignored session conflict while loading conversation');
+      } else {
+        console.error('Error fetching conversation:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -59,8 +63,12 @@ export default function ClientPanel() {
       const items = await api.getProducts({ category: cat as any });
       setProducts(items);
     } catch (err) {
-      console.error('Error cargando productos:', err);
-      setProducts([]);
+      if (isSessionConflictError(err)) {
+        console.warn('Ignored session conflict while loading products');
+      } else {
+        console.error('Error cargando productos:', err);
+        setProducts([]);
+      }
     } finally {
       setLoading(false);
     }
