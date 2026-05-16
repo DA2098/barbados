@@ -59,7 +59,7 @@ function SessionConflictNotice() {
 }
 
 function SessionConflictModal() {
-  const { user, duplicatedSession, reclaimSession, logout } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logoutLocal } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -77,7 +77,7 @@ function SessionConflictModal() {
         <p className="text-xs text-contrast/80 mb-4">Cierre automático en <span className="font-semibold">{duplicatedSession.secondsLeft}s</span></p>
         <div className="flex justify-end gap-3">
           <button onClick={() => reclaimSession()} className="px-4 py-2 accent-btn font-bold">Mantener aquí</button>
-          <button onClick={() => { logout(); window.location.href = '/#\/login'; }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
+          <button onClick={() => { logoutLocal(); window.location.href = '/#\/login'; }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
         </div>
       </div>
     </div>

@@ -15,6 +15,7 @@ interface AuthContextType {
   updateUser: (u: User) => void;
   duplicatedSession: DuplicatedSessionState | null;
   reclaimSession: () => void;
+  logoutLocal: () => void;
   sessionExitReason: SessionExitReason;
   clearSessionExitReason: () => void;
 }
@@ -92,6 +93,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
+    setUser(null);
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem(SESSION_META_KEY);
+    if (targetUserId) {
+      localStorage.removeItem(getLockKey(targetUserId));
+    }
+    sessionIdRef.current = null;
+    clearDuplicateState();
+    setSessionExitReason(reason);
+  };
+
+  const performLocalOnlyLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
+    const targetUserId = explicitUserId || user?.id;
     setUser(null);
     localStorage.removeItem('auth_user');
     localStorage.removeItem(SESSION_META_KEY);
@@ -294,6 +308,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     performLocalLogout(null, user?.id);
   };
 
+  const logoutLocal = () => {
+    performLocalOnlyLogout(null, user?.id);
+  };
+
   const updateUser = (u: User) => {
     setUser(u);
     localStorage.setItem('auth_user', JSON.stringify(u));
@@ -301,7 +319,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, updateUser, duplicatedSession, reclaimSession, sessionExitReason, clearSessionExitReason }}
+      value={{ user, login, logout, logoutLocal, updateUser, duplicatedSession, reclaimSession, sessionExitReason, clearSessionExitReason }}
     >
       {children}
     </AuthContext.Provider>

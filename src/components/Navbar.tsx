@@ -8,7 +8,7 @@ import { api } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
-  const { user, logout, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession } = useAuth();
+  const { user, logout, logoutLocal, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { items } = useCart();
   const navigate = useNavigate();
@@ -153,7 +153,8 @@ export default function Navbar() {
                       <button onClick={() => reclaimSession()} className="accent-btn px-3 py-2 rounded-md">Seguir en este dispositivo</button>
                       <button
                         onClick={() => {
-                          logout();
+                          // Local-only logout so the other device keeps its session.
+                          try { logoutLocal(); } catch { logout(); }
                           navigate('/login');
                         }}
                         className="underline font-semibold"
