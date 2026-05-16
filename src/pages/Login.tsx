@@ -11,6 +11,10 @@ export default function Login() {
 
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { logout, logoutLocal } = useAuth();
+
+  const [existingSessionUser, setExistingSessionUser] = useState<{ id: string; name?: string } | null>(null);
+  const [showExistingModal, setShowExistingModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +44,23 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // Detect if this tab already has a logged user and prompt before allowing a different login
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('auth_user');
+      const tabLoggedOut = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('barbados_tab_local_logout');
+      if (raw && !tabLoggedOut) {
+        const parsed = JSON.parse(raw) as { id: string; name?: string };
+        if (parsed && parsed.id) {
+          setExistingSessionUser({ id: parsed.id, name: parsed.name });
+          setShowExistingModal(true);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg)' }}>
@@ -114,6 +135,45 @@ export default function Login() {
               )}
             </button>
           </form>
+
+          {/* Existing-session modal (blocks login until user decides) */}
+          {showExistingModal && existingSessionUser && (
+            <div className="fixed inset-0 z-9999 flex items-center justify-center px-4">
+              <div className="absolute inset-0 bg-black/60" />
+              <div className="relative z-10 w-full max-w-lg rounded-2xl bg-surface p-6 shadow-2xl border">
+                <h3 className="text-lg font-bold mb-2">Confirmar</h3>
+                <p className="mb-4 text-sm text-muted">
+                  Actualmente ha iniciado sesión como {existingSessionUser.name || existingSessionUser.id}, necesita salir antes de volver a entrar con un usuario diferente.
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => {
+                      setShowExistingModal(false);
+                    }}
+                    className="px-4 py-2 rounded border"
+                    type="button"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      // perform a full logout so the login form can be used for another account
+                      try {
+                        await logout();
+                      } catch {
+                        try { logoutLocal(); } catch {}
+                      }
+                      setShowExistingModal(false);
+                    }}
+                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
+                    type="button"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-sm text-center text-muted">
