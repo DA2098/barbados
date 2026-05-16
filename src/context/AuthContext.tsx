@@ -25,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const SESSION_LOCK_PREFIX = 'auth_session_lock_';
 const SESSION_META_KEY = 'auth_session_meta';
+const TAB_LOCAL_LOGOUT_KEY = 'barbados_tab_local_logout';
 const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
 const DUPLICATE_SESSION_GRACE_SECONDS = Math.max(10, Number(env?.VITE_DUPLICATE_SESSION_GRACE_SECONDS || '45'));
 const IDLE_TIMEOUT_SECONDS = Math.max(60, Number(env?.VITE_IDLE_TIMEOUT_SECONDS || '300'));
@@ -55,7 +56,8 @@ const createSessionId = (forceNew = false) => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('auth_user');
-    return saved ? JSON.parse(saved) : null;
+    const tabLoggedOut = typeof sessionStorage !== 'undefined' && sessionStorage.getItem(TAB_LOCAL_LOGOUT_KEY);
+    return saved && !tabLoggedOut ? JSON.parse(saved) : null;
   });
   const [duplicatedSession, setDuplicatedSession] = useState<DuplicatedSessionState | null>(null);
   const [sessionExitReason, setSessionExitReason] = useState<SessionExitReason>(null);
@@ -85,6 +87,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSessionExitReason(null);
   };
 
+  const isTabLocallyLoggedOut = () => typeof sessionStorage !== 'undefined' && sessionStorage.getItem(TAB_LOCAL_LOGOUT_KEY) === '1';
+
+  const setTabLocalLogout = () => {
+    try {
+      if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(TAB_LOCAL_LOGOUT_KEY, '1');
+    } catch {
+      // ignore
+    }
+  };
+
+  const clearTabLocalLogout = () => {
+    try {
+      if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(TAB_LOCAL_LOGOUT_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
   const performLocalLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
     const targetUserId = explicitUserId || user?.id;
 
@@ -103,16 +123,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionIdRef.current = null;
     clearDuplicateState();
     setSessionExitReason(reason);
+    // Ensure any local-only logout flag is cleared on a full logout.
+    clearTabLocalLogout();
   };
 
   const performLocalOnlyLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
     const targetUserId = explicitUserId || user?.id;
+    // Mark this tab as locally logged out (so other tabs/devices aren't affected).
+    setTabLocalLogout();
     setUser(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem(SESSION_META_KEY);
-    if (targetUserId) {
-      localStorage.removeItem(getLockKey(targetUserId));
-    }
+    // Do not clear shared localStorage session metadata or locks here — this action must not
+    // affect other tabs or devices. Keep session meta intact so the other device remains active.
     sessionIdRef.current = null;
     clearDuplicateState();
     setSessionExitReason(reason);
@@ -164,7 +185,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === 'auth_user') {
+        const tabLoggedOut = isTabLocallyLoggedOut();
         const savedUser = event.newValue ? (JSON.parse(event.newValue) as User) : null;
+        // If this tab was explicitly logged out locally, ignore storage updates that would
+        // rehydrate `auth_user` in this tab. Other tabs/devices will still receive updates.
+        if (tabLoggedOut) return;
         setUser(savedUser);
         return;
       }
@@ -322,6 +347,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     writeSessionLock(u.id, nextSessionId);
     clearDuplicateState();
     clearSessionExitReason();
+    // Clear local-only logout flag when the user logs in on this tab.
+    clearTabLocalLogout();
   };
 
   const logout = () => {
