@@ -41,14 +41,37 @@ app.use(helmet.contentSecurityPolicy({
   }
 }));
 
-// Rate limiter
+// Rate limiter (configurable via env vars)
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000; // default 15 minutes
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX) || 1000; // default max requests per window
+const RATE_LIMIT_WHITELIST = (process.env.RATE_LIMIT_WHITELIST || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  // Temporarily increase limit to reduce login blocking during testing/deploy.
-  // Adjust down later to a safer value for production.
-  max: 1000, // limit each IP to 1000 requests per windowMs
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX,
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  // Allow whitelisted IPs to bypass the limiter
+  skip: (req) => {
+    try {
+      return RATE_LIMIT_WHITELIST.includes(req.ip);
+    } catch (e) {
+      return false;
+    }
+  },
+  handler: (req, res) => {
+    const info = {
+      ip: req.ip,
+      url: req.originalUrl,
+      method: req.method,
+      time: new Date().toISOString()
+    };
+    console.warn('Rate limit exceeded:', info);
+    res.status(429).json({ error: 'Too many requests', message: 'Has excedido el límite de peticiones. Intenta más tarde.' });
+  }
 });
 app.use(limiter);
 
