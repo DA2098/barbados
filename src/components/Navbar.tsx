@@ -73,10 +73,21 @@ export default function Navbar() {
     void syncLatestAdminMessage();
   }, [user?.id, user?.role]);
 
-  useRealtimeUserEvents(user?.id, (payload) => {
-    setUnreadCount(payload.unreadCount || 0);
-    void syncLatestAdminMessage();
-  }, !!user);
+  useRealtimeUserEvents(
+    user?.id,
+    (payload) => {
+      setUnreadCount(payload.unreadCount || 0);
+      void syncLatestAdminMessage();
+    },
+    !!user,
+    (notification) => {
+      try {
+        // Increment unread counter immediately for better UX; periodic fetch will reconcile.
+        if (!notification) return;
+        setUnreadCount((prev) => prev + (notification.isRead ? 0 : 1));
+      } catch {}
+    }
+  );
 
   const NavLink = ({ to, children, onClick }: { to: string; children: React.ReactNode; onClick?: () => void }) => (
     <Link 

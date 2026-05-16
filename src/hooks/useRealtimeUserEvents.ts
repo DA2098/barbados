@@ -11,7 +11,8 @@ export type RealtimeSyncPayload = {
 export function useRealtimeUserEvents(
   userId: string | undefined,
   onSync: (payload: RealtimeSyncPayload) => void,
-  enabled: boolean = true
+  enabled: boolean = true,
+  onNotification?: (notification: any) => void
 ) {
   const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
   const apiBase = (() => {
@@ -37,11 +38,16 @@ export function useRealtimeUserEvents(
   })();
 
   const onSyncRef = useRef(onSync);
+  const onNotificationRef = useRef(onNotification);
   const lastPayloadRef = useRef<RealtimeSyncPayload | null>(null);
 
   useEffect(() => {
     onSyncRef.current = onSync;
   }, [onSync]);
+
+  useEffect(() => {
+    onNotificationRef.current = onNotification;
+  }, [onNotification]);
 
   useEffect(() => {
     if (!enabled || !userId) return;
@@ -57,6 +63,7 @@ export function useRealtimeUserEvents(
 
       source = new EventSource(url.toString());
       source.addEventListener('sync', handleSync as EventListener);
+      source.addEventListener('notification', handleNotification as EventListener);
       source.addEventListener('heartbeat', handleHeartbeat as EventListener);
       source.onerror = () => {
         source?.close();
@@ -89,6 +96,12 @@ export function useRealtimeUserEvents(
               lastPayloadRef.current = payload;
               onSyncRef.current(payload);
             }
+
+            if (obj && obj.type === 'notification' && obj.payload) {
+              try {
+                onNotificationRef.current?.(obj.payload);
+              } catch {}
+            }
           } catch {
             // ignore
           }
@@ -117,6 +130,15 @@ export function useRealtimeUserEvents(
         onSyncRef.current(payload);
       } catch {
         // Ignore malformed payloads and keep stream alive.
+      }
+    };
+
+    const handleNotification = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data);
+        onNotificationRef.current?.(payload);
+      } catch {
+        // ignore malformed notification
       }
     };
 
