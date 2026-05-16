@@ -30,7 +30,12 @@ export default function StaffLogin() {
       if (user.role === 'admin') navigate('/admin');
       else navigate('/barber');
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión');
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+          console.warn('Ignored session_conflict in StaffLogin');
+        } else {
+          setError(err.message || 'Error al iniciar sesión');
+        }
     } finally {
       setLoading(false);
     }

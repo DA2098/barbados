@@ -122,7 +122,12 @@ export default function Chat() {
       setText('');
       await loadMessages();
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Chat sendText');
+      } else {
+        alert(err.message);
+      }
     } finally {
       setSending(false);
     }
@@ -139,7 +144,12 @@ export default function Chat() {
       });
       await loadMessages();
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Chat sendImage');
+      } else {
+        alert(err.message);
+      }
     } finally {
       setUploading(false);
     }
@@ -155,7 +165,12 @@ export default function Chat() {
       setMessages([]);
       await openConversation(selectedContact);
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Chat clearConversation');
+      } else {
+        alert(err.message);
+      }
     }
   };
 

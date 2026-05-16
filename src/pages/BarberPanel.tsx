@@ -104,7 +104,12 @@ export default function BarberPanel() {
       });
       fetchLogs();
     } catch (err: any) {
-      alert('Error: ' + err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in BarberPanel add log');
+      } else {
+        alert('Error: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -122,7 +127,12 @@ export default function BarberPanel() {
       });
       updateUser(updated);
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in BarberPanel avatar upload');
+      } else {
+        alert(error.message);
+      }
     } finally {
       setUploadingAvatar(false);
     }
@@ -139,7 +149,12 @@ export default function BarberPanel() {
       });
       updateUser(updated);
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in BarberPanel remove avatar');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -151,7 +166,12 @@ export default function BarberPanel() {
       await fetchAppointments();
       await fetchLogs();
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in BarberPanel delete appointment');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -161,7 +181,12 @@ export default function BarberPanel() {
       await api.deleteBarberLog(logId);
       await fetchLogs();
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in BarberPanel delete log');
+      } else {
+        alert(error.message);
+      }
     }
   };
 

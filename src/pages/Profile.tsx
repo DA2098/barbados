@@ -67,7 +67,12 @@ export default function Profile() {
       updateUser(updatedUser);
       setSuccess('Perfil actualizado exitosamente');
     } catch (err: any) {
-      alert(err.message);
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+          console.warn('Ignored session_conflict in Profile update');
+        } else {
+          alert(err.message);
+        }
     } finally {
       setLoading(false);
     }
@@ -93,7 +98,12 @@ export default function Profile() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Profile changePassword');
+      } else {
+        alert(err.message);
+      }
     } finally {
       setPasswordLoading(false);
     }
@@ -109,7 +119,12 @@ export default function Profile() {
       updateUser(updatedUser);
       setSuccess('Foto de perfil actualizada');
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Profile avatar upload');
+      } else {
+        alert(err.message);
+      }
     } finally {
       setUploadingAvatar(false);
     }
@@ -125,7 +140,12 @@ export default function Profile() {
       updateUser(updatedUser);
       setSuccess('Foto de perfil eliminada');
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Profile remove avatar');
+      } else {
+        alert(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -154,7 +174,12 @@ export default function Profile() {
       updateUser(updatedUser);
       setSuccess('Postulación enviada correctamente. El admin la revisará pronto.');
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Profile submit application');
+      } else {
+        alert(err.message);
+      }
     } finally {
       setSubmittingApplication(false);
     }

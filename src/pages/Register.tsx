@@ -28,7 +28,12 @@ export default function Register() {
       login(user);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Error al registrar');
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Register');
+      } else {
+        setError(err.message || 'Error al registrar');
+      }
     } finally {
       setLoading(false);
     }

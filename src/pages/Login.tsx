@@ -29,7 +29,13 @@ export default function Login() {
       login(user);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión');
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignored session_conflict in Login');
+        // Let AuthContext show banner/modal instead
+      } else {
+        setError(err.message || 'Error al iniciar sesión');
+      }
     } finally {
       setLoading(false);
     }

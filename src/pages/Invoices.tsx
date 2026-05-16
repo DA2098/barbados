@@ -19,7 +19,14 @@ export default function Invoices() {
         if (!cancelled) setInvoices(data);
       })
       .catch((err: any) => {
-        if (!cancelled) setError(err.message || 'No se pudieron cargar las facturas');
+        if (!cancelled) {
+          const msg = String(err?.message || '').toLowerCase();
+          if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+            console.warn('Ignored session_conflict in Invoices');
+          } else {
+            setError(err.message || 'No se pudieron cargar las facturas');
+          }
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
