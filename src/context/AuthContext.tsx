@@ -66,6 +66,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const duplicateDeadlineRef = useRef<number | null>(null);
   const userRef = useRef<User | null>(null);
 
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
   const persistSessionMeta = (userId: string | null, sessionId: string) => {
     localStorage.setItem(
       SESSION_META_KEY,
@@ -105,6 +109,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       // ignore
     }
+  };
+
+  const performLocalOnlyLogout = (reason: SessionExitReason = null) => {
+    // Mark this tab as locally logged out (so other tabs/devices aren't affected).
+    setTabLocalLogout();
+    setUser(null);
+    // Do not clear shared localStorage session metadata or locks here — this action must not
+    // affect other tabs or devices. Keep session meta intact so the other device remains active.
+    sessionIdRef.current = null;
+    clearDuplicateState();
+    setSessionExitReason(reason);
+    // Clear app-specific localStorage keys to remove transient local data (telemetry, cached choices, etc.)
+    try {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('barbados_')) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    // Notify other contexts in this tab that a local-only logout occurred so they can clear in-memory state.
+    try {
+      window.dispatchEvent(new CustomEvent('barbados:local-logout'));
+    } catch {
+      // ignore
+    }
+    try {
+      window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'other' } }));
+    } catch {}
   };
 
   const performLocalLogout = (reason: SessionExitReason = null) => {
