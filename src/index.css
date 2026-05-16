@@ -187,22 +187,12 @@ a {
   padding: 4px;
 }
 
-/* Brand title underline (red stripe) */
+/* Brand title: moved slightly down without stripe */
 .brand-title {
   position: relative;
   display: inline-block;
-  padding-bottom: 6px; /* space for the stripe */
-}
-.brand-title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: #ef4444; /* red stripe */
-  bottom: -6px;
-  border-radius: 4px;
-  transform: translateY(0);
+  padding-bottom: 0;
+  transform: translateY(4px); /* lower the text a bit */
 }
 
 .form-input {
