@@ -5,7 +5,7 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Appointments() {
-  const { user } = useAuth();
+  const { user, duplicatedSession } = useAuth();
   const [services, setServices] = useState<Product[]>([]);
   const [barbers, setBarbers] = useState<User[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -70,11 +70,11 @@ export default function Appointments() {
     }
   };
 
-  useAutoRefresh(() => loadData(true), { intervalMs: 20000, enabled: !!user });
+  useAutoRefresh(() => loadData(true), { intervalMs: 20000, enabled: !!user && !duplicatedSession });
 
   useRealtimeUserEvents(user?.id, async () => {
     await loadData(true);
-  }, !!user);
+  }, !!user && !duplicatedSession);
 
   const handleSubmitReview = async (appointmentId: string) => {
     if (!user || user.role !== 'user') return;

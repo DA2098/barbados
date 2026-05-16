@@ -252,10 +252,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Register listener once on mount, never remove it
     // The handler closure will always see the current `user` value
+    (window as any).__barbadosOnSessionConflict = handleConflict;
     window.addEventListener('barbados:session-conflict', handleConflict as EventListener);
     
     // No cleanup - keep the listener active for the lifetime of the app
     // This prevents race conditions where events are missed during listener re-registration
+    return () => {
+      if ((window as any).__barbadosOnSessionConflict === handleConflict) {
+        delete (window as any).__barbadosOnSessionConflict;
+      }
+      window.removeEventListener('barbados:session-conflict', handleConflict as EventListener);
+    };
   }, []);
 
   useEffect(() => {

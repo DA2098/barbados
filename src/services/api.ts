@@ -227,6 +227,10 @@ const patchGlobalFetchForSessionHeaders = () => {
     if (response.status === 409 && response.headers.get('x-session-conflict') === '1') {
       try {
         console.warn('🔴 Session conflict detected - dispatching event');
+        const signalConflict = (window as any).__barbadosOnSessionConflict;
+        if (typeof signalConflict === 'function') {
+          signalConflict();
+        }
         window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
         console.warn('✓ Session conflict event dispatched');
       } catch (e) {

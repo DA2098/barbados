@@ -8,7 +8,7 @@ import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, duplicatedSession } = useAuth();
   const [cuts, setCuts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<AppointmentReview[]>([]);
 
@@ -53,7 +53,7 @@ export default function Home() {
     } catch (error) {
       console.error(error);
     }
-  }, { intervalMs: 30000 });
+  }, { intervalMs: 30000, enabled: !duplicatedSession });
 
   useRealtimeUserEvents(user?.id, async () => {
     try {
@@ -66,7 +66,7 @@ export default function Home() {
     } catch (error) {
       console.error(error);
     }
-  }, !!user);
+  }, !!user && !duplicatedSession);
 
   const featuredCuts = useMemo(() => cuts.slice(0, 4), [cuts]);
 

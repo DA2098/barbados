@@ -7,7 +7,7 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Chat() {
-  const { user } = useAuth();
+  const { user, duplicatedSession } = useAuth();
   const [searchParams] = useSearchParams();
   const [contacts, setContacts] = useState<User[]>([]);
   const [selectedContact, setSelectedContact] = useState<User | null>(null);
@@ -91,12 +91,12 @@ export default function Chat() {
   useAutoRefresh(async () => {
     if (!user || !selectedContact) return;
     await refreshConversation();
-  }, { intervalMs: 15000, enabled: !!user && !!selectedContact });
+  }, { intervalMs: 15000, enabled: !!user && !!selectedContact && !duplicatedSession });
 
   useAutoRefresh(async () => {
     if (!user) return;
     await loadContacts();
-  }, { intervalMs: 30000, enabled: !!user });
+  }, { intervalMs: 30000, enabled: !!user && !duplicatedSession });
 
   useRealtimeUserEvents(user?.id, async () => {
     if (!user) return;
@@ -104,7 +104,7 @@ export default function Chat() {
     if (selectedContact) {
       await refreshConversation();
     }
-  }, !!user);
+  }, !!user && !duplicatedSession);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

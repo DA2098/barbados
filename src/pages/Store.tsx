@@ -13,7 +13,7 @@ export default function Store() {
   const [loading, setLoading] = useState(true);
   const [loadedOnce, setLoadedOnce] = useState(false);
   const { addToCart } = useCart();
-  const { user } = useAuth();
+  const { user, duplicatedSession } = useAuth();
   const canBuyProducts = user ? user.role === 'user' : true;
 
   const loadProducts = async (background = false) => {
@@ -49,7 +49,7 @@ export default function Store() {
       void loadProducts(false);
   }, [location.search, category]);
 
-  useAutoRefresh(() => loadProducts(true), { intervalMs: 30000 });
+  useAutoRefresh(() => loadProducts(true), { intervalMs: 30000, enabled: !duplicatedSession });
 
   const categoryLabel = (c: 'barber' | 'food' | 'drink' | 'service') => {
     if (c === 'barber') return 'Barbería';

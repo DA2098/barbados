@@ -6,7 +6,7 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function BarberPanel() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, duplicatedSession } = useAuth();
   const [logs, setLogs] = useState<BarberLog[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -110,12 +110,12 @@ export default function BarberPanel() {
   useAutoRefresh(async () => {
     if (!user) return;
     await Promise.all([fetchLogs(), fetchRegisteredUsers(), fetchAppointments(), fetchCatalogProducts()]);
-  }, { intervalMs: 20000, enabled: !!user });
+  }, { intervalMs: 20000, enabled: !!user && !duplicatedSession });
 
   useRealtimeUserEvents(user?.id, async () => {
     if (!user) return;
     await Promise.all([fetchLogs(), fetchRegisteredUsers(), fetchAppointments(), fetchCatalogProducts()]);
-  }, !!user);
+  }, !!user && !duplicatedSession);
 
   // Actualizar el valor por defecto si cambia el tipo
   useEffect(() => {

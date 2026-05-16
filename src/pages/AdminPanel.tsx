@@ -63,7 +63,7 @@ const emptyNewUser: NewUserForm = {
 };
 
 export default function AdminPanel() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, duplicatedSession } = useAuth();
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState<User[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -169,7 +169,7 @@ export default function AdminPanel() {
     }
   };
 
-  useAutoRefresh(fetchData, { intervalMs: 20000, enabled: user?.role === 'admin' });
+  useAutoRefresh(fetchData, { intervalMs: 20000, enabled: user?.role === 'admin' && !duplicatedSession });
 
   useRealtimeUserEvents(user?.id, async () => {
     if (user?.role !== 'admin') return;
@@ -177,7 +177,7 @@ export default function AdminPanel() {
     if (selectedConversationId) {
       await loadConversationMessages(selectedConversationId);
     }
-  }, user?.role === 'admin');
+  }, user?.role === 'admin' && !duplicatedSession);
 
   // Polling fallback: when admin opens a conversation, poll messages periodically
   // to ensure near-real-time updates if the realtime stream fails or is delayed.

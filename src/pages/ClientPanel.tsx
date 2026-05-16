@@ -7,7 +7,7 @@ import { useAutoRefresh } from '../hooks/useAutoRefresh';
 
 
 export default function ClientPanel() {
-  const { user } = useAuth();
+  const { user, duplicatedSession } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<'barber' | 'food' | 'drink'>('barber');
@@ -55,7 +55,7 @@ export default function ClientPanel() {
     void loadProducts(category);
   }, [category]);
 
-  useAutoRefresh(() => void loadProducts(category, true), { intervalMs: 30000, enabled: true });
+  useAutoRefresh(() => void loadProducts(category, true), { intervalMs: 30000, enabled: !duplicatedSession });
 
   const loadProducts = async (cat: typeof category, background = false) => {
     if (!background) setLoading(true);
