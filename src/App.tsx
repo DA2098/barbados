@@ -7,6 +7,7 @@ import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import StaffLogin from './pages/StaffLogin';
 import Register from './pages/Register';
 import Store from './pages/Store';
 import Appointments from './pages/Appointments';
@@ -30,6 +31,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/acceso-privado" element={<StaffLogin />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/store" element={<Store />} />
                   <Route path="/appointments" element={<Appointments />} />
