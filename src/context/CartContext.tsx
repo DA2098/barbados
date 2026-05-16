@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product } from '../services/api';
 
 interface CartItem {
@@ -18,6 +18,15 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+
+  // Clear cart on local-only logout event
+  useEffect(() => {
+    const onLocalLogout = () => {
+      setItems([]);
+    };
+    window.addEventListener('barbados:local-logout', onLocalLogout as EventListener);
+    return () => window.removeEventListener('barbados:local-logout', onLocalLogout as EventListener);
+  }, []);
 
   const addToCart = (product: Product) => {
     setItems((prev) => {

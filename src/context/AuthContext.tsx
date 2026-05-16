@@ -16,7 +16,7 @@ interface AuthContextType {
   duplicatedSession: DuplicatedSessionState | null;
   reclaimSession: () => void;
   logoutLocal: () => void;
-  allowBothSessions: () => void;
+  allowBothSessions: (minutes?: number) => void;
   trackSessionDecision?: (action: 'keep' | 'other' | 'both') => void;
   sessionExitReason: SessionExitReason;
   clearSessionExitReason: () => void;
@@ -154,6 +154,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       // ignore
     }
+    try {
+      window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'other' } }));
+    } catch {}
   };
 
   // Lightweight telemetry for session decisions. Stores event locally and logs to console.
@@ -175,14 +178,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const allowBothSessions = () => {
+  const allowBothSessions = (minutes?: number) => {
     // User chooses to allow both sessions to remain active.
     // Clear any duplicate countdown for this tab and keep current session active.
     clearDuplicateState();
     try {
       if (user?.id) {
-        const choice = { userId: user.id, action: 'both', expiresAt: Date.now() + 60 * 60 * 1000 };
+        const ms = (minutes && minutes > 0 ? minutes : 60) * 60 * 1000;
+        const expiresAt = Date.now() + ms;
+        const choice = { userId: user.id, action: 'both', expiresAt };
         localStorage.setItem('barbados_session_choice', JSON.stringify(choice));
+        // Notify UI for toast
+        try {
+          window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'both', expiresAt } }));
+        } catch {}
       }
     } catch {
       // ignore
@@ -201,6 +210,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     persistSessionMeta(user.id, nextSessionId);
     writeSessionLock(user.id, nextSessionId);
     clearDuplicateState();
+    try {
+      window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'keep' } }));
+    } catch {}
   };
 
   useEffect(() => {

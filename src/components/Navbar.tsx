@@ -8,7 +8,7 @@ import { api } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
-  const { user, logout, logoutLocal, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession, trackSessionDecision } = useAuth();
+  const { user, logout, logoutLocal, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession, allowBothSessions, trackSessionDecision } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { items } = useCart();
   const navigate = useNavigate();
@@ -169,9 +169,10 @@ export default function Navbar() {
                       <button
                         onClick={() => {
                           if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
+                          const hoursRaw = prompt('¿Recordar por cuántas horas? (dejar vacío = 1 hora)', '1');
+                          const hours = hoursRaw ? Math.max(0, Number(hoursRaw)) : 1;
                           trackSessionDecision?.('both');
-                          // allow both: simply clear the duplicate countdown here
-                          reclaimSession();
+                          allowBothSessions(hours);
                         }}
                         className="px-3 py-2 font-semibold"
                       >

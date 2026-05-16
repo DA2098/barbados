@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
+import { ToastProvider } from './context/ToastContext';
 
 // Componentes y Páginas
 import Navbar from './components/Navbar';
@@ -66,8 +67,10 @@ function SessionConflictNotice() {
             type="button"
             onClick={() => {
               if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
+              const hoursRaw = prompt('¿Recordar por cuántas horas? (dejar vacío = 1 hora)', '1');
+              const hours = hoursRaw ? Math.max(0, Number(hoursRaw)) : 1;
               trackSessionDecision?.('both');
-              allowBothSessions();
+              allowBothSessions(hours);
             }}
             className="px-3 py-2 text-sm font-semibold"
           >
@@ -109,8 +112,10 @@ function SessionConflictModal() {
           }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
           <button onClick={() => {
             if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
+            const hoursRaw = prompt('¿Recordar por cuántas horas? (dejar vacío = 1 hora)', '1');
+            const hours = hoursRaw ? Math.max(0, Number(hoursRaw)) : 1;
             trackSessionDecision?.('both');
-            allowBothSessions();
+            allowBothSessions(hours);
           }} className="px-4 py-2 font-semibold">Permitir ambas</button>
         </div>
       </div>
@@ -159,9 +164,11 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
-          <Router>
-            <AppShell />
-          </Router>
+          <ToastProvider>
+            <Router>
+              <AppShell />
+            </Router>
+          </ToastProvider>
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>
