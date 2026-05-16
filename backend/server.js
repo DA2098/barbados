@@ -54,10 +54,22 @@ const limiter = rateLimit({
   max: RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
-  // Allow whitelisted IPs to bypass the limiter
+  // Use userId (if present) as key to avoid counting all users behind same IP together
+  keyGenerator: (req /*, res*/) => {
+    try {
+      // Prefer authenticated user identifiers when available (body, query or header)
+      return String(req.body?.userId || req.query?.userId || req.headers['x-user-id'] || req.ip || 'anonymous');
+    } catch (e) {
+      return req.ip;
+    }
+  },
+  // Allow whitelisted IPs and health/uploads endpoints to bypass the limiter
   skip: (req) => {
     try {
-      return RATE_LIMIT_WHITELIST.includes(req.ip);
+      if (RATE_LIMIT_WHITELIST.includes(req.ip)) return true;
+      if (req.path === '/' || req.path === '/health') return true;
+      if (req.path && req.path.startsWith('/uploads')) return true;
+      return false;
     } catch (e) {
       return false;
     }
@@ -65,6 +77,7 @@ const limiter = rateLimit({
   handler: (req, res) => {
     const info = {
       ip: req.ip,
+      key: (req.body?.userId || req.query?.userId || req.headers['x-user-id'] || null),
       url: req.originalUrl,
       method: req.method,
       time: new Date().toISOString()
@@ -73,12 +86,13 @@ const limiter = rateLimit({
     res.status(429).json({ error: 'Too many requests', message: 'Has excedido el límite de peticiones. Intenta más tarde.' });
   }
 });
-app.use(limiter);
 
 // Capture raw body for webhook signature verification (Stripe)
 app.use(express.json({ limit: '50mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(uploadsDir));
+// Apply rate limiter after body parsers so keyGenerator can read body/query for userId
+app.use(limiter);
 
 // Inicializar DB al arrancar (sin bloquear si falla)
 initializeDatabase()
