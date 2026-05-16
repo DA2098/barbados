@@ -25,7 +25,7 @@ const SESSION_LOCK_PREFIX = 'auth_session_lock_';
 const SESSION_META_KEY = 'auth_session_meta';
 const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
 const DUPLICATE_SESSION_GRACE_SECONDS = Math.max(10, Number(env?.VITE_DUPLICATE_SESSION_GRACE_SECONDS || '45'));
-const IDLE_TIMEOUT_SECONDS = Math.max(60, Number(env?.VITE_IDLE_TIMEOUT_SECONDS || '1800'));
+const IDLE_TIMEOUT_SECONDS = Math.max(60, Number(env?.VITE_IDLE_TIMEOUT_SECONDS || '300'));
 
 const getLockKey = (userId: string) => `${SESSION_LOCK_PREFIX}${userId}`;
 

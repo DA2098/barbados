@@ -109,7 +109,12 @@ export default function AdminPanel() {
       setChats(chatData);
     } catch (error: any) {
       console.error('Error en fetchData:', error);
-      alert(`Error al cargar datos: ${error.message}`);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en fetchData');
+      } else {
+        alert(`Error al cargar datos: ${error.message}`);
+      }
     }
   };
 
@@ -132,7 +137,12 @@ export default function AdminPanel() {
       setMessageText('');
       await loadConversationMessages(selectedConversationId);
     } catch (err: any) {
-      alert(err.message);
+      const msg = String(err?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en sendAdminMessage');
+      } else {
+        alert(err.message);
+      }
     }
   };
 
@@ -183,7 +193,12 @@ export default function AdminPanel() {
       await api.updateUserRole(user.id, targetUser.id, role, approve);
       await fetchData();
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleChangeRole');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -207,7 +222,12 @@ export default function AdminPanel() {
       await fetchData();
     } catch (error: any) {
       setCreatingUser(false);
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleCreateUser');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -236,7 +256,12 @@ export default function AdminPanel() {
       setEditingProductId(null);
       await fetchData();
     } catch (error: any) {
-      alert(`Error: ${error.message}`);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleSubmitProduct');
+      } else {
+        alert(`Error: ${error.message}`);
+      }
     }
   };
 
@@ -272,7 +297,12 @@ export default function AdminPanel() {
       setEditingCutId(null);
       await fetchData();
     } catch (error: any) {
-      alert(`Error: ${error.message}`);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleSubmitCut');
+      } else {
+        alert(`Error: ${error.message}`);
+      }
     }
   };
 
@@ -326,7 +356,12 @@ export default function AdminPanel() {
       await api.deleteBarberLog(logId);
       await fetchData();
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleDeleteLog');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -338,7 +373,12 @@ export default function AdminPanel() {
       await fetchData();
       alert(`Registros de ${labels[dateRange]} eliminados`);
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleDeleteLogsByRange');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -402,7 +442,12 @@ export default function AdminPanel() {
       });
       updateUser(updated);
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleAvatarUpload');
+      } else {
+        alert(error.message);
+      }
     } finally {
       setUploadingAvatar(false);
     }
@@ -419,7 +464,12 @@ export default function AdminPanel() {
       });
       updateUser(updated);
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleRemoveAvatar');
+      } else {
+        alert(error.message);
+      }
     }
   };
 
@@ -430,7 +480,12 @@ export default function AdminPanel() {
       const imageUrl = await api.uploadServiceImage(user.id, file);
       setProductForm((prev) => ({ ...prev, image_url: imageUrl }));
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleServiceImageUpload');
+      } else {
+        alert(error.message);
+      }
     } finally {
       setUploadingServiceImage(false);
     }
@@ -443,7 +498,12 @@ export default function AdminPanel() {
       const imageUrl = await api.uploadServiceImage(user.id, file);
       setCutForm((prev) => ({ ...prev, image_url: imageUrl }));
     } catch (error: any) {
-      alert(error.message);
+      const msg = String(error?.message || '').toLowerCase();
+      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
+        console.warn('Ignorado session_conflict en handleCutImageUpload');
+      } else {
+        alert(error.message);
+      }
     } finally {
       setUploadingServiceImage(false);
     }

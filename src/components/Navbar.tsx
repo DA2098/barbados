@@ -8,7 +8,7 @@ import { api } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { items } = useCart();
   const navigate = useNavigate();
@@ -140,6 +140,47 @@ export default function Navbar() {
 
               </div>
           </div>
+
+              {/* Duplicate session warning (non-blocking, with actions) */}
+              {duplicatedSession && (
+                <div className="max-w-7xl mx-auto px-4 lg:px-8">
+                  <div className="mt-2 p-3 rounded-md bg-yellow-500 text-black flex flex-col md:flex-row md:justify-between items-start md:items-center gap-3">
+                    <div className="font-medium">
+                      Se inició sesión desde otro dispositivo. Puedes seguir en este equipo o iniciar sesión en el otro.
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm opacity-90">Cierra en: <span className="font-bold">{duplicatedSession.secondsLeft}s</span></div>
+                      <button onClick={() => reclaimSession()} className="accent-btn px-3 py-2 rounded-md">Seguir en este dispositivo</button>
+                      <button
+                        onClick={() => {
+                          logout();
+                          navigate('/login');
+                        }}
+                        className="underline font-semibold"
+                      >
+                        Iniciar en otro dispositivo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Session exit notice (non-blocking) */}
+              {sessionExitReason && (
+                <div className="max-w-7xl mx-auto px-4 lg:px-8">
+                  <div className="mt-2 p-3 rounded-md bg-amber-400 text-black flex justify-between items-center">
+                    <div className="font-medium">
+                      {sessionExitReason === 'inactive'
+                        ? 'Sesión cerrada por inactividad'
+                        : 'Sesión cerrada por inicio en otro dispositivo'}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Link to="/login" className="underline font-semibold">Iniciar sesión</Link>
+                      <button onClick={() => clearSessionExitReason()} className="text-sm opacity-80">Cerrar</button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
