@@ -10,12 +10,14 @@ type CardProps = {
   onClick?: () => void;
   style?: React.CSSProperties;
   variant?: 'default' | 'cut';
+  interactive?: boolean;
 };
 
-const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, className = '', onClick, style, variant = 'default' }) => {
+const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, className = '', onClick, style, variant = 'default', interactive = true }) => {
   const clickableClass = onClick ? 'cursor-pointer' : '';
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!interactive) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width;
     const py = (e.clientY - rect.top) / rect.height;
@@ -27,17 +29,18 @@ const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, c
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!interactive) return;
     e.currentTarget.style.setProperty('--card-rx', '0deg');
     e.currentTarget.style.setProperty('--card-ry', '0deg');
   };
 
   return (
-    <div style={style} className={`card-3d h-full ${variant === 'cut' ? 'cut-card' : ''} ${className}`}>
+    <div style={style} className={`${interactive ? `card-3d h-full ${variant === 'cut' ? 'cut-card' : ''}` : 'h-full'} ${className}`}>
       <div
         className={`card-inner glass-card h-full flex flex-col overflow-hidden ${clickableClass}`}
         onClick={onClick}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
+        onMouseMove={interactive ? handleMouseMove : undefined}
+        onMouseLeave={interactive ? handleMouseLeave : undefined}
       >
         {image && variant === 'cut' ? (
           <div className="cut-avatar-wrap w-full flex items-center justify-center py-6">

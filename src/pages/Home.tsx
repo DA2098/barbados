@@ -121,6 +121,7 @@ export default function Home() {
           <Card
             key={cut.id}
             variant="cut"
+            interactive={false}
             title={cut.name}
             subtitle={`${cut.duration_minutes || 30} min`}
             image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
