@@ -22,7 +22,7 @@ import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
 
 function SessionConflictNotice() {
-  const { user, duplicatedSession, reclaimSession, logout, logoutLocal, allowBothSessions, trackSessionDecision } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logoutLocal, trackSessionDecision } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -31,58 +31,49 @@ function SessionConflictNotice() {
   if (hiddenPaths.includes(location.pathname)) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-80 w-[92%] max-w-2xl -translate-x-1/2 rounded-2xl border border-red-300/35 bg-red-500/12 p-4 shadow-2xl backdrop-blur-md">
-      <p className="text-sm font-bold text-red-200">Sesion duplicada detectada</p>
-      <p className="mt-1 text-sm text-contrast">
-        Detectamos otro acceso con esta misma cuenta. Para seguir en este dispositivo, confirma antes de que termine el tiempo.
+    <div className="fixed bottom-4 left-1/2 z-80 w-[92%] max-w-md -translate-x-1/2 rounded-2xl border border-red-400/40 bg-gradient-to-r from-red-600/20 to-red-500/10 p-5 shadow-2xl backdrop-blur-md">
+      <div className="mb-3">
+        <p className="text-sm font-bold text-red-200 flex items-center gap-2">
+          <span>⚠️</span> Sesión Duplicada
+        </p>
+      </div>
+      <p className="text-sm text-contrast leading-relaxed mb-3">
+        Tu cuenta está activa en otro dispositivo. ¿Qué deseas hacer?
       </p>
-      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-red-100">
-        Cierre automatico en {duplicatedSession.secondsLeft}s
+      <p className="text-xs font-semibold text-red-200/80 mb-3 flex items-center gap-2">
+        <span>⏱️</span> Cierre automático en {duplicatedSession.secondsLeft}s
       </p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (!confirm('¿Confirmar mantener la sesión aquí y cerrar la sesión en el otro dispositivo?')) return;
-              trackSessionDecision?.('keep');
-              reclaimSession();
-            }}
-            className="accent-btn px-3 py-2 text-sm font-bold"
-          >
-            Mantener aquí
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!confirm('¿Confirmar cerrar sesión en este dispositivo y mantener la sesión en el otro?')) return;
-              trackSessionDecision?.('other');
-              try { logoutLocal(); } catch { logout(); }
-              window.location.href = '/#/login';
-            }}
-            className="btn-danger px-3 py-2 text-sm font-bold"
-          >
-            Iniciar en otro dispositivo
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
-              const hoursRaw = prompt('¿Recordar por cuántas horas? (dejar vacío = 1 hora)', '1');
-              const hours = hoursRaw ? Math.max(0, Number(hoursRaw)) : 1;
-              trackSessionDecision?.('both');
-              allowBothSessions(hours);
-            }}
-            className="px-3 py-2 text-sm font-semibold"
-          >
-            Permitir ambas
-          </button>
-        </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            if (!confirm('¿Mantener esta sesión? La otra se cerrará.')) return;
+            trackSessionDecision?.('keep');
+            reclaimSession();
+          }}
+          className="flex-1 accent-btn px-3 py-2 text-sm font-bold rounded-lg transition-all hover:shadow-lg active:scale-95"
+        >
+          ✓ Mantener aquí
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (!confirm('¿Cerrar esta sesión?')) return;
+            trackSessionDecision?.('other');
+            logoutLocal();
+            window.location.href = '/#/login';
+          }}
+          className="flex-1 btn-danger px-3 py-2 text-sm font-bold rounded-lg transition-all hover:shadow-lg active:scale-95"
+        >
+          ✕ Cerrar
+        </button>
+      </div>
     </div>
   );
 }
 
 function SessionConflictModal() {
-  const { user, duplicatedSession, reclaimSession, logoutLocal, allowBothSessions, trackSessionDecision } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logoutLocal, trackSessionDecision } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -93,30 +84,48 @@ function SessionConflictModal() {
 
   return (
     <div className="fixed inset-0 z-90 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" />
-      <div className="relative z-10 w-[92%] max-w-lg bg-surface border rounded-xl p-6 shadow-2xl">
-        <h3 className="text-lg font-bold mb-2 text-contrast">Sesión iniciada en otro dispositivo</h3>
-        <p className="text-sm muted mb-4">Detectamos que esta cuenta se ha iniciado desde otro dispositivo. ¿Deseas mantener la sesión en este dispositivo o iniciar en el otro?</p>
-        <p className="text-xs text-contrast/80 mb-4">Cierre automático en <span className="font-semibold">{duplicatedSession.secondsLeft}s</span></p>
-        <div className="flex justify-end gap-3">
-          <button onClick={() => {
-            if (!confirm('¿Confirmar mantener la sesión aquí y cerrar la sesión en el otro dispositivo?')) return;
-            trackSessionDecision?.('keep');
-            reclaimSession();
-          }} className="px-4 py-2 accent-btn font-bold">Mantener aquí</button>
-          <button onClick={() => {
-            if (!confirm('¿Confirmar cerrar sesión en este dispositivo y mantener la sesión en el otro?')) return;
-            trackSessionDecision?.('other');
-            logoutLocal();
-            window.location.href = '/#\/login';
-          }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
-          <button onClick={() => {
-            if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
-            const hoursRaw = prompt('¿Recordar por cuántas horas? (dejar vacío = 1 hora)', '1');
-            const hours = hoursRaw ? Math.max(0, Number(hoursRaw)) : 1;
-            trackSessionDecision?.('both');
-            allowBothSessions(hours);
-          }} className="px-4 py-2 font-semibold">Permitir ambas</button>
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+      <div className="relative z-10 w-[92%] max-w-md bg-surface border border-red-400/30 rounded-2xl p-8 shadow-2xl">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-3">⚠️</div>
+          <h3 className="text-xl font-bold text-contrast mb-2">Sesión Duplicada</h3>
+          <p className="text-sm text-contrast/75">Tu cuenta está activa en otro dispositivo</p>
+        </div>
+        
+        <div className="bg-red-500/10 border border-red-400/20 rounded-lg p-3 mb-6">
+          <p className="text-sm text-red-200 font-semibold">
+            ⏱️ Cierre automático en <span className="text-lg font-bold">{duplicatedSession.secondsLeft}s</span>
+          </p>
+        </div>
+
+        <p className="text-sm text-contrast mb-6 leading-relaxed">
+          Para proteger tu cuenta, elige una opción:
+        </p>
+
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirm('¿Mantener esta sesión activa aquí? La otra sesión se cerrará.')) return;
+              trackSessionDecision?.('keep');
+              reclaimSession();
+            }}
+            className="w-full px-4 py-3 accent-btn font-bold rounded-lg transition-all hover:shadow-lg active:scale-95"
+          >
+            ✓ Mantener aquí
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirm('¿Cerrar esta sesión? La otra sesión seguirá activa.')) return;
+              trackSessionDecision?.('other');
+              logoutLocal();
+              window.location.href = '/#/login';
+            }}
+            className="w-full px-4 py-3 btn-danger font-bold rounded-lg transition-all hover:shadow-lg active:scale-95"
+          >
+            ✕ Cerrar Sección
+          </button>
         </div>
       </div>
     </div>
