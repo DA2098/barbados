@@ -187,6 +187,24 @@ a {
   padding: 4px;
 }
 
+/* Brand title underline (red stripe) */
+.brand-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px; /* space for the stripe */
+}
+.brand-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: #ef4444; /* red stripe */
+  bottom: -6px;
+  border-radius: 4px;
+  transform: translateY(0);
+}
+
 .form-input {
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   border: 1px solid var(--border-soft);
