@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Card from '../components/Card';
 import { useCart } from '../context/CartContext';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import NotificationsList from '../components/NotificationsList';
 
 
 export default function ClientPanel() {
@@ -125,7 +126,14 @@ export default function ClientPanel() {
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
 
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de {category === 'barber' ? 'Barbería' : category === 'food' ? 'Lencería' : 'Bebidas'}</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div className="col-span-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4 text-contrast">Tienda de {category === 'barber' ? 'Barbería' : category === 'food' ? 'Lencería' : 'Bebidas'}</h1>
+        </div>
+        <div className="col-span-1">
+          <NotificationsList />
+        </div>
+      </div>
 
       <div className="mb-6">
         <div className="mb-6">

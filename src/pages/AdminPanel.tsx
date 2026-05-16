@@ -5,6 +5,7 @@ import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scisso
 import { Link } from 'react-router-dom';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
+import NotificationsList from '../components/NotificationsList';
 
 type ProductForm = {
   name: string;
@@ -169,6 +170,7 @@ export default function AdminPanel() {
   if (user?.role !== 'admin') {
     return <div className="p-8 text-center text-red-600 font-bold">Acceso Denegado. Exclusivo de Administrador.</div>;
   }
+
 
   const handleDeleteUser = async (id: string) => {
     if (!confirm('¿Eliminar usuario permanentemente?')) return;
@@ -565,6 +567,10 @@ export default function AdminPanel() {
             Quitar foto
           </button>
         )}
+      </div>
+
+      <div className="mb-6">
+        <NotificationsList />
       </div>
 
       {pendingBarbers.length > 0 && (
