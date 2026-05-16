@@ -128,7 +128,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const performLocalOnlyLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
-    const targetUserId = explicitUserId || user?.id;
     // Mark this tab as locally logged out (so other tabs/devices aren't affected).
     setTabLocalLogout();
     setUser(null);
