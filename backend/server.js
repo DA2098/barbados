@@ -114,10 +114,25 @@ function normalizeProductCategory(category) {
 }
 
 async function createNotification(userId, type, title, body, payload) {
-  await pool.query(
-    'INSERT INTO notifications (user_id, type, title, body, payload) VALUES ($1, $2, $3, $4, $5)',
+  const result = await pool.query(
+    'INSERT INTO notifications (user_id, type, title, body, payload) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, type, title, body, payload, is_read, created_at, read_at',
     [userId, type, title, body, JSON.stringify(payload || {})]
   );
+
+  const created = result.rows[0];
+  const normalized = normalizeNotification(created);
+
+  // Try to notify connected clients via WebSocket (if available).
+  // Also push a full sync so clients relying on `sync` update unread counters.
+  try {
+    const realtime = await buildRealtimePayload(userId);
+    broadcastToUser(userId, 'sync', realtime);
+    broadcastToUser(userId, 'notification', normalized);
+  } catch (e) {
+    // don't block on realtime errors
+  }
+
+  return normalized;
 }
 
 function resolveConversationType(roleA, roleB) {
