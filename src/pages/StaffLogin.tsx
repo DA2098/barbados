@@ -49,8 +49,8 @@ export default function StaffLogin() {
         </div>
 
         <div className="glass-card rounded-2xl p-8 shadow-2xl mb-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-contrast mb-1">Acceso Privado</h2>
+          <div className="mb-6 text-center">
+            <h2 className="text-xl font-bold text-contrast mb-1 text-center">Acceso Privado</h2>
             <div className="h-1 w-12 avatar-accent rounded-full mx-auto"></div>
           </div>
 
