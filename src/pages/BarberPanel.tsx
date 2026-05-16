@@ -58,12 +58,17 @@ export default function BarberPanel() {
 
   const fetchCatalogProducts = async () => {
     try {
-      const [services, barberProducts, foodProducts, drinkProducts] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getServices(),
         api.getProducts({ category: 'barber' }),
         api.getProducts({ category: 'food' }),
         api.getProducts({ category: 'drink' })
       ]);
+
+      const services = results[0].status === 'fulfilled' ? results[0].value : [];
+      const barberProducts = results[1].status === 'fulfilled' ? results[1].value : [];
+      const foodProducts = results[2].status === 'fulfilled' ? results[2].value : [];
+      const drinkProducts = results[3].status === 'fulfilled' ? results[3].value : [];
 
       setCatalogProducts([
         ...services.filter((service) => service.is_visible),
