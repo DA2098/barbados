@@ -19,11 +19,15 @@ export default function Login() {
 
     try {
       const user = await api.login(email, password);
-      login(user);
+      // Only allow customers to sign in from this page.
+      if (user.role !== 'user') {
+        setError('Esta pantalla es solo para clientes. Si eres administrador o barbero, usa el Acceso Privado.');
+        setLoading(false);
+        return;
+      }
 
-      if (user.role === 'admin') navigate('/admin');
-      else if (user.role === 'barber') navigate('/barber');
-      else navigate('/');
+      login(user);
+      navigate('/');
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally {
