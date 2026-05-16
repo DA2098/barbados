@@ -15,11 +15,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Path mapping */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
+    /* Path mapping handled by Vite `resolve.alias` */
 
     /* Linting */
     "strict": true,
