@@ -1179,8 +1179,10 @@ app.all(['/api', '/api.php'], async (req, res) => {
     if (req.method === 'DELETE' && action === 'conversations') {
       const { id } = req.query;
       const { actorId } = req.body;
-      if (!(await isParticipantOrAdmin(id, actorId))) {
-        return res.status(403).json({ error: 'No autorizado para eliminar conversación' });
+
+      // Only administrators can delete entire conversations (prevent participants from wiping global chat)
+      if (!(await isAdminUser(actorId))) {
+        return res.status(403).json({ error: 'No autorizado. Solo administradores pueden eliminar conversaciones.' });
       }
 
       // Mark conversation as inactive and mark all its messages as deleted
@@ -1255,13 +1257,19 @@ app.all(['/api', '/api.php'], async (req, res) => {
       if (!id) return res.status(400).json({ error: 'id requerido' });
 
       const actor = await getUserById(actorId);
-      if (!actor || actor.role !== 'admin') {
-        return res.status(403).json({ error: 'Solo administradores pueden borrar mensajes' });
-      }
+      if (!actor) return res.status(403).json({ error: 'Actor no encontrado' });
 
-      const msgResult = await pool.query('SELECT conversation_id FROM messages WHERE id = $1', [id]);
+      const msgResult = await pool.query('SELECT conversation_id, sender_id FROM messages WHERE id = $1', [id]);
       if (msgResult.rowCount === 0) return res.status(404).json({ error: 'Mensaje no encontrado' });
       const convoId = msgResult.rows[0].conversation_id;
+      const senderId = String(msgResult.rows[0].sender_id);
+
+      // Allow deletion if actor is admin OR actor is the original sender
+      const isAdmin = actor.role === 'admin';
+      const isSender = String(actorId) === senderId;
+      if (!isAdmin && !isSender) {
+        return res.status(403).json({ error: 'No autorizado para eliminar este mensaje' });
+      }
 
       await pool.query('UPDATE messages SET is_deleted = true WHERE id = $1', [id]);
 
@@ -1276,8 +1284,9 @@ app.all(['/api', '/api.php'], async (req, res) => {
 
       // Notify participants that a message was deleted
       const participants = await pool.query('SELECT user_id FROM conversation_participants WHERE conversation_id = $1', [convoId]);
+      const deletedBy = isAdmin ? 'el administrador' : 'su autor';
       for (const p of participants.rows) {
-        await createNotification(p.user_id, 'system', 'Mensaje eliminado', `Un mensaje fue eliminado por el administrador`, { conversationId: String(convoId), messageId: String(id) });
+        await createNotification(p.user_id, 'system', 'Mensaje eliminado', `Un mensaje fue eliminado por ${deletedBy}`, { conversationId: String(convoId), messageId: String(id) });
       }
 
       return res.json({ message: 'Mensaje eliminado' });
