@@ -147,7 +147,7 @@ export default function Chat() {
 
   const clearConversation = async () => {
     if (!user || !conversation || !selectedContact) return;
-    if (!confirm('¿Limpiar este chat? Se borrará el historial y se podrá iniciar una conversación nueva.')) return;
+    if (!confirm('¿Borrar el historial de este chat?')) return;
 
     try {
       await api.deleteConversation(conversation.id, user.id);
@@ -228,7 +228,7 @@ export default function Chat() {
                 className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded badge-danger text-xs font-semibold w-full sm:w-auto transition"
               >
                 <Trash2 className="w-4 h-4" />
-                Limpiar chat
+                Borrar historial
               </button>
             )}
           </header>
