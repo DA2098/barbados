@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Clock3, Globe, MapPin, MessageCircle, Phone, Star, Mail } from 'lucide-react';
 import { api, AppointmentReview, Product } from '../services/api';
@@ -68,60 +68,7 @@ export default function Home() {
     }
   }, !!user);
 
-  const featuredCuts = useMemo(() => cuts.slice(0, Math.max(4, Math.min(8, cuts.length))), [cuts]);
-
-  const orbitRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const container = orbitRef.current;
-    if (!container) return;
-
-    const cards = Array.from(container.querySelectorAll('.card-3d')) as HTMLElement[];
-    if (!cards.length) return;
-
-    let rafId = 0;
-
-    const loop = () => {
-      let maxZ = -Infinity;
-      let front: HTMLElement | null = null;
-
-      cards.forEach((el) => {
-        const s = getComputedStyle(el).transform || '';
-        let z = 0;
-        if (s.startsWith('matrix3d(')) {
-          const nums = s.slice(9, -1).split(',').map((n) => Number(n.trim()));
-          z = nums[14] || 0;
-        }
-        if (z > maxZ) { maxZ = z; front = el; }
-      });
-
-      cards.forEach((el) => el.classList.toggle('is-front', el === front));
-      rafId = requestAnimationFrame(loop);
-    };
-
-    rafId = requestAnimationFrame(loop);
-
-    // hover handlers to prioritize hovered card
-    const onEnter = (e: Event) => {
-      const el = e.currentTarget as HTMLElement;
-      cards.forEach((c) => c.classList.remove('is-front'));
-      el.classList.add('is-front');
-    };
-    const onLeave = () => { /* let RAF decide next front */ };
-
-    cards.forEach((c) => {
-      c.addEventListener('mouseenter', onEnter);
-      c.addEventListener('mouseleave', onLeave);
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      cards.forEach((c) => {
-        c.removeEventListener('mouseenter', onEnter);
-        c.removeEventListener('mouseleave', onLeave);
-      });
-    };
-  }, [featuredCuts]);
+  const featuredCuts = useMemo(() => cuts.slice(0, 4), [cuts]);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -169,77 +116,35 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Orbital layout for medium+ screens (balanced markup) */}
-          <div className="w-full">
-            <div className="relative w-full h-[420px] flex items-center justify-center md:block hidden">
-              <div ref={orbitRef} className="cuts-orbit w-full max-w-6xl relative mx-auto h-full">
-                <div className="orbit-center" aria-hidden="true">
-                  <div className="orbit-center-avatar" />
-                </div>
-                <div className="orbit-ring">
-                  {featuredCuts.map((cut, idx) => (
-                    <Card
-                      key={cut.id}
-                      variant="cut"
-                      title={cut.name}
-                      subtitle={`${cut.duration_minutes || 30} min`}
-                      image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
-                      className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 w-full max-w-[320px] mx-auto"
-                      style={{ ['--angle']: `${(idx * 360) / Math.max(1, featuredCuts.length)}deg` } as any}
-                      footer={
-                        <Link
-                          to="/appointments"
-                          className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
-                        >
-                          Agendar corte
-                        </Link>
-                      }
-                    >
-                      <div className="mb-4 text-center">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <span className="text-3xl font-extrabold text-accent">{`$${cut.price.toFixed(0)}`}</span>
-                        </div>
-                        <p className="text-xs text-muted font-semibold uppercase tracking-wider">USD</p>
-                      </div>
-
-                      <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
-                    </Card>
-                  ))}
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center cuts-grid">
+        {featuredCuts.map((cut) => (
+          <Card
+            key={cut.id}
+            variant="cut"
+            title={cut.name}
+            subtitle={`${cut.duration_minutes || 30} min`}
+            image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
+            className="relative transition-all duration-300 w-full max-w-[320px] mx-auto"
+            footer={
+              <Link
+                to="/appointments"
+                className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                Agendar corte
+              </Link>
+            }
+          >
+            <div className="mb-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-3xl font-extrabold text-accent">{`$${cut.price.toFixed(0)}`}</span>
               </div>
+              <p className="text-xs text-muted font-semibold uppercase tracking-wider">USD</p>
             </div>
 
-            {/* Fallback grid for small screens */}
-            <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-6 justify-items-center cuts-grid">
-              {featuredCuts.map((cut) => (
-                <Card
-                  key={cut.id}
-                  variant="cut"
-                  title={cut.name}
-                  subtitle={`${cut.duration_minutes || 30} min`}
-                  image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
-                  className="relative transition-all duration-300 w-full max-w-[320px] mx-auto"
-                  footer={
-                    <Link
-                      to="/appointments"
-                      className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
-                    >
-                      Agendar corte
-                    </Link>
-                  }
-                >
-                  <div className="mb-4 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <span className="text-3xl font-extrabold text-accent">{`$${cut.price.toFixed(0)}`}</span>
-                    </div>
-                    <p className="text-xs text-muted font-semibold uppercase tracking-wider">USD</p>
-                  </div>
-
-                  <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
+            <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
+          </Card>
+        ))}
+      </div>
         </div>
       </section>
 

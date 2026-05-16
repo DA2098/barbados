@@ -404,7 +404,7 @@ a {
   will-change: transform, filter;
 }
 
-.cuts-orbit { --orbit-radius: 28vw; }
+.cuts-orbit { --orbit-radius: 38vw; }
 
 .orbit-center {
   position: absolute;
@@ -434,12 +434,19 @@ a {
   inset: 0;
   display: block;
   transform-origin: 50% 50%;
-  animation: orbitSpin 18s linear infinite;
+  animation: orbitSpin 22s linear infinite;
+}
+
+/* pause the ring when hovering the orbit area for easier selection */
+.cuts-orbit:hover .orbit-ring,
+.cuts-orbit:focus-within .orbit-ring {
+  animation-play-state: paused;
 }
 
 .orbit-ring > .card-3d {
   /* place at center then rotate by angle and move outward by radius, then counter-rotate so card stays upright */
   transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--orbit-radius)) rotate(calc(-1 * var(--angle)));
+  transition: transform 480ms cubic-bezier(.2,.9,.2,1), filter 320ms ease;
 }
 
 @keyframes orbitSpin {
@@ -452,14 +459,22 @@ a {
   transform-origin: center center;
 }
 
-.cuts-orbit > .card-3d.is-front { z-index: 60; }
+.cuts-orbit > .card-3d.is-front { z-index: 80; }
 .cuts-orbit > .card-3d.is-front .card-inner {
-  transform: translateY(-14px) scale(1.14);
-  box-shadow: 0 40px 80px rgba(2,8,20,0.48);
+  transform: translateY(-18px) scale(1.18);
+  box-shadow: 0 48px 96px rgba(2,8,20,0.56);
 }
 
-.cuts-orbit > .card-3d .cut-avatar { transition: transform 240ms cubic-bezier(.2,.9,.2,1); }
-.cuts-orbit > .card-3d.is-front .cut-avatar { transform: scale(1.12); }
+.cuts-orbit > .card-3d .cut-avatar { transition: transform 240ms cubic-bezier(.2,.9,.2,1), box-shadow 240ms ease; }
+.cuts-orbit > .card-3d.is-front .cut-avatar { transform: scale(1.18); box-shadow: 0 18px 38px rgba(2,8,20,0.5); }
+
+/* stronger typography inside orbit for better readability */
+.cuts-orbit .card-inner .card-title { color: var(--text-high); font-size: 1.25rem; }
+.cuts-orbit .card-inner .text-accent { color: var(--accent-2); font-size: 1.9rem; letter-spacing: 0.02em; }
+.cuts-orbit .card-inner .muted { color: color-mix(in srgb, var(--muted) 60%, var(--text-body) 40%); }
+
+/* subtle ring around avatar for visibility */
+.cuts-orbit .cut-avatar { box-shadow: 0 12px 30px rgba(2,8,20,0.32); border: 6px solid color-mix(in srgb, var(--card) 70%, var(--accent-2) 30%); }
 
 /* Increase orbit radius using viewport units for a wide sweeping motion */
 @keyframes cardOrbit {
