@@ -69,6 +69,8 @@ const limiter = rateLimit({
       if (RATE_LIMIT_WHITELIST.includes(req.ip)) return true;
       if (req.path === '/' || req.path === '/health') return true;
       if (req.path && req.path.startsWith('/uploads')) return true;
+      const action = String(req.query?.action || req.body?.action || '').toLowerCase();
+      if (action === 'login' || action === 'register') return true;
       return false;
     } catch (e) {
       return false;
@@ -87,12 +89,37 @@ const limiter = rateLimit({
   }
 });
 
+const authAttemptLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.ip || 'anonymous',
+  skip: (req) => {
+    try {
+      const action = String(req.query?.action || req.body?.action || '').toLowerCase();
+      return action !== 'login' && action !== 'register';
+    } catch (e) {
+      return true;
+    }
+  },
+  handler: (req, res) => {
+    console.warn('Auth rate limit exceeded:', {
+      ip: req.ip,
+      action: req.query?.action || req.body?.action || null,
+      time: new Date().toISOString()
+    });
+    res.status(429).json({ error: 'Too many requests', message: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.' });
+  }
+});
+
 // Capture raw body for webhook signature verification (Stripe)
 app.use(express.json({ limit: '50mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(uploadsDir));
 // Apply rate limiter after body parsers so keyGenerator can read body/query for userId
 app.use(limiter);
+app.use(['/api', '/api.php'], authAttemptLimiter);
 
 // Inicializar DB al arrancar (sin bloquear si falla)
 initializeDatabase()
