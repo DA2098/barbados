@@ -12,7 +12,7 @@ type CardProps = {
   variant?: 'default' | 'cut';
 };
 
-const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, className = '', onClick, variant = 'default' }) => {
+const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, className = '', onClick, style, variant = 'default' }) => {
   const clickableClass = onClick ? 'cursor-pointer' : '';
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
