@@ -116,48 +116,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
-    useEffect(() => {
-      // Keep a ref with the latest user so event listeners registered once can access current user
-      userRef.current = user;
-    }, [user]);
-
-    // Register global session-conflict event once (listener uses userRef)
-    useEffect(() => {
-      const handleConflict = () => {
-        const currentUser = userRef.current;
-        console.warn('🟢 Session conflict event received in AuthContext');
-        console.warn('  Current user:', currentUser?.id ?? '(none)');
-        if (!currentUser) {
-          console.warn('  ⚠️  No user logged in, ignoring conflict');
-          return;
-        }
-        try {
-          const raw = localStorage.getItem('barbados_session_choice');
-          if (raw) {
-            const parsed = JSON.parse(raw) as { userId?: string; action?: string; expiresAt?: number };
-            if (parsed?.userId === currentUser.id && parsed?.action === 'both' && parsed.expiresAt && parsed.expiresAt > Date.now()) {
-              // user previously allowed both sessions — do not start countdown
-              console.warn('  ℹ️  Both sessions allowed, clearing duplicate state');
-              clearDuplicateState();
-              return;
-            }
-          }
-        } catch {
-          // ignore parse errors
-        }
-
-        console.warn(`  ⏱️  Starting countdown: ${DUPLICATE_SESSION_GRACE_SECONDS}s`);
-        startDuplicateCountdown();
-      };
-
-      // Register listener once on mount, never remove it
-      // The handler closure will always see the current `user` value
-      window.addEventListener('barbados:session-conflict', handleConflict as EventListener);
-    
-      // No cleanup - keep the listener active for the lifetime of the app
-      // This prevents race conditions where events are missed during listener re-registration
-    }, []);
-    } catch {}
+    setUser(null);
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem(SESSION_META_KEY);
+    if (targetUserId) {
+      localStorage.removeItem(getLockKey(targetUserId));
+    }
+    sessionIdRef.current = null;
+    clearDuplicateState();
+    setSessionExitReason(reason);
+    // Ensure any local-only logout flag is cleared on a full logout.
+    clearTabLocalLogout();
   };
 
   // Lightweight telemetry for session decisions. Stores event locally and logs to console.
