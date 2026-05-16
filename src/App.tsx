@@ -21,7 +21,7 @@ import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
 
 function SessionConflictNotice() {
-  const { user, duplicatedSession, reclaimSession, logout, logoutLocal, trackSessionDecision } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logout, logoutLocal, allowBothSessions, trackSessionDecision } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -62,13 +62,24 @@ function SessionConflictNotice() {
           >
             Iniciar en otro dispositivo
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
+              trackSessionDecision?.('both');
+              allowBothSessions();
+            }}
+            className="px-3 py-2 text-sm font-semibold"
+          >
+            Permitir ambas
+          </button>
         </div>
     </div>
   );
 }
 
 function SessionConflictModal() {
-  const { user, duplicatedSession, reclaimSession, logoutLocal, trackSessionDecision } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logoutLocal, allowBothSessions, trackSessionDecision } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -96,6 +107,11 @@ function SessionConflictModal() {
             logoutLocal();
             window.location.href = '/#\/login';
           }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
+          <button onClick={() => {
+            if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
+            trackSessionDecision?.('both');
+            allowBothSessions();
+          }} className="px-4 py-2 font-semibold">Permitir ambas</button>
         </div>
       </div>
     </div>

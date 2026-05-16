@@ -166,6 +166,17 @@ export default function Navbar() {
                       >
                         Iniciar en otro dispositivo
                       </button>
+                      <button
+                        onClick={() => {
+                          if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
+                          trackSessionDecision?.('both');
+                          // allow both: simply clear the duplicate countdown here
+                          reclaimSession();
+                        }}
+                        className="px-3 py-2 font-semibold"
+                      >
+                        Permitir ambas
+                      </button>
                     </div>
                   </div>
                 </div>

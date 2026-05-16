@@ -16,7 +16,8 @@ interface AuthContextType {
   duplicatedSession: DuplicatedSessionState | null;
   reclaimSession: () => void;
   logoutLocal: () => void;
-  trackSessionDecision?: (action: 'keep' | 'other') => void;
+  allowBothSessions: () => void;
+  trackSessionDecision?: (action: 'keep' | 'other' | 'both') => void;
   sessionExitReason: SessionExitReason;
   clearSessionExitReason: () => void;
 }
@@ -139,7 +140,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Lightweight telemetry for session decisions. Stores event locally and logs to console.
-  const trackSessionDecision = (action: 'keep' | 'other') => {
+  const trackSessionDecision = (action: 'keep' | 'other' | 'both') => {
     try {
       const payload = {
         ts: new Date().toISOString(),
@@ -155,6 +156,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       // ignore telemetry failures
     }
+  };
+
+  const allowBothSessions = () => {
+    // User chooses to allow both sessions to remain active.
+    // Clear any duplicate countdown for this tab and keep current session active.
+    clearDuplicateState();
   };
 
   const startDuplicateCountdown = () => {
@@ -365,7 +372,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, logoutLocal, updateUser, duplicatedSession, reclaimSession, trackSessionDecision, sessionExitReason, clearSessionExitReason }}
+      value={{ user, login, logout, logoutLocal, updateUser, duplicatedSession, reclaimSession, allowBothSessions, trackSessionDecision, sessionExitReason, clearSessionExitReason }}
     >
       {children}
     </AuthContext.Provider>
