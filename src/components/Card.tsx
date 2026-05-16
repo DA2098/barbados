@@ -8,6 +8,7 @@ type CardProps = {
   footer?: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  style?: React.CSSProperties;
   variant?: 'default' | 'cut';
 };
 
@@ -31,7 +32,7 @@ const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, c
   };
 
   return (
-    <div className={`card-3d h-full ${variant === 'cut' ? 'cut-card' : ''} ${className}`}>
+    <div style={style} className={`card-3d h-full ${variant === 'cut' ? 'cut-card' : ''} ${className}`}>
       <div
         className={`card-inner glass-card h-full flex flex-col overflow-hidden ${clickableClass}`}
         onClick={onClick}

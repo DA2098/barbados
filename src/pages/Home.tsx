@@ -68,7 +68,7 @@ export default function Home() {
     }
   }, !!user);
 
-  const featuredCuts = useMemo(() => cuts.slice(0, 4), [cuts]);
+  const featuredCuts = useMemo(() => cuts.slice(0, Math.max(4, Math.min(8, cuts.length))), [cuts]);
 
   const orbitRef = useRef<HTMLDivElement | null>(null);
 
@@ -173,6 +173,9 @@ export default function Home() {
           <div className="hidden md:block w-full">
             <div className="relative w-full h-[420px] flex items-center justify-center">
               <div ref={orbitRef} className="cuts-orbit w-full max-w-6xl relative mx-auto h-full">
+                <div className="orbit-center" aria-hidden>
+                  <div className="orbit-center-avatar" />
+                </div>
                 {featuredCuts.map((cut, idx) => (
                   <Card
                     key={cut.id}
@@ -182,6 +185,7 @@ export default function Home() {
                     image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
                     className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 w-full max-w-[320px] mx-auto`
                     }
+                    style={{ animationDelay: `${-(idx * (18 / Math.max(1, featuredCuts.length)))}s` }}
                     footer={
                       <Link
                         to="/appointments"
