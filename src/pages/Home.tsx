@@ -186,7 +186,7 @@ export default function Home() {
                     image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
                     className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 w-full max-w-[320px] mx-auto`
                     }
-                    style={{ ['--angle' as any]: `${(idx * 360) / Math.max(1, featuredCuts.length)}deg` }}
+                    style={{ ['--angle']: `${(idx * 360) / Math.max(1, featuredCuts.length)}deg` } as any}
                     footer={
                       <Link
                         to="/appointments"
