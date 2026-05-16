@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession, Message } from '../services/api';
+import { api, isSessionConflictError, User, Product, BarberLog, BarberApplication, Appointment, AppointmentReview, AdminChatSession, Message } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, Users, ShoppingBag, ClipboardList, CalendarDays, Pencil, Scissors, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -100,23 +100,36 @@ export default function AdminPanel() {
         api.getAdminChatMonitor(user.id)
       ]);
 
-      const uData = results[0].status === 'fulfilled' ? results[0].value : [];
-      const pData = results[1].status === 'fulfilled' ? results[1].value : [];
-      const sData = results[2].status === 'fulfilled' ? results[2].value : [];
-      const lData = results[3].status === 'fulfilled' ? results[3].value : [];
-      const applicationData = results[4].status === 'fulfilled' ? results[4].value : [];
-      const appointmentData = results[5].status === 'fulfilled' ? results[5].value : [];
-      const reviewData = results[6].status === 'fulfilled' ? results[6].value : [];
-      const chatData = results[7].status === 'fulfilled' ? results[7].value : [];
+      let nonSessionError: any = null;
 
-      console.log('✓ Datos cargados - Products:', pData, 'Services:', sData);
-      setUsers(uData);
-      setProducts([...pData, ...sData]);
-      setLogs(lData);
-      setBarberApplications(applicationData);
-      setAppointments(appointmentData);
-      setReviews(reviewData);
-      setChats(chatData);
+      const mapResult = (res: PromiseSettledResult<any>) => {
+        if (res.status === 'fulfilled') return res.value;
+        // rejected
+        const reason = (res as PromiseRejectedResult).reason;
+        if (isSessionConflictError(reason)) return undefined;
+        nonSessionError = reason;
+        return undefined;
+      };
+
+      const uData = mapResult(results[0]);
+      const pData = mapResult(results[1]);
+      const sData = mapResult(results[2]);
+      const lData = mapResult(results[3]);
+      const applicationData = mapResult(results[4]);
+      const appointmentData = mapResult(results[5]);
+      const reviewData = mapResult(results[6]);
+      const chatData = mapResult(results[7]);
+
+      if (nonSessionError) throw nonSessionError;
+
+      console.log('✓ Datos cargados - Products:', pData ?? 'skipped', 'Services:', sData ?? 'skipped');
+      if (uData !== undefined) setUsers(uData);
+      if (pData !== undefined || sData !== undefined) setProducts([...(pData ?? []), ...(sData ?? [])]);
+      if (lData !== undefined) setLogs(lData);
+      if (applicationData !== undefined) setBarberApplications(applicationData);
+      if (appointmentData !== undefined) setAppointments(appointmentData);
+      if (reviewData !== undefined) setReviews(reviewData);
+      if (chatData !== undefined) setChats(chatData);
     } catch (error: any) {
       console.error('Error en fetchData:', error);
       const msg = String(error?.message || '').toLowerCase();
