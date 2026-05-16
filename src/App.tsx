@@ -31,7 +31,7 @@ function SessionConflictNotice() {
   if (hiddenPaths.includes(location.pathname)) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-80 w-[92%] max-w-md -translate-x-1/2 rounded-2xl border border-red-400/40 bg-gradient-to-r from-red-600/20 to-red-500/10 p-5 shadow-2xl backdrop-blur-md">
+    <div className="fixed bottom-4 left-1/2 z-80 w-[92%] max-w-md -translate-x-1/2 rounded-2xl border border-red-400/40 bg-linear-to-r from-red-600/20 to-red-500/10 p-5 shadow-2xl backdrop-blur-md">
       <div className="mb-3">
         <p className="text-sm font-bold text-red-200 flex items-center gap-2">
           <span>⚠️</span> Sesión Duplicada
