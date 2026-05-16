@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import ExistingSessionModal from '../components/ExistingSessionModal';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -137,43 +138,19 @@ export default function Login() {
           </form>
 
           {/* Existing-session modal (blocks login until user decides) */}
-          {showExistingModal && existingSessionUser && (
-            <div className="fixed inset-0 z-9999 flex items-center justify-center px-4">
-              <div className="absolute inset-0 bg-black/60" />
-              <div className="relative z-10 w-full max-w-lg rounded-2xl bg-surface p-6 shadow-2xl border">
-                <h3 className="text-lg font-bold mb-2">Confirmar</h3>
-                <p className="mb-4 text-sm text-muted">
-                  Actualmente ha iniciado sesión como {existingSessionUser.name || existingSessionUser.id}, necesita salir antes de volver a entrar con un usuario diferente.
-                </p>
-                <div className="flex gap-3 justify-end">
-                  <button
-                    onClick={() => {
-                      setShowExistingModal(false);
-                    }}
-                    className="px-4 py-2 rounded border"
-                    type="button"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={async () => {
-                      // perform a full logout so the login form can be used for another account
-                      try {
-                        await logout();
-                      } catch {
-                        try { logoutLocal(); } catch {}
-                      }
-                      setShowExistingModal(false);
-                    }}
-                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
-                    type="button"
-                  >
-                    Cerrar sesión
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ExistingSessionModal
+            visible={showExistingModal && !!existingSessionUser}
+            username={existingSessionUser?.name || existingSessionUser?.id}
+            onCancel={() => setShowExistingModal(false)}
+            onLogout={async () => {
+              try {
+                await logout();
+              } catch {
+                try { logoutLocal(); } catch {}
+              }
+              setShowExistingModal(false);
+            }}
+          />
 
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-sm text-center text-muted">
