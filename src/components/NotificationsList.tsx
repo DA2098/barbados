@@ -59,6 +59,22 @@ export default function NotificationsList({ userId, maxItems = 50 }: Props) {
     } catch {}
   };
 
+  const remove = async (id?: string) => {
+    if (!uid) return;
+    try {
+      if (id) {
+        if (!confirm('¿Eliminar esta notificación?')) return;
+        await api.deleteNotifications(uid, id);
+      } else {
+        if (!confirm('¿Eliminar todas las notificaciones?')) return;
+        await api.deleteNotifications(uid);
+      }
+      await load();
+    } catch (e) {
+      // ignore
+    }
+  };
+
   if (!uid) return null;
 
   return (
@@ -68,6 +84,7 @@ export default function NotificationsList({ userId, maxItems = 50 }: Props) {
         <div className="flex items-center gap-2">
           <button onClick={() => void load()} className="muted text-sm">Actualizar</button>
           <button onClick={() => void markRead()} className="accent-btn px-3 py-1 rounded text-sm">Marcar todas</button>
+          <button onClick={() => void remove()} className="danger-btn px-3 py-1 rounded text-sm">Eliminar todas</button>
         </div>
       </div>
       {loading ? (
@@ -85,9 +102,12 @@ export default function NotificationsList({ userId, maxItems = 50 }: Props) {
                 </div>
                 <div className="text-right ml-2">
                   <div className="text-xs muted">{relativeTimeSince(n.createdAt)}</div>
-                  {!n.isRead && (
-                    <button onClick={() => void markRead(n.id)} className="text-xs accent-link mt-1">Marcar leído</button>
-                  )}
+                  <div className="mt-1 flex items-center gap-2">
+                    {!n.isRead && (
+                      <button onClick={() => void markRead(n.id)} className="text-xs accent-link">Marcar leído</button>
+                    )}
+                    <button onClick={() => void remove(n.id)} className="text-xs text-red-500">Eliminar</button>
+                  </div>
                 </div>
               </div>
             </li>

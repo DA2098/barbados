@@ -1282,6 +1282,20 @@ app.all(['/api', '/api.php'], async (req, res) => {
       return res.json({ message: 'Notificaciones actualizadas' });
     }
 
+    if (req.method === 'DELETE' && action === 'notifications') {
+      const { userId, id } = req.query;
+      if (!userId) return res.status(400).json({ error: 'userId requerido' });
+
+      if (id) {
+        await pool.query('DELETE FROM notifications WHERE id = $1 AND user_id = $2', [id, userId]);
+        return res.json({ message: 'Notificación eliminada' });
+      }
+
+      // If no id provided, delete all notifications for user
+      await pool.query('DELETE FROM notifications WHERE user_id = $1', [userId]);
+      return res.json({ message: 'Todas las notificaciones eliminadas' });
+    }
+
     if (req.method === 'POST' && action === 'send_notification') {
       const { user_id, type, title, body } = req.body;
       await createNotification(user_id, type, title, body, {});

@@ -725,6 +725,17 @@ export const api = {
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al marcar notificaciones como leídas'));
   },
 
+  async deleteNotifications(userId: string, notificationId?: string): Promise<void> {
+    const params = new URLSearchParams({ action: 'notifications', userId });
+    if (notificationId) params.set('id', notificationId);
+
+    const res = await fetch(`${API_URL}?${params.toString()}`, {
+      method: 'DELETE'
+    });
+
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al eliminar notificaciones'));
+  },
+
   async getConversationsByUser(userId: string): Promise<Conversation[]> {
     const res = await fetch(`${API_URL}?action=get_conversations&user_id=${userId}`);
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener conversaciones'));
