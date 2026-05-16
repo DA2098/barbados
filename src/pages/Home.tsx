@@ -176,6 +176,7 @@ export default function Home() {
                 <div className="orbit-center" aria-hidden>
                   <div className="orbit-center-avatar" />
                 </div>
+                <div className="orbit-ring">
                 {featuredCuts.map((cut, idx) => (
                   <Card
                     key={cut.id}
@@ -185,7 +186,7 @@ export default function Home() {
                     image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
                     className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 w-full max-w-[320px] mx-auto`
                     }
-                    style={{ animationDelay: `${-(idx * (18 / Math.max(1, featuredCuts.length)))}s` }}
+                    style={{ ['--angle' as any]: `${(idx * 360) / Math.max(1, featuredCuts.length)}deg` }}
                     footer={
                       <Link
                         to="/appointments"

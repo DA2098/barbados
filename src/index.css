@@ -428,6 +428,25 @@ a {
   box-shadow: 0 20px 50px rgba(2,8,20,0.45);
 }
 
+/* Orbit ring that rotates all cards around center. Each card is positioned by --angle and keeps upright orientation. */
+.orbit-ring {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-origin: 50% 50%;
+  animation: orbitSpin 18s linear infinite;
+}
+
+.orbit-ring > .card-3d {
+  /* place at center then rotate by angle and move outward by radius, then counter-rotate so card stays upright */
+  transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--orbit-radius)) rotate(calc(-1 * var(--angle)));
+}
+
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .cuts-orbit > .card-3d .card-inner {
   transition: transform 240ms cubic-bezier(.2,.9,.2,1), box-shadow 240ms cubic-bezier(.2,.9,.2,1);
   transform-origin: center center;
