@@ -1,11 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShieldUser, Scissors } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ExistingSessionModal from '../components/ExistingSessionModal';
-import { useEffect } from 'react';
-import { useState } from 'react';
 
 export default function StaffLogin() {
   const [email, setEmail] = useState('');
