@@ -116,40 +116,35 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center">
-  {featuredCuts.map((cut) => (
-    <Card
-      key={cut.id}
-      title={cut.name}
-      subtitle={`${cut.duration_minutes || 30} min`}
-      image={cut.image_url || 'https://via.placeholder.com/320x220?text=Corte'}
-      className="relative transition-all duration-300 hover:shadow-2xl w-full max-w-[280px] mx-auto"
-      footer={
-        <Link
-          to="/appointments"
-          className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
-        >
-          Agendar corte
-        </Link>
-      }
-    >
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-3xl font-extrabold text-accent">
-            {`$${cut.price.toFixed(0)}`}
-          </span>
-        </div>
-        <p className="text-xs text-muted font-semibold uppercase tracking-wider">
-          USD
-        </p>
-      </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center cuts-grid">
+        {featuredCuts.map((cut) => (
+          <Card
+            key={cut.id}
+            variant="cut"
+            title={cut.name}
+            subtitle={`${cut.duration_minutes || 30} min`}
+            image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
+            className="relative transition-all duration-300 w-full max-w-[320px] mx-auto"
+            footer={
+              <Link
+                to="/appointments"
+                className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
+              >
+                Agendar corte
+              </Link>
+            }
+          >
+            <div className="mb-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <span className="text-3xl font-extrabold text-accent">{`$${cut.price.toFixed(0)}`}</span>
+              </div>
+              <p className="text-xs text-muted font-semibold uppercase tracking-wider">USD</p>
+            </div>
 
-      <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">
-        {cut.description || 'Corte profesional personalizado.'}
-      </p>
-    </Card>
-  ))}
-</div>
+            <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
+          </Card>
+        ))}
+      </div>
         </div>
       </section>
 

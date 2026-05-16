@@ -8,9 +8,10 @@ type CardProps = {
   footer?: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  variant?: 'default' | 'cut';
 };
 
-const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, className = '', onClick }) => {
+const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, className = '', onClick, variant = 'default' }) => {
   const clickableClass = onClick ? 'cursor-pointer' : '';
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -30,20 +31,28 @@ const Card: React.FC<CardProps> = ({ title, subtitle, image, children, footer, c
   };
 
   return (
-    <div className={`card-3d h-full ${className}`}>
+    <div className={`card-3d h-full ${variant === 'cut' ? 'cut-card' : ''} ${className}`}>
       <div
         className={`card-inner glass-card h-full flex flex-col overflow-hidden ${clickableClass}`}
         onClick={onClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        {image && (
+        {image && variant === 'cut' ? (
+          <div className="cut-avatar-wrap w-full flex items-center justify-center py-6">
+            <div className="cut-avatar">
+              <a href={image} target="_blank" rel="noreferrer" className="block w-full h-full">
+                <img src={image} alt={title || 'card-image'} className="w-full h-full object-cover rounded-full" />
+              </a>
+            </div>
+          </div>
+        ) : image ? (
           <div className="aspect-4/3 w-full bg-white/70 dark:bg-black/20 overflow-hidden border-b border-white/10">
             <a href={image} target="_blank" rel="noreferrer" className="block h-full w-full">
               <img src={image} alt={title || 'card-image'} className="h-full w-full object-contain p-2 sm:p-3" />
             </a>
           </div>
-        )}
+        ) : null}
         <div className="p-4 flex-1 flex flex-col">
           {title && <h3 className="text-lg font-bold mb-1 card-title">{title}</h3>}
           {subtitle && <p className="text-sm muted mb-3">{subtitle}</p>}

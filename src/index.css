@@ -285,6 +285,72 @@ a {
   color: var(--accent-contrast);
 }
 
+/* Cut card: circular avatar with subtle float and hover rotation */
+.cut-card .cut-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.cut-card .cut-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 6px solid color-mix(in srgb, var(--card) 70%, var(--accent-2) 30%);
+  box-shadow: 0 10px 30px rgba(2,8,20,0.32);
+  background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  transform-origin: 50% 50%;
+  animation: cutFloat 6s ease-in-out infinite, cutSpin 40s linear infinite;
+}
+.cut-card .cut-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.cut-card .card-inner:hover .cut-avatar {
+  animation: cutFloat 3s ease-in-out infinite, cutSpinFast 1.2s linear 1;
+  transform: rotate(360deg) scale(1.03);
+}
+
+@keyframes cutFloat {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(0deg); }
+}
+
+@keyframes cutSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cutSpinFast {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(720deg); }
+}
+
+/* When the user hovers the containing card, make the whole card slightly tilt for a dynamic effect */
+.cut-card .card-inner:hover {
+  transform: translateY(-6px) rotateX(var(--card-rx, 0deg)) rotateY(var(--card-ry, 0deg)) scale(1.01);
+}
+
+/* Orbit animation for a group of cut cards to simulate passing movement */
+.cuts-grid > .card-3d {
+  transform-origin: center center;
+  animation: cardOrbit 20s linear infinite;
+}
+.cuts-grid > .card-3d:nth-child(4n+1) { animation-delay: 0s; }
+.cuts-grid > .card-3d:nth-child(4n+2) { animation-delay: -5s; }
+.cuts-grid > .card-3d:nth-child(4n+3) { animation-delay: -10s; }
+.cuts-grid > .card-3d:nth-child(4n+4) { animation-delay: -15s; }
+
+@keyframes cardOrbit {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); }
+  25% { transform: translateY(-6px) rotate(1.2deg) scale(1.005); }
+  50% { transform: translateY(0px) rotate(0deg) scale(1); }
+  75% { transform: translateY(6px) rotate(-1.2deg) scale(0.995); }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); }
+}
+
+/* Make avatar spin continuously but subtle, and speed up when hovered */
+.cuts-grid > .card-3d .cut-avatar { animation-duration: 40s; }
+.cuts-grid > .card-3d:hover { animation-duration: 10s; }
+
 /* When an input contains a left-positioned icon, increase left padding */
 .form-input.icon-left {
   padding-left: 3rem;
