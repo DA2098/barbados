@@ -8,7 +8,7 @@ import { api } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
-  const { user, logout, logoutLocal, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession } = useAuth();
+  const { user, logout, logoutLocal, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession, trackSessionDecision } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { items } = useCart();
   const navigate = useNavigate();
@@ -146,14 +146,19 @@ export default function Navbar() {
                 <div className="max-w-7xl mx-auto px-4 lg:px-8">
                   <div className="mt-2 p-3 rounded-md bg-yellow-500 text-black flex flex-col md:flex-row md:justify-between items-start md:items-center gap-3">
                     <div className="font-medium">
-                      Se inició sesión desde otro dispositivo. Puedes seguir en este equipo o iniciar sesión en el otro.
+                      Se inició sesión desde otro dispositivo. ¿Deseas mantener la sesión en este dispositivo (cerrar sesión en el otro) o iniciar en el otro?
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-sm opacity-90">Cierra en: <span className="font-bold">{duplicatedSession.secondsLeft}s</span></div>
-                      <button onClick={() => reclaimSession()} className="accent-btn px-3 py-2 rounded-md">Seguir en este dispositivo</button>
+                      <button onClick={() => {
+                        if (!confirm('¿Confirmar mantener la sesión aquí y cerrar la sesión en el otro dispositivo?')) return;
+                        trackSessionDecision?.('keep');
+                        reclaimSession();
+                      }} className="accent-btn px-3 py-2 rounded-md">Mantener aquí</button>
                       <button
                         onClick={() => {
-                          // Local-only logout so the other device keeps its session.
+                          if (!confirm('¿Confirmar cerrar sesión en este dispositivo y mantener la sesión en el otro?')) return;
+                          trackSessionDecision?.('other');
                           try { logoutLocal(); } catch { logout(); }
                           navigate('/login');
                         }}

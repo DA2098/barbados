@@ -16,6 +16,7 @@ interface AuthContextType {
   duplicatedSession: DuplicatedSessionState | null;
   reclaimSession: () => void;
   logoutLocal: () => void;
+  trackSessionDecision?: (action: 'keep' | 'other') => void;
   sessionExitReason: SessionExitReason;
   clearSessionExitReason: () => void;
 }
@@ -115,6 +116,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionIdRef.current = null;
     clearDuplicateState();
     setSessionExitReason(reason);
+  };
+
+  // Lightweight telemetry for session decisions. Stores event locally and logs to console.
+  const trackSessionDecision = (action: 'keep' | 'other') => {
+    try {
+      const payload = {
+        ts: new Date().toISOString(),
+        userId: user?.id ?? null,
+        action,
+        source: 'session_conflict_ui'
+      };
+      console.info('telemetry.session_decision', payload);
+      const raw = localStorage.getItem('barbados_telemetry') || '[]';
+      const arr = JSON.parse(raw);
+      arr.push(payload);
+      localStorage.setItem('barbados_telemetry', JSON.stringify(arr.slice(-200))); // keep last 200
+    } catch {
+      // ignore telemetry failures
+    }
   };
 
   const startDuplicateCountdown = () => {
@@ -319,7 +339,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, logoutLocal, updateUser, duplicatedSession, reclaimSession, sessionExitReason, clearSessionExitReason }}
+      value={{ user, login, logout, logoutLocal, updateUser, duplicatedSession, reclaimSession, trackSessionDecision, sessionExitReason, clearSessionExitReason }}
     >
       {children}
     </AuthContext.Provider>

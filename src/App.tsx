@@ -21,7 +21,7 @@ import AdminPanel from './pages/AdminPanel';
 import Chat from './pages/Chat';
 
 function SessionConflictNotice() {
-  const { user, duplicatedSession, reclaimSession, logout } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logout, logoutLocal, trackSessionDecision } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -38,28 +38,37 @@ function SessionConflictNotice() {
       <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-red-100">
         Cierre automatico en {duplicatedSession.secondsLeft}s
       </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={reclaimSession}
-          className="accent-btn px-3 py-2 text-sm font-bold"
-        >
-          Seguir aqui
-        </button>
-        <button
-          type="button"
-          onClick={logout}
-          className="btn-danger px-3 py-2 text-sm font-bold"
-        >
-          Cerrar sesion ahora
-        </button>
-      </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirm('¿Confirmar mantener la sesión aquí y cerrar la sesión en el otro dispositivo?')) return;
+              trackSessionDecision?.('keep');
+              reclaimSession();
+            }}
+            className="accent-btn px-3 py-2 text-sm font-bold"
+          >
+            Mantener aquí
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!confirm('¿Confirmar cerrar sesión en este dispositivo y mantener la sesión en el otro?')) return;
+              trackSessionDecision?.('other');
+              try { logoutLocal(); } catch { logout(); }
+              window.location.href = '/#/login';
+            }}
+            className="btn-danger px-3 py-2 text-sm font-bold"
+          >
+            Iniciar en otro dispositivo
+          </button>
+        </div>
     </div>
   );
 }
 
 function SessionConflictModal() {
-  const { user, duplicatedSession, reclaimSession, logoutLocal } = useAuth();
+  const { user, duplicatedSession, reclaimSession, logoutLocal, trackSessionDecision } = useAuth();
   const location = useLocation();
 
   if (!user || !duplicatedSession) return null;
@@ -76,8 +85,17 @@ function SessionConflictModal() {
         <p className="text-sm muted mb-4">Detectamos que esta cuenta se ha iniciado desde otro dispositivo. ¿Deseas mantener la sesión en este dispositivo o iniciar en el otro?</p>
         <p className="text-xs text-contrast/80 mb-4">Cierre automático en <span className="font-semibold">{duplicatedSession.secondsLeft}s</span></p>
         <div className="flex justify-end gap-3">
-          <button onClick={() => reclaimSession()} className="px-4 py-2 accent-btn font-bold">Mantener aquí</button>
-          <button onClick={() => { logoutLocal(); window.location.href = '/#\/login'; }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
+          <button onClick={() => {
+            if (!confirm('¿Confirmar mantener la sesión aquí y cerrar la sesión en el otro dispositivo?')) return;
+            trackSessionDecision?.('keep');
+            reclaimSession();
+          }} className="px-4 py-2 accent-btn font-bold">Mantener aquí</button>
+          <button onClick={() => {
+            if (!confirm('¿Confirmar cerrar sesión en este dispositivo y mantener la sesión en el otro?')) return;
+            trackSessionDecision?.('other');
+            logoutLocal();
+            window.location.href = '/#\/login';
+          }} className="px-4 py-2 btn-danger font-bold">Iniciar en otro dispositivo</button>
         </div>
       </div>
     </div>
