@@ -47,9 +47,7 @@ export default function Register() {
           </div>
           
           {error && (
-            <div className="bg-red-500/15 text-red-300 p-4 rounded-lg mb-6 text-sm text-center border border-red-500/30">
-              {error}
-            </div>
+            <div className="alert-danger mb-6 text-sm text-center">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">

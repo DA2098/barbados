@@ -21,6 +21,9 @@
   --border-soft: rgba(255, 255, 255, 0.12);
   --ring: rgba(214, 157, 84, 0.35);
   --shadow-lg: 0 18px 40px rgba(2, 8, 20, 0.35);
+  --danger: #ef4444;
+  --note: #f59e0b;
+  --success: #10b981;
 }
 
 [data-theme="light"] {
@@ -201,6 +204,85 @@ a {
   border-color: color-mix(in srgb, var(--accent-1) 70%, white 30%);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-1) 25%, transparent);
   outline: none;
+}
+
+/* Utility helpers to keep palette coherent across the app */
+.text-accent {
+  color: var(--accent-1) !important;
+}
+.text-note {
+  color: var(--note) !important;
+}
+.text-danger {
+  color: var(--danger) !important;
+}
+.bg-accent-soft {
+  background: color-mix(in srgb, var(--accent-1) 12%, var(--accent-2) 6%, transparent 82%);
+}
+.badge-accent {
+  background: color-mix(in srgb, var(--accent-1) 12%, transparent 88%);
+  color: var(--accent-1);
+  padding: 0.35rem 0.6rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+.badge-note {
+  background: color-mix(in srgb, var(--note) 10%, transparent 90%);
+  color: var(--note);
+  padding: 0.25rem .5rem;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.badge-danger {
+  background: color-mix(in srgb, var(--danger) 12%, transparent 88%);
+  color: var(--danger);
+  padding: 0.2rem .45rem;
+  border-radius: 999px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.text-success {
+  color: var(--success) !important;
+}
+
+.alert-danger {
+  background: color-mix(in srgb, var(--danger) 8%, transparent 92%);
+  color: color-mix(in srgb, var(--danger) 90%, white 10%);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent 80%);
+}
+
+.alert-note {
+  background: color-mix(in srgb, var(--note) 8%, transparent 92%);
+  color: color-mix(in srgb, var(--note) 90%, white 10%);
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--note) 20%, transparent 80%);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--danger);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent 70%);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.btn-danger:hover { transform: translateY(-1px); filter:brightness(1.02); }
+.avatar-accent {
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--accent-1), var(--accent-2));
+  color: var(--accent-contrast);
 }
 
 /* When an input contains a left-positioned icon, increase left padding */

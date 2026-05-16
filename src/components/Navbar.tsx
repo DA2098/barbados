@@ -129,7 +129,7 @@ export default function Navbar() {
               <Link to="/chat" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
                 <MessageCircle className="w-7 h-7" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 border-2 border-[#2E5953] text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 badge-danger text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center" style={{ border: '2px solid var(--surface)' }}>
                     {unreadCount}
                   </span>
                 )}
@@ -140,7 +140,7 @@ export default function Navbar() {
               <Link to="/cart" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
                 <ShoppingCart className="w-7 h-7" />
                 {totalCartItems > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-600 border-2 border-[#2E5953] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 badge-note text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center" style={{ border: '2px solid var(--surface)' }}>
                     {totalCartItems}
                   </span>
                 )}
@@ -161,7 +161,7 @@ export default function Navbar() {
               <Link to="/chat" className="relative flex items-center text-contrast">
                 <Bell className="w-6 h-6" />
                 {unreadCount > 0 && (
-                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 bg-red-600 border-2 text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
+                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 badge-danger border-2 text-xs font-bold min-w-5 h-5 px-1 rounded-full flex items-center justify-center">
                     {unreadCount}
                   </span>
                 )}
@@ -171,7 +171,7 @@ export default function Navbar() {
               <Link to="/cart" className="relative flex items-center text-contrast">
                 <ShoppingCart className="w-6 h-6" />
                 {totalCartItems > 0 && (
-                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 bg-orange-600 border-2 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span style={{ borderColor: 'var(--surface)' }} className="absolute -top-2 -right-2 badge-note border-2 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                     {totalCartItems}
                   </span>
                 )}

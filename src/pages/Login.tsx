@@ -48,12 +48,12 @@ export default function Login() {
         <div className="glass-card rounded-2xl p-8 shadow-2xl mb-6">
           <div className="mb-6">
             <h2 className="text-xl font-bold text-contrast mb-1">Iniciar Sesión</h2>
-            <div className="h-1 w-12  from-accent-1 to-accent-2 rounded-full"></div>
+            <div className="h-1 w-12 avatar-accent rounded-full mx-auto"></div>
           </div>
 
           {error && (
-            <div className="bg-red-500/15 text-red-300 p-4 rounded-xl mb-6 text-sm border border-red-500/30 flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full bg-red-500/30 flex items-center justify-center ">✕</div>
+            <div className="alert-danger mb-6 text-sm flex items-center gap-3">
+              <div className="w-5 h-5 rounded-full" style={{ background: 'var(--danger, #ef4444,)', opacity: 0.2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</div>
               <span>{error}</span>
             </div>
           )}
@@ -66,7 +66,7 @@ export default function Login() {
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 form-input text-sm rounded-xl transition-all focus:ring-2 focus:ring-accent-1"
+                className="w-full px-4 py-3 form-input text-sm rounded-xl transition-all"
                 placeholder="Ingresa tu usuario o correo"
               />
             </div>
@@ -78,7 +78,7 @@ export default function Login() {
                 required 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 form-input text-sm rounded-xl transition-all focus:ring-2 focus:ring-accent-1" 
+                className="w-full px-4 py-3 form-input text-sm rounded-xl transition-all" 
                 placeholder="••••••••"
               />
             </div>
@@ -101,7 +101,7 @@ export default function Login() {
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-sm text-center text-muted">
               ¿No tienes cuenta?{' '}
-              <Link to="/register" className="font-semibold text-contrast hover:text-accent-1 transition-colors">
+              <Link to="/register" className="font-semibold text-contrast hover:text-accent transition-colors">
                 Regístrate aquí
               </Link>
             </p>

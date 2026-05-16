@@ -63,7 +63,7 @@ export default function PaymentReturn() {
         <p className="muted mb-6">Aquí tienes el comprobante profesional de Barbados. Puedes descargarlo cuando quieras.</p>
 
         {loading && <p className="text-sm text-gray-500">Confirmando pago y generando factura...</p>}
-        {error && <div className="bg-red-600/10 text-red-300 p-4 rounded mb-4">{error}</div>}
+        {error && <div className="alert-danger mb-4">{error}</div>}
 
         {invoice && (
           <div className="space-y-4">

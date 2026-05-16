@@ -288,7 +288,7 @@ export default function BarberPanel() {
                           {selectedItem.description && (
                             <p className="text-xs text-gray-600">{selectedItem.description}</p>
                           )}
-                          <p className="text-sm font-bold text-emerald-700">${selectedItem.price.toFixed(2)}</p>
+                          <p className="text-sm font-bold text-success">${selectedItem.price.toFixed(2)}</p>
                         </div>
                       ) : null;
                     })()}
@@ -309,19 +309,19 @@ export default function BarberPanel() {
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div className="glass-card p-4 rounded-xl border border-white/10">
             <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Cortes - Hoy</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.cortes.toFixed(2)}</p>
+            <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.cortes.toFixed(2)}</p>
           </div>
           <div className="glass-card p-4 rounded-xl border border-white/10">
             <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Barbería - Hoy</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.barberia.toFixed(2)}</p>
+            <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.barberia.toFixed(2)}</p>
           </div>
           <div className="glass-card p-4 rounded-xl border border-white/10">
             <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Lancería - Hoy</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.lanceria.toFixed(2)}</p>
+            <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.lanceria.toFixed(2)}</p>
           </div>
           <div className="glass-card p-4 rounded-xl border border-white/10">
             <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Bebidas - Hoy</p>
-            <p className="mt-2 text-2xl font-bold text-emerald-700">${todayByCategory.bebidas.toFixed(2)}</p>
+            <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.bebidas.toFixed(2)}</p>
           </div>
         </div>
       </div>
@@ -350,10 +350,10 @@ export default function BarberPanel() {
                   <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
                     <td className="p-4 text-sm">{new Date(log.date).toLocaleString()}</td>
                     <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium 
-                        ${(log.type === 'Corte' || log.type === 'Cortes' || log.type === 'Barbería') ? 'bg-blue-100 text-blue-700' : 
-                          (log.type === 'Menu' || log.type === 'Lancería') ? 'bg-orange-100 text-orange-700' : 
-                          'bg-purple-100 text-purple-700'}`}>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        (log.type === 'Corte' || log.type === 'Cortes' || log.type === 'Barbería') ? 'bg-accent-soft text-accent' : 
+                          (log.type === 'Menu' || log.type === 'Lancería') ? 'badge-note' : 
+                          'bg-accent-soft text-accent'}`}>
                         {typeLabel(log.type as 'Cortes' | 'Barbería' | 'Lancería' | 'Bebidas' | 'Corte' | 'Menu' | 'Bebida')}
                       </span>
                     </td>
@@ -368,9 +368,9 @@ export default function BarberPanel() {
                         <span className="font-medium">{log.name}</span>
                       </div>
                     </td>
-                    <td className="p-4 text-green-600 font-bold">${log.price.toFixed(2)}</td>
+                    <td className="p-4 text-success font-bold">${log.price.toFixed(2)}</td>
                     <td className="p-4 text-center">
-                      <button onClick={() => handleDeleteLog(log.id)} className="px-2 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 transition">
+                      <button onClick={() => handleDeleteLog(log.id)} className="px-2 py-1 rounded btn-danger text-xs">
                         Eliminar
                       </button>
                     </td>
@@ -452,7 +452,7 @@ export default function BarberPanel() {
                       <span className="px-2 py-1 rounded text-xs font-semibold uppercase bg-slate-100 text-slate-700">{appointment.status}</span>
                     </td>
                     <td className="p-4 text-center">
-                      <button onClick={() => handleDeleteAppointment(appointment.id)} className="px-3 py-2 rounded bg-red-600 text-white text-xs font-semibold">
+                      <button onClick={() => handleDeleteAppointment(appointment.id)} className="px-3 py-2 rounded btn-danger text-xs font-semibold">
                         Eliminar
                       </button>
                     </td>

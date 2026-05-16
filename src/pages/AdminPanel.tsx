@@ -762,9 +762,9 @@ export default function AdminPanel() {
                       <button onClick={() => handleChangeRole(u, 'user', true)} className="px-2 py-1 text-xs rounded accent-btn">Cliente</button>
                       <button onClick={() => handleChangeRole(u, 'barber', true)} className="px-2 py-1 text-xs rounded border border-white/20 text-contrast hover:border-white/40 transition-colors">Barbero</button>
                       {u.barber_approved === false && (
-                        <button onClick={() => handleChangeRole(u, 'barber', true)} className="px-2 py-1 text-xs rounded bg-green-600/20 text-green-400 border border-green-500/30 hover:bg-green-600/30 transition-colors">Aprobar</button>
+                        <button onClick={() => handleChangeRole(u, 'barber', true)} className="px-2 py-1 text-xs rounded bg-accent-soft text-success border border-white/10 transition-colors">Aprobar</button>
                       )}
-                      <button onClick={() => handleDeleteUser(u.id)} className="text-red-500 p-1 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteUser(u.id)} className="text-danger p-1 hover:opacity-85 transition-colors"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -861,7 +861,7 @@ export default function AdminPanel() {
                     <td className="p-3 text-contrast">${p.price.toFixed(2)}</td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        p.is_visible ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-white/10 text-contrast border border-white/20'
+                        p.is_visible ? 'bg-accent-soft text-success border border-white/10' : 'bg-white/10 text-contrast border border-white/20'
                       }`}>
                         {p.is_visible ? 'Visible' : 'Oculto'}
                       </span>
@@ -870,8 +870,8 @@ export default function AdminPanel() {
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleEditProduct(p)} className="p-2 text-contrast hover:opacity-70 transition-opacity"><Pencil className="w-4 h-4" /></button>
                         <button onClick={() => handleToggleVisibility(p)} className="px-2 py-1 text-xs rounded nav-btn">{p.is_visible ? 'Ocultar' : 'Mostrar'}</button>
-                        <button onClick={() => handleRemoveProductImage(p)} className="px-2 py-1 text-xs rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">Quitar imagen</button>
-                        <button onClick={() => handleDeleteProduct(p.id, p.category)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleRemoveProductImage(p)} className="px-2 py-1 text-xs rounded border border-white/10 text-danger hover:bg-accent-soft transition-colors">Quitar imagen</button>
+                        <button onClick={() => handleDeleteProduct(p.id, p.category)} className="p-2 text-danger hover:opacity-85 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -916,7 +916,7 @@ export default function AdminPanel() {
                   <div className="flex gap-2 items-center">
                     <input readOnly value={cutForm.image_url} className="w-full p-2 text-xs truncate border rounded bg-transparent" />
                     <button type="button" onClick={() => { navigator.clipboard?.writeText(cutForm.image_url); }} className="px-2 py-1 text-sm nav-btn">Copiar</button>
-                    <button type="button" onClick={() => setCutForm((prev) => ({ ...prev, image_url: '' }))} className="text-sm text-red-400 hover:opacity-80 transition-opacity">
+                    <button type="button" onClick={() => setCutForm((prev) => ({ ...prev, image_url: '' }))} className="text-sm text-danger hover:opacity-85 transition-opacity">
                       Quitar
                     </button>
                   </div>
@@ -988,8 +988,8 @@ export default function AdminPanel() {
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleEditCut(cut)} className="p-2 text-contrast hover:opacity-70 transition-opacity"><Pencil className="w-4 h-4" /></button>
                         <button onClick={() => handleToggleCutVisibility(cut)} className="px-2 py-1 text-xs rounded nav-btn">{cut.is_visible ? 'Ocultar' : 'Mostrar'}</button>
-                        <button onClick={() => handleRemoveCutImage(cut)} className="px-2 py-1 text-xs rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">Quitar imagen</button>
-                        <button onClick={() => handleDeleteCut(cut.id)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleRemoveCutImage(cut)} className="px-2 py-1 text-xs rounded border border-white/10 text-danger hover:bg-accent-soft transition-colors">Quitar imagen</button>
+                        <button onClick={() => handleDeleteCut(cut.id)} className="p-2 text-danger hover:opacity-85 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -1089,7 +1089,7 @@ export default function AdminPanel() {
                     } catch (err: any) {
                       alert(err.message || 'Error al eliminar conversación');
                     }
-                  }} className="px-3 py-1 rounded bg-red-100 text-red-600">Eliminar conversación</button>
+                  }} className="px-3 py-1 rounded btn-danger">Eliminar conversación</button>
                 </div>
               </div>
 
@@ -1112,7 +1112,7 @@ export default function AdminPanel() {
                             } catch (err: any) {
                               alert(err.message);
                             }
-                          }} className="text-xs text-red-500">Eliminar</button>
+                          }} className="text-xs text-danger">Eliminar</button>
                         </div>
                       </div>
                           <div className="mt-1 bg-white/5 p-2 rounded">
@@ -1232,8 +1232,8 @@ export default function AdminPanel() {
                       <div className="flex gap-2 flex-wrap justify-center">
                         <button onClick={() => handleAppointmentStatus(appointment, 'confirmed')} className="px-3 py-1 rounded accent-btn text-sm">Confirmar</button>
                         <button onClick={() => handleAppointmentStatus(appointment, 'completed')} className="px-3 py-1 rounded border border-white/20 text-contrast text-sm">Completar</button>
-                        <button onClick={() => handleAppointmentStatus(appointment, 'cancelled')} className="px-3 py-1 rounded border border-red-500/30 text-red-400 text-sm">Cancelar</button>
-                        <button onClick={() => handleDeleteAppointment(appointment)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleAppointmentStatus(appointment, 'cancelled')} className="px-3 py-1 rounded border border-white/10 text-danger text-sm">Cancelar</button>
+                        <button onClick={() => handleDeleteAppointment(appointment)} className="p-2 text-danger hover:opacity-85 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -1276,7 +1276,7 @@ export default function AdminPanel() {
                         <button onClick={() => handlePublishReview(review)} className="px-3 py-1 rounded accent-btn text-sm">
                           {review.isPublished ? 'Ocultar' : 'Publicar'}
                         </button>
-                        <button onClick={() => handleDeleteReview(review)} className="p-2 text-red-500 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDeleteReview(review)} className="p-2 text-danger hover:opacity-85 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -1295,20 +1295,20 @@ export default function AdminPanel() {
               <p className="text-sm text-gray-500">Resumen del trabajo registrado por el equipo.</p>
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={() => handleDeleteLogsByRange('today')} className="px-3 py-2 rounded text-sm bg-red-100 text-red-600 hover:bg-red-200 transition">
+              <button onClick={() => handleDeleteLogsByRange('today')} className="px-3 py-2 rounded text-sm btn-danger">
                 Borrar registros de hoy
               </button>
-              <button onClick={() => handleDeleteLogsByRange('month')} className="px-3 py-2 rounded text-sm bg-orange-100 text-orange-600 hover:bg-orange-200 transition">
+              <button onClick={() => handleDeleteLogsByRange('month')} className="px-3 py-2 rounded text-sm alert-note text-note">
                 Borrar registros del mes
               </button>
-              <button onClick={() => handleDeleteLogsByRange('year')} className="px-3 py-2 rounded text-sm bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
+              <button onClick={() => handleDeleteLogsByRange('year')} className="px-3 py-2 rounded text-sm bg-accent-soft text-accent">
                 Borrar registros del año
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
-                <p className="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Ganado hoy</p>
-                <p className="mt-2 text-2xl font-bold text-emerald-700">${todayTotal.toFixed(2)}</p>
+              <div className="rounded-xl p-4 bg-accent-soft border border-white/10">
+                <p className="text-xs uppercase tracking-wide text-success font-semibold">Ganado hoy</p>
+                <p className="mt-2 text-2xl font-bold text-success">${todayTotal.toFixed(2)}</p>
               </div>
             <div className="mt-4">
               <h3 className="text-sm font-semibold text-contrast mb-2">Totales por categoría</h3>
@@ -1383,7 +1383,7 @@ export default function AdminPanel() {
                   <td className="p-4">{l.name}</td>
                   <td className="p-4 text-green-600 font-bold">${l.price.toFixed(2)}</td>
                   <td className="p-4 text-center">
-                    <button onClick={() => handleDeleteLog(l.id)} className="px-2 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 transition">
+                    <button onClick={() => handleDeleteLog(l.id)} className="px-2 py-1 rounded btn-danger text-xs">
                       Eliminar
                     </button>
                   </td>

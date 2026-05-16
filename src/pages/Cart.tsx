@@ -81,7 +81,7 @@ export default function Cart() {
                 <span className="font-bold text-contrast">${(item.product.price * item.quantity).toFixed(2)}</span>
                 <button
                   onClick={() => removeFromCart(item.product.id)}
-                  className="text-red-500 hover:text-red-400 transition"
+                  className="text-danger hover:opacity-85 transition"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>

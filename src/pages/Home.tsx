@@ -135,7 +135,7 @@ export default function Home() {
     >
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-3xl font-extrabold text-accent-1">
+          <span className="text-3xl font-extrabold text-accent">
             {`$${cut.price.toFixed(0)}`}
           </span>
         </div>
@@ -164,21 +164,21 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <article className="glass-card rounded-2xl p-8 transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="w-12 h-12  from-accent-1 to-accent-2 rounded-xl flex items-center justify-center mb-5">
+              <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Clock3 className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Citas Sin Espera</h3>
               <p className="muted text-sm leading-relaxed">Sistema de reservas inteligente que respeta tu tiempo. Llegabas puntual, comienza puntual. Nos organizamos para mantener tu agenda sin interrupciones.</p>
             </article>
             <article className="glass-card rounded-2xl p-8 transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="w-12 h-12  from-accent-1 to-accent-2 rounded-xl flex items-center justify-center mb-5">
+              <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Check className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Calidad Garantizada</h3>
               <p className="muted text-sm leading-relaxed">Barberos certificados, herramientas de grado profesional y protocolos de esterilización rigurosos. Tu salud y satisfacción son nuestra prioridad número uno.</p>
             </article>
             <article className="glass-card rounded-2xl p-8 transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="w-12 h-12  from-accent-1 to-accent-2 rounded-xl flex items-center justify-center mb-5">
+              <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <MapPin className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Ubicación Premium</h3>
@@ -203,12 +203,12 @@ export default function Home() {
                   <div className="flex items-start justify-between mb-3 gap-3">
                     <div className="flex-1">
                       <h3 className="font-bold text-contrast text-base">{review.userName}</h3>
-                      <p className="text-xs uppercase tracking-wide text-accent-1 font-semibold mt-1">{review.serviceName}</p>
+                      <p className="text-xs uppercase tracking-wide text-accent font-semibold mt-1">{review.serviceName}</p>
                     </div>
-                    <div className="flex items-center gap-0.5 bg-amber-500/10 px-2.5 py-1.5 rounded-lg ">
-                      <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                      <span className="text-sm font-bold text-amber-500">{review.rating}</span>
-                    </div>
+                      <div className="flex items-center gap-0.5 badge-note px-2.5 py-1.5 rounded-lg">
+                        <Star className="w-4 h-4" style={{ color: 'var(--note)' }} />
+                        <span className="text-sm font-bold text-note">{review.rating}</span>
+                      </div>
                   </div>
                   <p className="text-sm text-muted leading-relaxed">{review.comment}</p>
                 </article>
@@ -221,7 +221,7 @@ export default function Home() {
       <section className="py-20 px-4" style={{ backgroundColor: 'var(--surface)' }}>
         <div className="max-w-7xl mx-auto glass-card rounded-3xl p-8 md:p-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
           <div className="flex-1">
-            <p className="text-xs uppercase tracking-[0.2em] text-accent-1 font-bold mb-3">Únete al Equipo</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-accent font-bold mb-3">Únete al Equipo</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-contrast leading-tight mb-4">¿Eres Barbero Profesional?</h2>
             <p className="muted leading-relaxed max-w-2xl">
               Si tienes pasión por el barbering y buscas crecer profesionalmente, te invitamos a formar parte de nuestro equipo. Completa tu perfil con tu experiencia, especialidades y horarios disponibles. Nuestro equipo revisará tu solicitud y te contactará pronto.

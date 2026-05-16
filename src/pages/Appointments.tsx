@@ -160,7 +160,7 @@ export default function Appointments() {
       <section className="lg:col-span-1 glass-card p-4 sm:p-6 rounded-xl">
         <h1 className="text-2xl font-bold mb-4 text-contrast">Agendar Cita</h1>
         {!canSchedule && (
-          <div className="mb-4 p-3 rounded bg-amber-100 text-amber-800 text-sm">
+          <div className="mb-4 p-3 rounded alert-note text-sm">
             Solo los clientes pueden agendar citas.
           </div>
         )}
@@ -357,7 +357,7 @@ export default function Appointments() {
                             type="button"
                             onClick={() => handleDeleteAppointment(appointment.id)}
                             disabled={deletingAppointmentId === appointment.id}
-                            className="px-3 py-2 rounded bg-red-600 text-white text-xs font-semibold disabled:opacity-50"
+                            className="px-3 py-2 rounded btn-danger text-xs font-semibold disabled:opacity-50"
                           >
                             {deletingAppointmentId === appointment.id ? 'Eliminando...' : 'Eliminar'}
                           </button>

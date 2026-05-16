@@ -44,7 +44,7 @@ export default function Invoices() {
       </div>
 
       {loading && <p className="muted">Cargando facturas...</p>}
-      {error && <div className="bg-red-600/10 text-red-300 p-4 rounded mb-4">{error}</div>}
+      {error && <div className="alert-danger mb-4">{error}</div>}
 
       {!loading && invoices.length === 0 && (
         <div className="glass-card p-10 rounded-2xl text-center">
