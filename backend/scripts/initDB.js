@@ -320,6 +320,21 @@ export async function initializeDatabase() {
       );
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        session_id VARCHAR(120) NOT NULL,
+        device_info TEXT,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_sessions_last_seen
+      ON user_sessions(last_seen_at DESC);
+    `);
+
     // Migrate existing columns to TEXT for Base64 storage
     try {
       await pool.query(`ALTER TABLE users ALTER COLUMN avatar_url TYPE TEXT;`);

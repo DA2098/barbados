@@ -1,4 +1,5 @@
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { CartProvider } from './context/CartContext';
@@ -58,6 +59,15 @@ function SessionConflictNotice() {
 }
 
 function AppShell() {
+  const { sessionExitReason, clearSessionExitReason } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!sessionExitReason) return;
+    navigate('/');
+    clearSessionExitReason();
+  }, [sessionExitReason, navigate, clearSessionExitReason]);
+
   return (
     <div style={{ backgroundColor: 'var(--bg)' }} className="min-h-screen text-contrast font-sans">
       <Navbar />

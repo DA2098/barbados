@@ -160,6 +160,70 @@ const normalizeApiBase = (value?: string) => {
 };
 
 const API_URL = normalizeApiBase(env?.VITE_API_URL);
+const SESSION_META_KEY = 'auth_session_meta';
+
+const createClientSessionId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const ensureClientSessionId = () => {
+  try {
+    const rawMeta = localStorage.getItem(SESSION_META_KEY);
+    if (rawMeta) {
+      const parsed = JSON.parse(rawMeta) as { sessionId?: string; userId?: string };
+      if (parsed?.sessionId) return String(parsed.sessionId);
+    }
+  } catch {
+    // Ignore malformed meta and rotate to a fresh one.
+  }
+
+  const sessionId = createClientSessionId();
+  localStorage.setItem(SESSION_META_KEY, JSON.stringify({ sessionId, userId: null, startedAt: new Date().toISOString() }));
+  return sessionId;
+};
+
+const patchGlobalFetchForSessionHeaders = () => {
+  if (typeof window === 'undefined') return;
+
+  const globalRef = window as Window & { __barbadosFetchPatched?: boolean };
+  if (globalRef.__barbadosFetchPatched) return;
+
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const mergedHeaders = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
+
+    try {
+      const rawUser = localStorage.getItem('auth_user');
+      if (rawUser && !mergedHeaders.has('x-user-id')) {
+        const parsedUser = JSON.parse(rawUser) as { id?: string };
+        if (parsedUser?.id) {
+          mergedHeaders.set('x-user-id', String(parsedUser.id));
+        }
+      }
+
+      const sessionId = ensureClientSessionId();
+      if (!mergedHeaders.has('x-session-id')) {
+        mergedHeaders.set('x-session-id', sessionId);
+      }
+    } catch {
+      // Keep request running even if localStorage parsing fails.
+    }
+
+    const response = await nativeFetch(input, { ...init, headers: mergedHeaders });
+    if (response.status === 409 && response.headers.get('x-session-conflict') === '1') {
+      window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
+    }
+
+    return response;
+  };
+
+  globalRef.__barbadosFetchPatched = true;
+};
+
+patchGlobalFetchForSessionHeaders();
 
 const normalizePrice = (value: unknown) => Number(value);
 
@@ -185,15 +249,28 @@ const parseApiError = async (res: Response, fallback: string) => {
 export const api = {
   // --- AUTH ---
   async login(email: string, password: string): Promise<User> {
+    const sessionId = ensureClientSessionId();
     const res = await fetch(`${API_URL}?action=login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-session-id': sessionId },
       body: JSON.stringify({ email, password })
     });
     if (!res.ok) {
       throw new Error(await parseApiError(res, 'Credenciales incorrectas'));
     }
     return await res.json();
+  },
+
+  async logout(userId?: string): Promise<void> {
+    if (!userId) return;
+    const res = await fetch(`${API_URL}?action=logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    if (!res.ok) {
+      throw new Error(await parseApiError(res, 'Error al cerrar sesión'));
+    }
   },
 
   async register(name: string, email: string, password: string, role: 'user' | 'barber' = 'user'): Promise<User> {

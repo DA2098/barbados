@@ -6,6 +6,8 @@ type DuplicatedSessionState = {
   secondsLeft: number;
 };
 
+type SessionExitReason = 'inactive' | 'duplicate' | null;
+
 interface AuthContextType {
   user: User | null;
   login: (u: User) => void;
@@ -13,6 +15,8 @@ interface AuthContextType {
   updateUser: (u: User) => void;
   duplicatedSession: DuplicatedSessionState | null;
   reclaimSession: () => void;
+  sessionExitReason: SessionExitReason;
+  clearSessionExitReason: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,10 +25,25 @@ const SESSION_LOCK_PREFIX = 'auth_session_lock_';
 const SESSION_META_KEY = 'auth_session_meta';
 const env = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env;
 const DUPLICATE_SESSION_GRACE_SECONDS = Math.max(10, Number(env?.VITE_DUPLICATE_SESSION_GRACE_SECONDS || '45'));
+const IDLE_TIMEOUT_SECONDS = Math.max(60, Number(env?.VITE_IDLE_TIMEOUT_SECONDS || '1800'));
 
 const getLockKey = (userId: string) => `${SESSION_LOCK_PREFIX}${userId}`;
 
-const createSessionId = () => {
+const createSessionId = (forceNew = false) => {
+  if (!forceNew) {
+    try {
+      const rawMeta = localStorage.getItem(SESSION_META_KEY);
+      if (rawMeta) {
+        const parsed = JSON.parse(rawMeta) as { sessionId?: string };
+        if (parsed?.sessionId) {
+          return String(parsed.sessionId);
+        }
+      }
+    } catch {
+      // Continue with a new session id.
+    }
+  }
+
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
@@ -37,10 +56,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : null;
   });
   const [duplicatedSession, setDuplicatedSession] = useState<DuplicatedSessionState | null>(null);
+  const [sessionExitReason, setSessionExitReason] = useState<SessionExitReason>(null);
   const sessionIdRef = useRef<string | null>(null);
   const duplicateDeadlineRef = useRef<number | null>(null);
 
-  const persistSessionMeta = (userId: string, sessionId: string) => {
+  const persistSessionMeta = (userId: string | null, sessionId: string) => {
     localStorage.setItem(
       SESSION_META_KEY,
       JSON.stringify({ userId, sessionId, startedAt: new Date().toISOString() })
@@ -59,6 +79,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setDuplicatedSession(null);
   };
 
+  const clearSessionExitReason = () => {
+    setSessionExitReason(null);
+  };
+
+  const performLocalLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
+    const targetUserId = explicitUserId || user?.id;
+
+    if (targetUserId) {
+      void api.logout(targetUserId).catch(() => {
+        // Avoid blocking local logout if backend is temporarily unavailable.
+      });
+    }
+
+    setUser(null);
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem(SESSION_META_KEY);
+    if (targetUserId) {
+      localStorage.removeItem(getLockKey(targetUserId));
+    }
+    sessionIdRef.current = null;
+    clearDuplicateState();
+    setSessionExitReason(reason);
+  };
+
   const startDuplicateCountdown = () => {
     duplicateDeadlineRef.current = Date.now() + DUPLICATE_SESSION_GRACE_SECONDS * 1000;
     setDuplicatedSession({ secondsLeft: DUPLICATE_SESSION_GRACE_SECONDS });
@@ -66,12 +110,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const reclaimSession = () => {
     if (!user) return;
-    const nextSessionId = createSessionId();
+    const nextSessionId = createSessionId(true);
     sessionIdRef.current = nextSessionId;
     persistSessionMeta(user.id, nextSessionId);
     writeSessionLock(user.id, nextSessionId);
     clearDuplicateState();
   };
+
+  useEffect(() => {
+    const handleConflict = () => {
+      if (!user) return;
+      startDuplicateCountdown();
+    };
+
+    window.addEventListener('barbados:session-conflict', handleConflict as EventListener);
+    return () => window.removeEventListener('barbados:session-conflict', handleConflict as EventListener);
+  }, [user?.id]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
@@ -148,13 +202,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (secondsLeft <= 0) {
         setDuplicatedSession({ secondsLeft: 0 });
-        localStorage.removeItem('auth_user');
-        localStorage.removeItem(SESSION_META_KEY);
-        if (user?.id) {
-          localStorage.removeItem(getLockKey(user.id));
-        }
-        setUser(null);
-        clearDuplicateState();
+        performLocalLogout('duplicate', user?.id);
         return;
       }
 
@@ -165,6 +213,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       window.clearInterval(ticker);
     };
   }, [duplicatedSession, user?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId: number | null = null;
+
+    const resetIdleTimer = () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+
+      timeoutId = window.setTimeout(() => {
+        performLocalLogout('inactive', user.id);
+      }, IDLE_TIMEOUT_SECONDS * 1000);
+    };
+
+    const activityEvents: Array<keyof WindowEventMap> = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        resetIdleTimer();
+      }
+    };
+
+    for (const eventName of activityEvents) {
+      window.addEventListener(eventName, resetIdleTimer, { passive: true });
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    resetIdleTimer();
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+      for (const eventName of activityEvents) {
+        window.removeEventListener(eventName, resetIdleTimer);
+      }
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [user?.id]);
 
   useRealtimeUserEvents(user?.id, async () => {
     if (!user) return;
@@ -199,18 +287,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     persistSessionMeta(u.id, nextSessionId);
     writeSessionLock(u.id, nextSessionId);
     clearDuplicateState();
+    clearSessionExitReason();
   };
 
   const logout = () => {
-    const currentUserId = user?.id;
-    setUser(null);
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem(SESSION_META_KEY);
-    if (currentUserId) {
-      localStorage.removeItem(getLockKey(currentUserId));
-    }
-    sessionIdRef.current = null;
-    clearDuplicateState();
+    performLocalLogout(null, user?.id);
   };
 
   const updateUser = (u: User) => {
@@ -219,7 +300,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, duplicatedSession, reclaimSession }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, updateUser, duplicatedSession, reclaimSession, sessionExitReason, clearSessionExitReason }}
+    >
       {children}
     </AuthContext.Provider>
   );

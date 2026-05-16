@@ -113,6 +113,84 @@ const authAttemptLimiter = rateLimit({
   }
 });
 
+const SESSION_EXEMPT_ACTIONS = new Set([
+  '',
+  'login',
+  'register',
+  'realtime'
+]);
+
+function createServerSessionId() {
+  return `srv_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function readIncomingSessionId(req) {
+  const fromHeader = String(req.headers['x-session-id'] || '').trim();
+  const fromBody = String(req.body?.sessionId || '').trim();
+  const fromQuery = String(req.query?.sessionId || '').trim();
+  return fromHeader || fromBody || fromQuery || null;
+}
+
+function readActorId(req) {
+  const candidates = [
+    req.headers['x-user-id'],
+    req.query?.userId,
+    req.body?.userId,
+    req.query?.actorId,
+    req.body?.actorId,
+    req.query?.adminId,
+    req.body?.adminId,
+    req.query?.senderId,
+    req.body?.senderId,
+    req.query?.requesterId,
+    req.body?.requesterId,
+    req.query?.barberId,
+    req.body?.barberId,
+    req.query?.clientId,
+    req.body?.clientId,
+    req.query?.id,
+    req.body?.id
+  ];
+
+  for (const item of candidates) {
+    const value = String(item || '').trim();
+    if (value) return value;
+  }
+
+  return null;
+}
+
+async function activateUserSession(userId, sessionId, deviceInfo = '') {
+  await pool.query(
+    `INSERT INTO user_sessions (user_id, session_id, device_info, updated_at, last_seen_at)
+     VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+     ON CONFLICT (user_id)
+     DO UPDATE SET
+       session_id = EXCLUDED.session_id,
+       device_info = EXCLUDED.device_info,
+       updated_at = CURRENT_TIMESTAMP,
+       last_seen_at = CURRENT_TIMESTAMP`,
+    [userId, sessionId, deviceInfo || null]
+  );
+}
+
+async function isUserSessionValid(userId, sessionId) {
+  const result = await pool.query('SELECT session_id FROM user_sessions WHERE user_id = $1 LIMIT 1', [userId]);
+  if (result.rowCount === 0) return true;
+  return String(result.rows[0].session_id) === String(sessionId);
+}
+
+async function touchUserSession(userId, sessionId) {
+  await pool.query(
+    'UPDATE user_sessions SET last_seen_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND session_id = $2',
+    [userId, sessionId]
+  );
+}
+
+async function clearUserSession(userId) {
+  await pool.query('DELETE FROM user_sessions WHERE user_id = $1', [userId]);
+}
+
 // Capture raw body for webhook signature verification (Stripe)
 app.use(express.json({ limit: '50mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -597,6 +675,27 @@ app.all(['/api', '/api.php'], async (req, res) => {
   const action = req.query.action || req.body.action || '';
 
   try {
+    const actorId = readActorId(req);
+    const requiresSession = !SESSION_EXEMPT_ACTIONS.has(String(action || '').toLowerCase());
+
+    if (requiresSession && actorId) {
+      const sessionId = readIncomingSessionId(req);
+      if (!sessionId) {
+        return res.status(401).json({ error: 'session_required', message: 'Sesion requerida. Inicia sesion nuevamente.' });
+      }
+
+      const isValidSession = await isUserSessionValid(actorId, sessionId);
+      if (!isValidSession) {
+        res.setHeader('x-session-conflict', '1');
+        return res.status(409).json({
+          error: 'session_conflict',
+          message: 'Esta cuenta inicio sesion en otro dispositivo. Confirma si deseas seguir aqui.'
+        });
+      }
+
+      await touchUserSession(actorId, sessionId);
+    }
+
     if (req.method === 'GET' && !action) {
       return res.json({ message: 'API Barbados - Use action parameter', status: 'ok' });
     }
@@ -644,7 +743,19 @@ app.all(['/api', '/api.php'], async (req, res) => {
         return res.status(403).json({ error: 'Tu cuenta de barbero está pendiente de aprobación por el administrador' });
       }
 
+      const incomingSessionId = readIncomingSessionId(req) || createServerSessionId();
+      const deviceInfo = String(req.headers['user-agent'] || '').slice(0, 255);
+      await activateUserSession(user.id, incomingSessionId, deviceInfo);
+
       return res.json(normalizeUser(user));
+    }
+
+    if (req.method === 'POST' && action === 'logout') {
+      const actor = readActorId(req);
+      if (actor) {
+        await clearUserSession(actor);
+      }
+      return res.json({ message: 'Sesion cerrada' });
     }
 
     if (req.method === 'POST' && action === 'create-admin') {
