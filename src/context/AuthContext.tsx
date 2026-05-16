@@ -200,6 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const startDuplicateCountdown = () => {
     duplicateDeadlineRef.current = Date.now() + DUPLICATE_SESSION_GRACE_SECONDS * 1000;
+    console.warn(`  ✓ Modal/Notice should be visible now (${DUPLICATE_SESSION_GRACE_SECONDS}s countdown)`);
     setDuplicatedSession({ secondsLeft: DUPLICATE_SESSION_GRACE_SECONDS });
   };
 
@@ -217,7 +218,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const handleConflict = () => {
-      if (!user) return;
+      console.warn('🟢 Session conflict event received in AuthContext');
+      if (!user) {
+        console.warn('  ⚠️  No user logged in, ignoring conflict');
+        return;
+      }
       // Respect persisted session choice if present
       try {
         const raw = localStorage.getItem('barbados_session_choice');
@@ -225,6 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const parsed = JSON.parse(raw) as { userId?: string; action?: string; expiresAt?: number };
           if (parsed?.userId === user.id && parsed?.action === 'both' && parsed.expiresAt && parsed.expiresAt > Date.now()) {
             // user previously allowed both sessions — do not start countdown
+            console.warn('  ℹ️  Both sessions allowed, clearing duplicate state');
             clearDuplicateState();
             return;
           }
@@ -233,6 +239,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // ignore parse errors
       }
 
+      console.warn(`  ⏱️  Starting countdown: ${DUPLICATE_SESSION_GRACE_SECONDS}s`);
       startDuplicateCountdown();
     };
 

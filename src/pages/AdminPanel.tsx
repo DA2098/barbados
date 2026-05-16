@@ -89,7 +89,7 @@ export default function AdminPanel() {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [uData, pData, sData, lData, applicationData, appointmentData, reviewData, chatData] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getUsers(),
         api.getProducts({ includeHidden: true }),
         api.getServices({ includeHidden: true }),
@@ -99,6 +99,16 @@ export default function AdminPanel() {
         api.getAppointmentReviews(),
         api.getAdminChatMonitor(user.id)
       ]);
+
+      const uData = results[0].status === 'fulfilled' ? results[0].value : [];
+      const pData = results[1].status === 'fulfilled' ? results[1].value : [];
+      const sData = results[2].status === 'fulfilled' ? results[2].value : [];
+      const lData = results[3].status === 'fulfilled' ? results[3].value : [];
+      const applicationData = results[4].status === 'fulfilled' ? results[4].value : [];
+      const appointmentData = results[5].status === 'fulfilled' ? results[5].value : [];
+      const reviewData = results[6].status === 'fulfilled' ? results[6].value : [];
+      const chatData = results[7].status === 'fulfilled' ? results[7].value : [];
+
       console.log('✓ Datos cargados - Products:', pData, 'Services:', sData);
       setUsers(uData);
       setProducts([...pData, ...sData]);

@@ -226,8 +226,12 @@ const patchGlobalFetchForSessionHeaders = () => {
     const response = await nativeFetch(input, { ...init, headers: mergedHeaders });
     if (response.status === 409 && response.headers.get('x-session-conflict') === '1') {
       try {
+        console.warn('🔴 Session conflict detected - dispatching event');
         window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
-      } catch {}
+        console.warn('✓ Session conflict event dispatched');
+      } catch (e) {
+        console.error('Error dispatching session-conflict event:', e);
+      }
       // Throw a specific error so higher-level code can handle it differently
       throw new SessionConflictError('Session conflict detected', response);
     }
