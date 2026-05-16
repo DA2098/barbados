@@ -137,6 +137,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionIdRef.current = null;
     clearDuplicateState();
     setSessionExitReason(reason);
+    // Clear app-specific localStorage keys to remove transient local data (telemetry, cached choices, etc.)
+    try {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('barbados_')) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    // Notify other contexts in this tab that a local-only logout occurred so they can clear in-memory state.
+    try {
+      window.dispatchEvent(new CustomEvent('barbados:local-logout'));
+    } catch {
+      // ignore
+    }
   };
 
   // Lightweight telemetry for session decisions. Stores event locally and logs to console.
@@ -162,6 +179,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // User chooses to allow both sessions to remain active.
     // Clear any duplicate countdown for this tab and keep current session active.
     clearDuplicateState();
+    try {
+      if (user?.id) {
+        const choice = { userId: user.id, action: 'both', expiresAt: Date.now() + 60 * 60 * 1000 };
+        localStorage.setItem('barbados_session_choice', JSON.stringify(choice));
+      }
+    } catch {
+      // ignore
+    }
   };
 
   const startDuplicateCountdown = () => {
@@ -181,6 +206,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handleConflict = () => {
       if (!user) return;
+      // Respect persisted session choice if present
+      try {
+        const raw = localStorage.getItem('barbados_session_choice');
+        if (raw) {
+          const parsed = JSON.parse(raw) as { userId?: string; action?: string; expiresAt?: number };
+          if (parsed?.userId === user.id && parsed?.action === 'both' && parsed.expiresAt && parsed.expiresAt > Date.now()) {
+            // user previously allowed both sessions — do not start countdown
+            clearDuplicateState();
+            return;
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+
       startDuplicateCountdown();
     };
 
