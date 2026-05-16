@@ -79,6 +79,13 @@ export default function ClientPanel() {
         });
 
         if (conversationNotifications.length > 0) {
+          // Asegurarse de que estén ordenadas por fecha (más reciente primero)
+          conversationNotifications.sort((a, b) => {
+            const ta = new Date(a.createdAt).getTime() || 0;
+            const tb = new Date(b.createdAt).getTime() || 0;
+            return tb - ta;
+          });
+
           const latest = conversationNotifications[0];
           alert(`Nuevo mensaje del administrador: ${latest.body}`);
           const msgs: Message[] = await api.getMessages(conversationId, user.id);

@@ -682,9 +682,32 @@ export const api = {
     const res = await fetch(`${API_URL}?action=notifications&userId=${userId}`);
     if (!res.ok) throw new Error(await parseApiError(res, 'Error al obtener notificaciones'));
     const data = await res.json();
-    if (Array.isArray(data)) return data as AppNotification[];
-    if (Array.isArray(data?.items)) return data.items as AppNotification[];
-    return [];
+
+    // Normalize different response shapes and ensure predictable ordering
+    let items: AppNotification[] = [];
+    if (Array.isArray(data)) items = data as AppNotification[];
+    else if (Array.isArray(data?.items)) items = data.items as AppNotification[];
+
+    // Defensive normalization: ensure fields exist and types are consistent
+    items = items.map((n) => ({
+      id: String(n.id || ''),
+      type: (n.type as AppNotification['type']) || 'system',
+      title: n.title || '',
+      body: n.body || '',
+      payload: n.payload ?? null,
+      isRead: !!n.isRead,
+      createdAt: n.createdAt || (n.readAt ?? new Date().toISOString()),
+      readAt: n.readAt ?? null
+    }));
+
+    // Sort newest first so UI can rely on order
+    items.sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime() || 0;
+      const tb = new Date(b.createdAt).getTime() || 0;
+      return tb - ta;
+    });
+
+    return items;
   },
 
   async markNotificationsRead(userId: string, markAll: boolean = true, notificationId?: string): Promise<void> {
