@@ -161,6 +161,7 @@ const normalizeApiBase = (value?: string) => {
 
 const API_URL = normalizeApiBase(env?.VITE_API_URL);
 const SESSION_META_KEY = 'auth_session_meta';
+const SESSION_CONFLICT_FLAG_KEY = 'barbados_session_conflict_flag';
 
 const createClientSessionId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -227,6 +228,18 @@ const patchGlobalFetchForSessionHeaders = () => {
     if (response.status === 409 && response.headers.get('x-session-conflict') === '1') {
       try {
         console.warn('🔴 Session conflict detected - dispatching event');
+        const rawUser = localStorage.getItem('auth_user');
+        const parsedUser = rawUser ? (JSON.parse(rawUser) as { id?: string }) : null;
+        const rawMeta = localStorage.getItem(SESSION_META_KEY);
+        const parsedMeta = rawMeta ? (JSON.parse(rawMeta) as { sessionId?: string }) : null;
+        localStorage.setItem(
+          SESSION_CONFLICT_FLAG_KEY,
+          JSON.stringify({
+            userId: parsedUser?.id ?? null,
+            sessionId: parsedMeta?.sessionId ?? null,
+            detectedAt: new Date().toISOString(),
+          })
+        );
         const signalConflict = (window as any).__barbadosOnSessionConflict;
         if (typeof signalConflict === 'function') {
           signalConflict();
@@ -258,6 +271,24 @@ export const isSessionConflictError = (err: unknown) => {
     return String(name).toLowerCase() === 'sessionconflicterror' || String((err as any).message || '').toLowerCase().includes('session_conflict');
   } catch {
     return false;
+  }
+};
+
+export const clearSessionConflictFlag = () => {
+  try {
+    localStorage.removeItem(SESSION_CONFLICT_FLAG_KEY);
+  } catch {
+    // ignore storage errors
+  }
+};
+
+export const getSessionConflictFlag = () => {
+  try {
+    const raw = localStorage.getItem(SESSION_CONFLICT_FLAG_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as { userId?: string | null; sessionId?: string | null; detectedAt?: string };
+  } catch {
+    return null;
   }
 };
 

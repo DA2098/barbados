@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
-import { User, api } from '../services/api';
+import { User, api, clearSessionConflictFlag, getSessionConflictFlag } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 type DuplicatedSessionState = {
@@ -120,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionIdRef.current = null;
     clearDuplicateState();
     setSessionExitReason(reason);
+    clearSessionConflictFlag();
     // Clear app-specific localStorage keys to remove transient local data (telemetry, cached choices, etc.)
     try {
       for (const key of Object.keys(localStorage)) {
@@ -160,6 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionIdRef.current = null;
     clearDuplicateState();
     setSessionExitReason(reason);
+    clearSessionConflictFlag();
     // Ensure any local-only logout flag is cleared on a full logout.
     clearTabLocalLogout();
   };
@@ -207,6 +209,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     duplicateDeadlineRef.current = Date.now() + DUPLICATE_SESSION_GRACE_SECONDS * 1000;
     console.warn(`  ✓ Modal/Notice should be visible now (${DUPLICATE_SESSION_GRACE_SECONDS}s countdown)`);
     setDuplicatedSession({ secondsLeft: DUPLICATE_SESSION_GRACE_SECONDS });
+  };
+
+  const recoverPersistedConflict = () => {
+    const flag = getSessionConflictFlag();
+    const currentUser = userRef.current;
+
+    if (!flag || !currentUser || flag.userId !== currentUser.id) return false;
+
+    console.warn('🟡 Recovering persisted session conflict flag');
+    startDuplicateCountdown();
+    return true;
   };
 
   const reclaimSession = () => {
@@ -266,6 +279,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    if (!user) {
+      clearSessionConflictFlag();
+      return;
+    }
+
+    if (recoverPersistedConflict()) {
+      return;
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key === 'auth_user') {
         const tabLoggedOut = isTabLocallyLoggedOut();
@@ -299,6 +323,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) {
       sessionIdRef.current = null;
       clearDuplicateState();
+      clearSessionConflictFlag();
       return;
     }
 
@@ -320,6 +345,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionIdRef.current = activeSessionId;
     persistSessionMeta(user.id, activeSessionId);
     writeSessionLock(user.id, activeSessionId);
+    clearSessionConflictFlag();
   }, [user?.id]);
 
   useEffect(() => {
