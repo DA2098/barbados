@@ -389,6 +389,61 @@ a {
 .cuts-grid > .card-3d .cut-avatar { animation-duration: 28s; }
 .cuts-grid > .card-3d:hover .cut-avatar { animation-duration: 8s; }
 
+/* Orbital container: stack cards and let them orbit around center */
+.cuts-orbit {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 1400px;
+}
+.cuts-orbit > .card-3d {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  will-change: transform, filter;
+}
+
+/* Increase orbit radius using viewport units for a wide sweeping motion */
+@keyframes cardOrbit {
+  0% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(0vw,-6vh,0px) rotate(0deg) scale(0.96);
+    filter: drop-shadow(0 8px 18px rgba(2,8,20,0.22));
+  }
+  12.5% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(20vw,-4vh,18px) rotate(18deg) scale(1.06);
+    filter: drop-shadow(0 26px 52px rgba(2,8,20,0.36));
+  }
+  25% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(36vw,0vw,36px) rotate(36deg) scale(1.12);
+    filter: drop-shadow(0 38px 76px rgba(2,8,20,0.46));
+  }
+  37.5% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(20vw,4vh,18px) rotate(54deg) scale(1.06);
+    filter: drop-shadow(0 26px 52px rgba(2,8,20,0.36));
+  }
+  50% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(0vw,8vh,0px) rotate(90deg) scale(0.98);
+    filter: drop-shadow(0 8px 18px rgba(2,8,20,0.22));
+  }
+  62.5% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(-20vw,4vh,12px) rotate(126deg) scale(1.01);
+    filter: drop-shadow(0 18px 36px rgba(2,8,20,0.3));
+  }
+  75% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(-36vw,0vw,6px) rotate(162deg) scale(0.96);
+    filter: drop-shadow(0 8px 18px rgba(2,8,20,0.2));
+  }
+  87.5% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(-20vw,-4vh,12px) rotate(198deg) scale(1.01);
+    filter: drop-shadow(0 18px 36px rgba(2,8,20,0.3));
+  }
+  100% {
+    transform: translate3d(-50%, -50%, 0px) translate3d(0vw,-6vh,0px) rotate(360deg) scale(0.96);
+    filter: drop-shadow(0 8px 18px rgba(2,8,20,0.22));
+  }
+}
+
 
 /* When an input contains a left-positioned icon, increase left padding */
 .form-input.icon-left {
