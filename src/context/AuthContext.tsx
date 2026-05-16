@@ -105,8 +105,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const performLocalLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
-    const targetUserId = explicitUserId || user?.id;
+  const performLocalLogout = (reason: SessionExitReason = null) => {
+    const targetUserId = user?.id;
 
     if (targetUserId) {
       void api.logout(targetUserId).catch(() => {
@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     clearTabLocalLogout();
   };
 
-  const performLocalOnlyLogout = (reason: SessionExitReason = null, explicitUserId?: string) => {
+  const performLocalOnlyLogout = (reason: SessionExitReason = null) => {
     // Mark this tab as locally logged out (so other tabs/devices aren't affected).
     setTabLocalLogout();
     setUser(null);
@@ -260,7 +260,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (secondsLeft <= 0) {
         setDuplicatedSession({ secondsLeft: 0 });
-        performLocalLogout('duplicate', user?.id);
+        performLocalLogout('duplicate');
         return;
       }
 
@@ -283,7 +283,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       timeoutId = window.setTimeout(() => {
-        performLocalLogout('inactive', user.id);
+        performLocalLogout('inactive');
       }, IDLE_TIMEOUT_SECONDS * 1000);
     };
 
@@ -351,11 +351,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
-    performLocalLogout(null, user?.id);
+    performLocalLogout(null);
   };
 
   const logoutLocal = () => {
-    performLocalOnlyLogout(null, user?.id);
+    performLocalOnlyLogout(null);
   };
 
   const updateUser = (u: User) => {
