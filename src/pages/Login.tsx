@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { ShieldUser, Scissors, UserRound } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accessType, setAccessType] = useState<'client' | 'staff'>('client');
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -50,6 +52,59 @@ export default function Login() {
             <h2 className="text-xl font-bold text-contrast mb-1">Iniciar Sesión</h2>
             <div className="h-1 w-12 avatar-accent rounded-full mx-auto"></div>
           </div>
+
+          <div className="grid grid-cols-2 gap-2 p-1 mb-6 rounded-2xl border border-white/10 bg-white/5">
+            <button
+              type="button"
+              onClick={() => setAccessType('client')}
+              className={`rounded-xl px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                accessType === 'client' ? 'accent-btn shadow-lg' : 'text-contrast/80 hover:text-contrast hover:bg-white/5'
+              }`}
+            >
+              <UserRound className="w-4 h-4" />
+              Cliente
+            </button>
+            <button
+              type="button"
+              onClick={() => setAccessType('staff')}
+              className={`rounded-xl px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                accessType === 'staff' ? 'accent-btn shadow-lg' : 'text-contrast/80 hover:text-contrast hover:bg-white/5'
+              }`}
+            >
+              <ShieldUser className="w-4 h-4" />
+              Staff
+            </button>
+          </div>
+
+          {accessType === 'staff' && (
+            <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-contrast">
+              <div className="flex items-start gap-3">
+                <ShieldUser className="w-5 h-5 shrink-0 text-amber-300 mt-0.5" />
+                <div className="space-y-3">
+                  <p className="font-semibold">Acceso exclusivo para personal autorizado</p>
+                  <p className="muted">
+                    Inicia sesión con tu cuenta de administrador o barbero. El sistema te enviará automáticamente al panel correcto según tu rol.
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="flex items-center gap-2 font-semibold">
+                        <ShieldUser className="w-4 h-4 text-amber-300" />
+                        Admin
+                      </div>
+                      <p className="mt-1 text-xs muted">Gestión total de usuarios, contenido, pagos y conversaciones.</p>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <div className="flex items-center gap-2 font-semibold">
+                        <Scissors className="w-4 h-4 text-amber-300" />
+                        Barbero
+                      </div>
+                      <p className="mt-1 text-xs muted">Acceso al panel de barbero para agenda, clientes y comunicación.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="alert-danger mb-6 text-sm flex items-center gap-3">
