@@ -70,21 +70,10 @@ export default function PaymentReturn() {
             <div className="glass-card p-4 rounded-xl border border-white/10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-    api.confirmPayment({ provider, referenceId, userId: user.id })
-      .then((data) => {
-        if (!cancelled) setInvoice(data);
-      })
-      .catch((err: any) => {
-        if (!cancelled) {
-          const msg = String(err?.message || '').toLowerCase();
-          if (msg.includes('session_conflict') || msg.includes('session conflict')) {
-            console.warn('Ignored session_conflict in PaymentReturn');
-          } else {
-            setError(err.message || 'No se pudo confirmar el pago');
-          }
-        }
-      })
-              </div>
+                  <p className="text-sm muted">{invoice.invoiceNumber}</p>
+                  <h2 className="text-xl font-bold text-contrast">{invoice.kind === 'appointment' ? 'Factura de cita' : 'Factura de compra'}</h2>
+                  <p className="text-sm muted mt-1">{new Date(invoice.paidAt || invoice.createdAt).toLocaleString()}</p>
+                </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
                 <div><span className="muted">Método:</span> {invoice.paymentMethod === 'card' ? 'Tarjeta' : 'PayPal'}</div>
                 <div><span className="muted">Proveedor:</span> {invoice.paymentProvider.toUpperCase()}</div>
