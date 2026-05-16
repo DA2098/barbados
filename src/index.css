@@ -404,6 +404,20 @@ a {
   will-change: transform, filter;
 }
 
+.cuts-orbit > .card-3d .card-inner {
+  transition: transform 240ms cubic-bezier(.2,.9,.2,1), box-shadow 240ms cubic-bezier(.2,.9,.2,1);
+  transform-origin: center center;
+}
+
+.cuts-orbit > .card-3d.is-front { z-index: 60; }
+.cuts-orbit > .card-3d.is-front .card-inner {
+  transform: translateY(-14px) scale(1.14);
+  box-shadow: 0 40px 80px rgba(2,8,20,0.48);
+}
+
+.cuts-orbit > .card-3d .cut-avatar { transition: transform 240ms cubic-bezier(.2,.9,.2,1); }
+.cuts-orbit > .card-3d.is-front .cut-avatar { transform: scale(1.12); }
+
 /* Increase orbit radius using viewport units for a wide sweeping motion */
 @keyframes cardOrbit {
   0% {

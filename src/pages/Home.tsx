@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Clock3, Globe, MapPin, MessageCircle, Phone, Star, Mail } from 'lucide-react';
 import { api, AppointmentReview, Product } from '../services/api';
@@ -70,6 +70,59 @@ export default function Home() {
 
   const featuredCuts = useMemo(() => cuts.slice(0, 4), [cuts]);
 
+  const orbitRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = orbitRef.current;
+    if (!container) return;
+
+    const cards = Array.from(container.querySelectorAll('.card-3d')) as HTMLElement[];
+    if (!cards.length) return;
+
+    let rafId = 0;
+
+    const loop = () => {
+      let maxZ = -Infinity;
+      let front: HTMLElement | null = null;
+
+      cards.forEach((el) => {
+        const s = getComputedStyle(el).transform || '';
+        let z = 0;
+        if (s.startsWith('matrix3d(')) {
+          const nums = s.slice(9, -1).split(',').map((n) => Number(n.trim()));
+          z = nums[14] || 0;
+        }
+        if (z > maxZ) { maxZ = z; front = el; }
+      });
+
+      cards.forEach((el) => el.classList.toggle('is-front', el === front));
+      rafId = requestAnimationFrame(loop);
+    };
+
+    rafId = requestAnimationFrame(loop);
+
+    // hover handlers to prioritize hovered card
+    const onEnter = (e: Event) => {
+      const el = e.currentTarget as HTMLElement;
+      cards.forEach((c) => c.classList.remove('is-front'));
+      el.classList.add('is-front');
+    };
+    const onLeave = () => { /* let RAF decide next front */ };
+
+    cards.forEach((c) => {
+      c.addEventListener('mouseenter', onEnter);
+      c.addEventListener('mouseleave', onLeave);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      cards.forEach((c) => {
+        c.removeEventListener('mouseenter', onEnter);
+        c.removeEventListener('mouseleave', onLeave);
+      });
+    };
+  }, [featuredCuts]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <section className="hero-stage relative overflow-hidden">
@@ -119,7 +172,7 @@ export default function Home() {
           {/* Orbital layout for medium+ screens */}
           <div className="hidden md:block w-full">
             <div className="relative w-full h-[420px] flex items-center justify-center">
-              <div className="cuts-orbit w-full max-w-6xl relative mx-auto h-full">
+              <div ref={orbitRef} className="cuts-orbit w-full max-w-6xl relative mx-auto h-full">
                 {featuredCuts.map((cut, idx) => (
                   <Card
                     key={cut.id}
