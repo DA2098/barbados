@@ -56,6 +56,7 @@ function SessionConflictModal() {
               trackSessionDecision?.('keep');
               try { if ((window as any).__barbadosClearConflict) (window as any).__barbadosClearConflict(); } catch {}
               reclaimSession();
+              try { /* try claim on server after reclaim */ (window as any).__barbadosReclaimSession?.(); } catch {}
             }}
             className="flex-1 rounded-xl px-4 py-3 font-bold accent-btn transition-all hover:shadow-lg active:scale-95"
           >

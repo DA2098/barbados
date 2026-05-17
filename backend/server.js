@@ -758,6 +758,18 @@ app.all(['/api', '/api.php'], async (req, res) => {
       return res.json({ message: 'Sesion cerrada' });
     }
 
+    // Allow a client to claim/activate a session explicitly (used when user chooses to keep this tab)
+    if (req.method === 'POST' && action === 'claim-session') {
+      const actor = readActorId(req);
+      const incomingSessionId = readIncomingSessionId(req) || createServerSessionId();
+      const deviceInfo = String(req.headers['user-agent'] || '').slice(0, 255);
+      if (actor) {
+        await activateUserSession(actor, incomingSessionId, deviceInfo);
+        return res.json({ message: 'Session activada', sessionId: incomingSessionId });
+      }
+      return res.status(400).json({ error: 'Missing user id' });
+    }
+
     if (req.method === 'POST' && action === 'create-admin') {
       const { adminId, name, email, password, phone } = req.body;
       if (!(await isAdminUser(adminId))) {

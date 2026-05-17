@@ -506,6 +506,15 @@ export const api = {
     }
   },
 
+  async claimSession(userId: string, sessionId: string): Promise<void> {
+    const res = await fetch(`${API_URL}?action=claim-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-id': sessionId },
+      body: JSON.stringify({ userId, sessionId })
+    });
+    if (!res.ok) throw new Error(await parseApiError(res, 'Error al reclamar sesión'));
+  },
+
   async register(name: string, email: string, password: string, role: 'user' | 'barber' = 'user'): Promise<User> {
     const res = await fetch(`${API_URL}?action=register`, {
       method: 'POST',

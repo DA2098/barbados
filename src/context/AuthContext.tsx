@@ -236,6 +236,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {}
   };
 
+  // Try to claim the session on the server so the previous device session is invalidated.
+  const claimSessionServer = async (sid: string) => {
+    try {
+      if (!user) return;
+      await api.claimSession(user.id, sid);
+      console.info('Reclaimed session on server');
+    } catch (e) {
+      console.warn('Failed to claim session on server', e);
+    }
+  };
+
   // Expose safe helpers on `window` for emergency/manual recovery/debugging.
   try {
     (window as any).__barbadosReclaimSession = () => {
@@ -244,6 +255,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     (window as any).__barbadosPerformLocalOnlyLogout = () => {
       try { performLocalOnlyLogout('duplicate'); } catch (e) { console.error('performLocalOnlyLogout error', e); }
+    };
+  } catch {}
+
+  try {
+    // helper that reclaims locally and attempts server claim
+    (window as any).__barbadosReclaimSession = async () => {
+      try { reclaimSession(); } catch (e) { console.error('reclaimSession error', e); }
+      try { if (sessionIdRef.current) await claimSessionServer(sessionIdRef.current); } catch (e) { console.error('claimSessionServer error', e); }
     };
   } catch {}
 
