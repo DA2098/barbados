@@ -249,8 +249,24 @@ const patchGlobalFetchForSessionHeaders = () => {
   // Clear conflict latch once the user takes an explicit decision in the UI.
   window.addEventListener('barbados:session-decision', () => setConflictLatched(false));
 
-  const nativeFetch = window.fetch.bind(window);
+  // Reset broadcast guard when the user takes an explicit decision in the UI.
+  window.addEventListener('barbados:session-decision', () => {
+    try {
+      // noop here - conflictBroadcasted is reset below in the closure where it exists
+    } catch {}
+  });
 
+  const nativeFetch = window.fetch.bind(window);
+  // In-memory guard to avoid broadcasting the same conflict repeatedly
+  // when multiple requests return 409 at the same time (in-flight parallel requests).
+  let conflictBroadcasted = false;
+  // Reset the in-memory broadcast guard when the user decides in the UI.
+  window.addEventListener('barbados:session-decision', () => {
+    try {
+      conflictBroadcasted = false;
+      setConflictLatched(false);
+    } catch {}
+  });
   const showEmergencyBanner = (message: string) => {
     try {
       const id = '__barbados_emergency_banner';
@@ -352,30 +368,37 @@ const patchGlobalFetchForSessionHeaders = () => {
     const isSessionConflict = response.status === 409 && (conflictHeader === '1' || conflictHeader === null || conflictHeader === '');
     if (isSessionConflict) {
       try {
-        setConflictLatched(true);
-        console.warn('🔴 Session conflict detected - dispatching event');
-        const rawUser = localStorage.getItem('auth_user');
-        const parsedUser = rawUser ? (JSON.parse(rawUser) as { id?: string }) : null;
-        const rawMeta = localStorage.getItem(SESSION_META_KEY);
-        const parsedMeta = rawMeta ? (JSON.parse(rawMeta) as { sessionId?: string }) : null;
-        localStorage.setItem(
-          SESSION_CONFLICT_FLAG_KEY,
-          JSON.stringify({
-            userId: parsedUser?.id ?? null,
-            sessionId: parsedMeta?.sessionId ?? null,
-            detectedAt: new Date().toISOString(),
-          })
-        );
-        const signalConflict = (window as any).__barbadosOnSessionConflict;
-        if (typeof signalConflict === 'function') {
-          signalConflict();
+        // If we've already broadcasted this conflict recently, skip re-broadcasts.
+        if (conflictBroadcasted) {
+          // Still latch to ensure short-circuiting behavior for subsequent requests.
+          setConflictLatched(true);
+        } else {
+          conflictBroadcasted = true;
+          setConflictLatched(true);
+          console.warn('🔴 Session conflict detected - dispatching event');
+          const rawUser = localStorage.getItem('auth_user');
+          const parsedUser = rawUser ? (JSON.parse(rawUser) as { id?: string }) : null;
+          const rawMeta = localStorage.getItem(SESSION_META_KEY);
+          const parsedMeta = rawMeta ? (JSON.parse(rawMeta) as { sessionId?: string }) : null;
+          localStorage.setItem(
+            SESSION_CONFLICT_FLAG_KEY,
+            JSON.stringify({
+              userId: parsedUser?.id ?? null,
+              sessionId: parsedMeta?.sessionId ?? null,
+              detectedAt: new Date().toISOString(),
+            })
+          );
+          const signalConflict = (window as any).__barbadosOnSessionConflict;
+          if (typeof signalConflict === 'function') {
+            signalConflict();
+          }
+          window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
+          console.warn('✓ Session conflict event dispatched');
+          try {
+            // emergency visual for users who miss the modal
+            showEmergencyBanner('Tu cuenta se ha iniciado en otro dispositivo. Revisa la sesión duplicada en la barra superior.');
+          } catch {}
         }
-        window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
-        console.warn('✓ Session conflict event dispatched');
-        try {
-          // emergency visual for users who miss the modal
-          showEmergencyBanner('Tu cuenta se ha iniciado en otro dispositivo. Revisa la sesión duplicada en la barra superior.');
-        } catch {}
       } catch (e) {
         console.error('Error dispatching session-conflict event:', e);
       }
