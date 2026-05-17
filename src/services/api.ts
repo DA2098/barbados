@@ -292,7 +292,9 @@ const patchGlobalFetchForSessionHeaders = () => {
     }
 
     const response = await nativeFetch(input, { ...init, headers: mergedHeaders });
-    if (response.status === 409 && response.headers.get('x-session-conflict') === '1') {
+    const conflictHeader = response.headers.get('x-session-conflict');
+    const isSessionConflict = response.status === 409 && (conflictHeader === '1' || conflictHeader === null || conflictHeader === '');
+    if (isSessionConflict) {
       try {
         console.warn('🔴 Session conflict detected - dispatching event');
         const rawUser = localStorage.getItem('auth_user');

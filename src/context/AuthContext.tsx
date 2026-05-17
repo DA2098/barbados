@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const sessionIdRef = useRef<string | null>(null);
   const duplicateDeadlineRef = useRef<number | null>(null);
   const userRef = useRef<User | null>(null);
+  const conflictPromptOpenRef = useRef(false);
 
   useEffect(() => {
     userRef.current = user;
@@ -229,6 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     persistSessionMeta(user.id, nextSessionId);
     writeSessionLock(user.id, nextSessionId);
     clearDuplicateState();
+    clearSessionConflictFlag();
     try {
       window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'keep' } }));
     } catch {}
@@ -261,6 +263,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       console.warn(`  ⏱️  Starting countdown: ${DUPLICATE_SESSION_GRACE_SECONDS}s`);
       startDuplicateCountdown();
+
+      // Native blocking confirmation to guarantee visibility, similar to the requested UX
+      if (!conflictPromptOpenRef.current) {
+        conflictPromptOpenRef.current = true;
+        window.setTimeout(() => {
+          try {
+            const shouldCloseHere = window.confirm(
+              'Actualmente hay una sesión activa en otro dispositivo.\n\nAceptar: Cerrar sesión en este dispositivo.\nCancelar: Mantener sesión aquí y cerrar la otra.'
+            );
+
+            if (shouldCloseHere) {
+              trackSessionDecision('other');
+              performLocalOnlyLogout('duplicate');
+              window.location.hash = '#/login';
+            } else {
+              trackSessionDecision('keep');
+              reclaimSession();
+            }
+          } catch {
+            // ignore prompt errors
+          } finally {
+            conflictPromptOpenRef.current = false;
+          }
+        }, 0);
+      }
     };
 
     // Register listener once on mount, never remove it
