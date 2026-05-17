@@ -4,7 +4,7 @@ import { useCart } from '../context/CartContext';
 import { ShoppingCart, Menu, MessageCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef, useState } from 'react';
-import { api } from '../services/api';
+import { api, getSessionConflictFlag } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
@@ -60,6 +60,27 @@ export default function Navbar() {
     if (!user || user.role === 'admin') return;
     void syncLatestAdminMessage();
   }, [user?.id, user?.role]);
+
+  // Persistent session-conflict flag watcher (in case the event was missed)
+  const [persistedConflict, setPersistedConflict] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      try {
+        const flag = getSessionConflictFlag();
+        setPersistedConflict(!!(flag && flag.userId && user && flag.userId === user.id));
+      } catch {
+        setPersistedConflict(false);
+      }
+    };
+
+    check();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'barbados_session_conflict_flag' || e.key === 'auth_user') check();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [user?.id]);
 
   useRealtimeUserEvents(
     user?.id,
@@ -120,6 +141,26 @@ export default function Navbar() {
               <Link to="/chat" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
                 <MessageCircle className="w-7 h-7" />
               </Link>
+            )}
+
+            {persistedConflict && (
+              <div className="ml-4 p-2 rounded-md bg-red-600 text-white text-sm flex items-center gap-3">
+                <div>Sesión duplicada detectada</div>
+                <button
+                  onClick={() => {
+                    try {
+                      const fn = (window as any).__barbadosOnSessionConflict;
+                      if (typeof fn === 'function') fn();
+                      window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
+                    } catch (e) {
+                      console.error('Error forcing session-conflict event', e);
+                    }
+                  }}
+                  className="underline"
+                >
+                  Mostrar
+                </button>
+              </div>
             )}
 
             {canBuyProducts && (
