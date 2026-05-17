@@ -161,8 +161,6 @@ const normalizeApiBase = (value?: string) => {
 
 const API_URL = normalizeApiBase(env?.VITE_API_URL);
 const SESSION_META_KEY = 'auth_session_meta';
-const SESSION_CONFLICT_FLAG_KEY = 'barbados_session_conflict_flag';
-const SESSION_CONFLICT_LATCH_KEY = 'barbados_session_conflict_latched';
 
 const createClientSessionId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -193,169 +191,9 @@ const patchGlobalFetchForSessionHeaders = () => {
   const globalRef = window as Window & { __barbadosFetchPatched?: boolean };
   if (globalRef.__barbadosFetchPatched) return;
 
-  class SessionConflictError extends Error {
-    public response: Response | null = null;
-    constructor(message = 'session_conflict', response: Response | null = null) {
-      super(message);
-      this.name = 'SessionConflictError';
-      this.response = response;
-    }
-  }
-
-  (window as any).__SessionConflictError = SessionConflictError;
-
-  const getRequestUrl = (input: RequestInfo | URL) => {
-    if (typeof input === 'string') return input;
-    if (input instanceof URL) return input.toString();
-    return input.url;
-  };
-
-  const readActionFromUrl = (rawUrl: string) => {
-    try {
-      const parsed = new URL(rawUrl, window.location.origin);
-      return String(parsed.searchParams.get('action') || '').toLowerCase();
-    } catch {
-      return '';
-    }
-  };
-
-  const isApiRequest = (rawUrl: string) => {
-    try {
-      const parsed = new URL(rawUrl, window.location.origin);
-      const apiBase = new URL(API_URL, window.location.origin);
-      return parsed.origin === apiBase.origin && parsed.pathname === apiBase.pathname;
-    } catch {
-      return rawUrl.includes('/api?action=');
-    }
-  };
-
-  const isConflictLatched = () => {
-    try {
-      return localStorage.getItem(SESSION_CONFLICT_LATCH_KEY) === '1';
-    } catch {
-      return false;
-    }
-  };
-
-  const setConflictLatched = (value: boolean) => {
-    try {
-      if (value) localStorage.setItem(SESSION_CONFLICT_LATCH_KEY, '1');
-      else localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY);
-    } catch {
-      // ignore storage errors
-    }
-  };
-
-  // Clear conflict latch once the user takes an explicit decision in the UI.
-  window.addEventListener('barbados:session-decision', () => setConflictLatched(false));
-
-  // Reset broadcast guard when the user takes an explicit decision in the UI.
-  window.addEventListener('barbados:session-decision', () => {
-    try {
-      // noop here - conflictBroadcasted is reset below in the closure where it exists
-    } catch {}
-  });
-
   const nativeFetch = window.fetch.bind(window);
-  // In-memory guard to avoid broadcasting the same conflict repeatedly
-  // when multiple requests return 409 at the same time (in-flight parallel requests).
-  let conflictBroadcasted = false;
-  // Reset the in-memory broadcast guard when the user decides in the UI.
-  window.addEventListener('barbados:session-decision', () => {
-    try {
-      conflictBroadcasted = false;
-      setConflictLatched(false);
-    } catch {}
-  });
-  // Helper exposed to the console to aggressively clear conflict markers and resume normal requests.
-  try {
-    (window as any).__barbadosClearConflict = () => {
-      try { localStorage.removeItem(SESSION_CONFLICT_FLAG_KEY); } catch {}
-      try { localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY); } catch {}
-      try { conflictBroadcasted = false; } catch {}
-      try { setConflictLatched(false); } catch {}
-      // Do NOT dispatch 'barbados:session-decision' here — leave decision dispatch to the UI
-      // to avoid duplicate notifications when UI calls clear + reclaim.
-    };
-  } catch {}
-  const showEmergencyBanner = (message: string) => {
-    try {
-      const id = '__barbados_emergency_banner';
-      if (document.getElementById(id)) return;
-      const container = document.createElement('div');
-      container.id = id;
-      container.style.position = 'fixed';
-      container.style.inset = '0';
-      container.style.display = 'flex';
-      container.style.alignItems = 'center';
-      container.style.justifyContent = 'center';
-      // Keep the emergency banner below the modal overlay so the modal remains interactive.
-      container.style.zIndex = '9000';
-      container.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85))';
 
-      const box = document.createElement('div');
-      box.style.background = '#7f1d1d';
-      box.style.color = 'white';
-      box.style.padding = '24px';
-      box.style.borderRadius = '12px';
-      box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6)';
-      box.style.maxWidth = '720px';
-      box.style.textAlign = 'center';
-
-      const h = document.createElement('div');
-      h.style.fontSize = '18px';
-      h.style.fontWeight = '700';
-      h.style.marginBottom = '8px';
-      h.textContent = 'Sesión duplicada detectada';
-
-      const p = document.createElement('div');
-      p.style.fontSize = '14px';
-      p.style.opacity = '0.95';
-      p.style.marginBottom = '12px';
-      p.textContent = message;
-
-      const btn = document.createElement('button');
-      btn.textContent = 'Cerrar aviso';
-      btn.style.padding = '10px 14px';
-      btn.style.border = 'none';
-      btn.style.borderRadius = '8px';
-      btn.style.background = '#111827';
-      btn.style.color = 'white';
-      btn.style.fontWeight = '600';
-      btn.style.cursor = 'pointer';
-
-      btn.addEventListener('click', () => {
-        try { container.remove(); } catch {};
-      });
-
-      // Auto-close after a reasonable time to avoid blocking the app indefinitely
-      try {
-        const AUTO_CLOSE_MS = 12000; // 12 seconds
-        setTimeout(() => {
-          try { container.remove(); } catch {}
-        }, AUTO_CLOSE_MS);
-      } catch {}
-
-      box.appendChild(h);
-      box.appendChild(p);
-      box.appendChild(btn);
-      container.appendChild(box);
-      document.body.appendChild(container);
-    } catch {
-      // ignore DOM errors
-    }
-  };
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const requestUrl = getRequestUrl(input);
-    const action = readActionFromUrl(requestUrl);
-    const apiRequest = isApiRequest(requestUrl);
-
-    // After first conflict, short-circuit polling/realtime loops to avoid repeated 409 noise.
-    // Keep login/logout available so user can resolve the state.
-    if (apiRequest && isConflictLatched() && action !== 'login' && action !== 'logout') {
-      throw new SessionConflictError('Session conflict latched');
-    }
-
     const mergedHeaders = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
 
     try {
@@ -374,51 +212,7 @@ const patchGlobalFetchForSessionHeaders = () => {
     } catch {
       // Keep request running even if localStorage parsing fails.
     }
-
-    const response = await nativeFetch(input, { ...init, headers: mergedHeaders });
-    const conflictHeader = response.headers.get('x-session-conflict');
-    const isSessionConflict = response.status === 409 && (conflictHeader === '1' || conflictHeader === null || conflictHeader === '');
-    if (isSessionConflict) {
-      try {
-        // If we've already broadcasted this conflict recently, skip re-broadcasts.
-        if (conflictBroadcasted) {
-          // Still latch to ensure short-circuiting behavior for subsequent requests.
-          setConflictLatched(true);
-        } else {
-          conflictBroadcasted = true;
-          setConflictLatched(true);
-          console.warn('🔴 Session conflict detected - dispatching event');
-          const rawUser = localStorage.getItem('auth_user');
-          const parsedUser = rawUser ? (JSON.parse(rawUser) as { id?: string }) : null;
-          const rawMeta = localStorage.getItem(SESSION_META_KEY);
-          const parsedMeta = rawMeta ? (JSON.parse(rawMeta) as { sessionId?: string }) : null;
-          localStorage.setItem(
-            SESSION_CONFLICT_FLAG_KEY,
-            JSON.stringify({
-              userId: parsedUser?.id ?? null,
-              sessionId: parsedMeta?.sessionId ?? null,
-              detectedAt: new Date().toISOString(),
-            })
-          );
-          const signalConflict = (window as any).__barbadosOnSessionConflict;
-          if (typeof signalConflict === 'function') {
-            signalConflict();
-          }
-          window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
-          console.warn('✓ Session conflict event dispatched');
-          try {
-            // emergency visual for users who miss the modal
-            showEmergencyBanner('Tu cuenta se ha iniciado en otro dispositivo. Revisa la sesión duplicada en la barra superior.');
-          } catch {}
-        }
-      } catch (e) {
-        console.error('Error dispatching session-conflict event:', e);
-      }
-      // Throw a specific error so higher-level code can handle it differently
-      throw new SessionConflictError('Session conflict detected', response);
-    }
-
-    return response;
+    return nativeFetch(input, { ...init, headers: mergedHeaders });
   };
 
   globalRef.__barbadosFetchPatched = true;
@@ -427,35 +221,16 @@ const patchGlobalFetchForSessionHeaders = () => {
 patchGlobalFetchForSessionHeaders();
 
 export const isSessionConflictError = (err: unknown) => {
-  try {
-    if (!err || typeof err !== 'object') return false;
-    // If SessionConflictError class was attached on window, prefer instanceof
-    const win = window as any;
-    if (typeof win.__SessionConflictError === 'function' && err instanceof win.__SessionConflictError) return true;
-    const name = (err as any).name || '';
-    return String(name).toLowerCase() === 'sessionconflicterror' || String((err as any).message || '').toLowerCase().includes('session_conflict');
-  } catch {
-    return false;
-  }
+  const message = String((err as any)?.message || '').toLowerCase();
+  return message.includes('session_conflict') || message.includes('session conflict');
 };
 
 export const clearSessionConflictFlag = () => {
-  try {
-    localStorage.removeItem(SESSION_CONFLICT_FLAG_KEY);
-    localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY);
-  } catch {
-    // ignore storage errors
-  }
+  // Duplicate-session flow removed.
 };
 
 export const getSessionConflictFlag = () => {
-  try {
-    const raw = localStorage.getItem(SESSION_CONFLICT_FLAG_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as { userId?: string | null; sessionId?: string | null; detectedAt?: string };
-  } catch {
-    return null;
-  }
+  return null;
 };
 
 const normalizePrice = (value: unknown) => Number(value);

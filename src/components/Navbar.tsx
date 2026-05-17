@@ -4,11 +4,11 @@ import { useCart } from '../context/CartContext';
 import { ShoppingCart, Menu, MessageCircle, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useEffect, useRef, useState } from 'react';
-import { api, getSessionConflictFlag } from '../services/api';
+import { api } from '../services/api';
 import { useRealtimeUserEvents } from '../hooks/useRealtimeUserEvents';
 
 export default function Navbar() {
-  const { user, logout, logoutLocal, sessionExitReason, clearSessionExitReason, duplicatedSession, reclaimSession, allowBothSessions, trackSessionDecision } = useAuth();
+  const { user, logout, sessionExitReason, clearSessionExitReason } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { items } = useCart();
   const navigate = useNavigate();
@@ -60,27 +60,6 @@ export default function Navbar() {
     if (!user || user.role === 'admin') return;
     void syncLatestAdminMessage();
   }, [user?.id, user?.role]);
-
-  // Persistent session-conflict flag watcher (in case the event was missed)
-  const [persistedConflict, setPersistedConflict] = useState(false);
-
-  useEffect(() => {
-    const check = () => {
-      try {
-        const flag = getSessionConflictFlag();
-        setPersistedConflict(!!(flag && flag.userId && user && flag.userId === user.id));
-      } catch {
-        setPersistedConflict(false);
-      }
-    };
-
-    check();
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === 'barbados_session_conflict_flag' || e.key === 'auth_user') check();
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [user?.id]);
 
   useRealtimeUserEvents(
     user?.id,
@@ -143,26 +122,6 @@ export default function Navbar() {
               </Link>
             )}
 
-            {persistedConflict && (
-              <div className="ml-4 p-2 rounded-md bg-red-600 text-white text-sm flex items-center gap-3">
-                <div>Sesión duplicada detectada</div>
-                <button
-                  onClick={() => {
-                    try {
-                      const fn = (window as any).__barbadosOnSessionConflict;
-                      if (typeof fn === 'function') fn();
-                      window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
-                    } catch (e) {
-                      console.error('Error forcing session-conflict event', e);
-                    }
-                  }}
-                  className="underline"
-                >
-                  Mostrar
-                </button>
-              </div>
-            )}
-
             {canBuyProducts && (
               <Link to="/cart" className="nav-icon-btn relative flex items-center ml-1 text-contrast">
                 <ShoppingCart className="w-7 h-7" />
@@ -181,48 +140,6 @@ export default function Navbar() {
 
               </div>
           </div>
-
-              {/* Duplicate session warning (non-blocking, with actions) */}
-              {duplicatedSession && (
-                <div className="max-w-7xl mx-auto px-4 lg:px-8">
-                  <div className="mt-2 p-3 rounded-md bg-yellow-500 text-black flex flex-col md:flex-row md:justify-between items-start md:items-center gap-3">
-                    <div className="font-medium">
-                      Se inició sesión desde otro dispositivo. ¿Deseas mantener la sesión en este dispositivo (cerrar sesión en el otro) o iniciar en el otro?
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm opacity-90">Cierra en: <span className="font-bold">{duplicatedSession.secondsLeft}s</span></div>
-                      <button onClick={() => {
-                        if (!confirm('¿Confirmar mantener la sesión aquí y cerrar la sesión en el otro dispositivo?')) return;
-                        trackSessionDecision?.('keep');
-                        reclaimSession();
-                      }} className="accent-btn px-3 py-2 rounded-md">Mantener aquí</button>
-                      <button
-                        onClick={() => {
-                          if (!confirm('¿Confirmar cerrar sesión en este dispositivo y mantener la sesión en el otro?')) return;
-                          trackSessionDecision?.('other');
-                          try { logoutLocal(); } catch { logout(); }
-                          navigate('/login');
-                        }}
-                        className="underline font-semibold"
-                      >
-                        Iniciar en otro dispositivo
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!confirm('¿Permitir ambas sesiones activas? El otro dispositivo no se cerrará.')) return;
-                          const hoursRaw = prompt('¿Recordar por cuántas horas? (dejar vacío = 1 hora)', '1');
-                          const hours = hoursRaw ? Math.max(0, Number(hoursRaw)) : 1;
-                          trackSessionDecision?.('both');
-                          allowBothSessions(hours);
-                        }}
-                        className="px-3 py-2 font-semibold"
-                      >
-                        Permitir ambas
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Session exit notice (non-blocking) */}
               {sessionExitReason && (

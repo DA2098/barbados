@@ -675,27 +675,6 @@ app.all(['/api', '/api.php'], async (req, res) => {
   const action = req.query.action || req.body.action || '';
 
   try {
-    const actorId = readActorId(req);
-    const requiresSession = !SESSION_EXEMPT_ACTIONS.has(String(action || '').toLowerCase());
-
-    if (requiresSession && actorId) {
-      const sessionId = readIncomingSessionId(req);
-      if (!sessionId) {
-        return res.status(401).json({ error: 'session_required', message: 'Sesion requerida. Inicia sesion nuevamente.' });
-      }
-
-      const isValidSession = await isUserSessionValid(actorId, sessionId);
-      if (!isValidSession) {
-        res.setHeader('x-session-conflict', '1');
-        return res.status(409).json({
-          error: 'session_conflict',
-          message: 'Esta cuenta inicio sesion en otro dispositivo. Confirma si deseas seguir aqui.'
-        });
-      }
-
-      await touchUserSession(actorId, sessionId);
-    }
-
     if (req.method === 'GET' && !action) {
       return res.json({ message: 'API Barbados - Use action parameter', status: 'ok' });
     }
@@ -756,18 +735,6 @@ app.all(['/api', '/api.php'], async (req, res) => {
         await clearUserSession(actor);
       }
       return res.json({ message: 'Sesion cerrada' });
-    }
-
-    // Allow a client to claim/activate a session explicitly (used when user chooses to keep this tab)
-    if (req.method === 'POST' && action === 'claim-session') {
-      const actor = readActorId(req);
-      const incomingSessionId = readIncomingSessionId(req) || createServerSessionId();
-      const deviceInfo = String(req.headers['user-agent'] || '').slice(0, 255);
-      if (actor) {
-        await activateUserSession(actor, incomingSessionId, deviceInfo);
-        return res.json({ message: 'Session activada', sessionId: incomingSessionId });
-      }
-      return res.status(400).json({ error: 'Missing user id' });
     }
 
     if (req.method === 'POST' && action === 'create-admin') {

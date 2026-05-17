@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShieldUser, Scissors } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import ExistingSessionModal from '../components/ExistingSessionModal';
 
 export default function StaffLogin() {
   const [email, setEmail] = useState('');
@@ -13,26 +12,6 @@ export default function StaffLogin() {
 
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { logout, logoutLocal } = useAuth();
-
-  const [existingSessionUser, setExistingSessionUser] = useState<{ id: string; name?: string } | null>(null);
-  const [showExistingModal, setShowExistingModal] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('auth_user');
-      const tabLoggedOut = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('barbados_tab_local_logout');
-      if (raw && !tabLoggedOut) {
-        const parsed = JSON.parse(raw) as { id: string; name?: string };
-        if (parsed && parsed.id) {
-          setExistingSessionUser({ id: parsed.id, name: parsed.name });
-          setShowExistingModal(true);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,12 +30,7 @@ export default function StaffLogin() {
       if (user.role === 'admin') navigate('/admin');
       else navigate('/barber');
     } catch (err: any) {
-        const msg = String(err?.message || '').toLowerCase();
-        if (msg.includes('session_conflict') || msg.includes('session conflict')) {
-          console.warn('Ignored session_conflict in StaffLogin');
-        } else {
-          setError(err.message || 'Error al iniciar sesión');
-        }
+      setError(err.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
@@ -154,20 +128,6 @@ export default function StaffLogin() {
               )}
             </button>
           </form>
-
-          <ExistingSessionModal
-            visible={showExistingModal && !!existingSessionUser}
-            username={existingSessionUser?.name || existingSessionUser?.id}
-            onCancel={() => setShowExistingModal(false)}
-            onLogout={async () => {
-              try {
-                await logout();
-              } catch {
-                try { logoutLocal(); } catch {}
-              }
-              setShowExistingModal(false);
-            }}
-          />
 
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-sm text-center text-muted">

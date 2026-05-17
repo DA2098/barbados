@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import ExistingSessionModal from '../components/ExistingSessionModal';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,10 +11,6 @@ export default function Login() {
 
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { logout, logoutLocal } = useAuth();
-
-  const [existingSessionUser, setExistingSessionUser] = useState<{ id: string; name?: string } | null>(null);
-  const [showExistingModal, setShowExistingModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,34 +29,11 @@ export default function Login() {
       login(user);
       navigate('/');
     } catch (err: any) {
-      const msg = String(err?.message || '').toLowerCase();
-      if (msg.includes('session_conflict') || msg.includes('session conflict')) {
-        console.warn('Ignored session_conflict in Login');
-        // Let AuthContext show banner/modal instead
-      } else {
-        setError(err.message || 'Error al iniciar sesión');
-      }
+      setError(err.message || 'Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
   };
-
-  // Detect if this tab already has a logged user and prompt before allowing a different login
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('auth_user');
-      const tabLoggedOut = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('barbados_tab_local_logout');
-      if (raw && !tabLoggedOut) {
-        const parsed = JSON.parse(raw) as { id: string; name?: string };
-        if (parsed && parsed.id) {
-          setExistingSessionUser({ id: parsed.id, name: parsed.name });
-          setShowExistingModal(true);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg)' }}>
@@ -136,21 +108,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          {/* Existing-session modal (blocks login until user decides) */}
-          <ExistingSessionModal
-            visible={showExistingModal && !!existingSessionUser}
-            username={existingSessionUser?.name || existingSessionUser?.id}
-            onCancel={() => setShowExistingModal(false)}
-            onLogout={async () => {
-              try {
-                await logout();
-              } catch {
-                try { logoutLocal(); } catch {}
-              }
-              setShowExistingModal(false);
-            }}
-          />
 
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-sm text-center text-muted">

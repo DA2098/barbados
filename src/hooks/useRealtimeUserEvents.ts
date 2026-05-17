@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { getSessionConflictFlag } from '../services/api';
 
 export type RealtimeSyncPayload = {
   unreadCount: number;
@@ -47,21 +46,6 @@ export function useRealtimeUserEvents(
   useEffect(() => {
     if (!enabled || !userId) return;
 
-    // If there's a persisted session conflict for this user, pause realtime connections
-    const flag = getSessionConflictFlag();
-    if (flag && flag.userId === userId) {
-      console.warn('Realtime paused due to persisted session conflict for user', userId);
-
-      const onDecision = () => {
-        // Re-run effect by dispatching a small event to window — simplest is to reload the page
-        // or trigger a re-render via a custom event; here we simply call connect functions by
-        // reloading the page to keep logic simple and reliable.
-        try { window.location.reload(); } catch {}
-      };
-
-      window.addEventListener('barbados:session-decision', onDecision, { once: true });
-      return () => window.removeEventListener('barbados:session-decision', onDecision);
-    }
     let stopped = false;
     let ws: WebSocket | null = null;
     let source: EventSource | null = null;
