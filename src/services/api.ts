@@ -204,6 +204,65 @@ const patchGlobalFetchForSessionHeaders = () => {
   (window as any).__SessionConflictError = SessionConflictError;
 
   const nativeFetch = window.fetch.bind(window);
+
+  const showEmergencyBanner = (message: string) => {
+    try {
+      const id = '__barbados_emergency_banner';
+      if (document.getElementById(id)) return;
+      const container = document.createElement('div');
+      container.id = id;
+      container.style.position = 'fixed';
+      container.style.inset = '0';
+      container.style.display = 'flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+      container.style.zIndex = '2147483647';
+      container.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85))';
+
+      const box = document.createElement('div');
+      box.style.background = '#7f1d1d';
+      box.style.color = 'white';
+      box.style.padding = '24px';
+      box.style.borderRadius = '12px';
+      box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6)';
+      box.style.maxWidth = '720px';
+      box.style.textAlign = 'center';
+
+      const h = document.createElement('div');
+      h.style.fontSize = '18px';
+      h.style.fontWeight = '700';
+      h.style.marginBottom = '8px';
+      h.textContent = 'Sesión duplicada detectada';
+
+      const p = document.createElement('div');
+      p.style.fontSize = '14px';
+      p.style.opacity = '0.95';
+      p.style.marginBottom = '12px';
+      p.textContent = message;
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Cerrar aviso';
+      btn.style.padding = '10px 14px';
+      btn.style.border = 'none';
+      btn.style.borderRadius = '8px';
+      btn.style.background = '#111827';
+      btn.style.color = 'white';
+      btn.style.fontWeight = '600';
+      btn.style.cursor = 'pointer';
+
+      btn.addEventListener('click', () => {
+        try { container.remove(); } catch {};
+      });
+
+      box.appendChild(h);
+      box.appendChild(p);
+      box.appendChild(btn);
+      container.appendChild(box);
+      document.body.appendChild(container);
+    } catch {
+      // ignore DOM errors
+    }
+  };
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const mergedHeaders = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
 
@@ -246,6 +305,10 @@ const patchGlobalFetchForSessionHeaders = () => {
         }
         window.dispatchEvent(new CustomEvent('barbados:session-conflict'));
         console.warn('✓ Session conflict event dispatched');
+        try {
+          // emergency visual for users who miss the modal
+          showEmergencyBanner('Tu cuenta se ha iniciado en otro dispositivo. Revisa la sesión duplicada en la barra superior.');
+        } catch {}
       } catch (e) {
         console.error('Error dispatching session-conflict event:', e);
       }
