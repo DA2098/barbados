@@ -162,6 +162,7 @@ const normalizeApiBase = (value?: string) => {
 const API_URL = normalizeApiBase(env?.VITE_API_URL);
 const SESSION_META_KEY = 'auth_session_meta';
 const SESSION_CONFLICT_FLAG_KEY = 'barbados_session_conflict_flag';
+const SESSION_CONFLICT_LATCH_KEY = 'barbados_session_conflict_latched';
 
 const createClientSessionId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -202,6 +203,51 @@ const patchGlobalFetchForSessionHeaders = () => {
   }
 
   (window as any).__SessionConflictError = SessionConflictError;
+
+  const getRequestUrl = (input: RequestInfo | URL) => {
+    if (typeof input === 'string') return input;
+    if (input instanceof URL) return input.toString();
+    return input.url;
+  };
+
+  const readActionFromUrl = (rawUrl: string) => {
+    try {
+      const parsed = new URL(rawUrl, window.location.origin);
+      return String(parsed.searchParams.get('action') || '').toLowerCase();
+    } catch {
+      return '';
+    }
+  };
+
+  const isApiRequest = (rawUrl: string) => {
+    try {
+      const parsed = new URL(rawUrl, window.location.origin);
+      const apiBase = new URL(API_URL, window.location.origin);
+      return parsed.origin === apiBase.origin && parsed.pathname === apiBase.pathname;
+    } catch {
+      return rawUrl.includes('/api?action=');
+    }
+  };
+
+  const isConflictLatched = () => {
+    try {
+      return localStorage.getItem(SESSION_CONFLICT_LATCH_KEY) === '1';
+    } catch {
+      return false;
+    }
+  };
+
+  const setConflictLatched = (value: boolean) => {
+    try {
+      if (value) localStorage.setItem(SESSION_CONFLICT_LATCH_KEY, '1');
+      else localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  // Clear conflict latch once the user takes an explicit decision in the UI.
+  window.addEventListener('barbados:session-decision', () => setConflictLatched(false));
 
   const nativeFetch = window.fetch.bind(window);
 
@@ -272,6 +318,16 @@ const patchGlobalFetchForSessionHeaders = () => {
     }
   };
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const requestUrl = getRequestUrl(input);
+    const action = readActionFromUrl(requestUrl);
+    const apiRequest = isApiRequest(requestUrl);
+
+    // After first conflict, short-circuit polling/realtime loops to avoid repeated 409 noise.
+    // Keep login/logout available so user can resolve the state.
+    if (apiRequest && isConflictLatched() && action !== 'login' && action !== 'logout') {
+      throw new SessionConflictError('Session conflict latched');
+    }
+
     const mergedHeaders = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
 
     try {
@@ -296,6 +352,7 @@ const patchGlobalFetchForSessionHeaders = () => {
     const isSessionConflict = response.status === 409 && (conflictHeader === '1' || conflictHeader === null || conflictHeader === '');
     if (isSessionConflict) {
       try {
+        setConflictLatched(true);
         console.warn('🔴 Session conflict detected - dispatching event');
         const rawUser = localStorage.getItem('auth_user');
         const parsedUser = rawUser ? (JSON.parse(rawUser) as { id?: string }) : null;
@@ -350,6 +407,7 @@ export const isSessionConflictError = (err: unknown) => {
 export const clearSessionConflictFlag = () => {
   try {
     localStorage.removeItem(SESSION_CONFLICT_FLAG_KEY);
+    localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY);
   } catch {
     // ignore storage errors
   }
