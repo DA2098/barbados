@@ -274,7 +274,8 @@ const patchGlobalFetchForSessionHeaders = () => {
       try { localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY); } catch {}
       try { conflictBroadcasted = false; } catch {}
       try { setConflictLatched(false); } catch {}
-      try { window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'keep' } })); } catch {}
+      // Do NOT dispatch 'barbados:session-decision' here — leave decision dispatch to the UI
+      // to avoid duplicate notifications when UI calls clear + reclaim.
     };
   } catch {}
   const showEmergencyBanner = (message: string) => {
