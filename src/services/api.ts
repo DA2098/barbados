@@ -254,6 +254,14 @@ const patchGlobalFetchForSessionHeaders = () => {
         try { container.remove(); } catch {};
       });
 
+      // Auto-close after a reasonable time to avoid blocking the app indefinitely
+      try {
+        const AUTO_CLOSE_MS = 12000; // 12 seconds
+        setTimeout(() => {
+          try { container.remove(); } catch {}
+        }, AUTO_CLOSE_MS);
+      } catch {}
+
       box.appendChild(h);
       box.appendChild(p);
       box.appendChild(btn);
