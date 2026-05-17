@@ -288,7 +288,8 @@ const patchGlobalFetchForSessionHeaders = () => {
       container.style.display = 'flex';
       container.style.alignItems = 'center';
       container.style.justifyContent = 'center';
-      container.style.zIndex = '2147483647';
+      // Keep the emergency banner below the modal overlay so the modal remains interactive.
+      container.style.zIndex = '9000';
       container.style.background = 'linear-gradient(90deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85))';
 
       const box = document.createElement('div');
