@@ -269,17 +269,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         conflictPromptOpenRef.current = true;
         window.setTimeout(() => {
           try {
-            const shouldCloseHere = window.confirm(
-              'Actualmente hay una sesión activa en otro dispositivo.\n\nAceptar: Cerrar sesión en este dispositivo.\nCancelar: Mantener sesión aquí y cerrar la otra.'
-            );
+            const title = 'Sesión duplicada';
+            const message = 'Esta cuenta inició sesión en otro dispositivo.\n\n¿Qué deseas hacer?\n\n- Aceptar: Mantener sesión aquí y cerrar la otra.\n- Cancelar: Cerrar sesión aquí para que el otro dispositivo quede activo.';
+            const keepHere = window.confirm(`${title}\n\n${message}`);
 
-            if (shouldCloseHere) {
-              trackSessionDecision('other');
-              performLocalOnlyLogout('duplicate');
-              window.location.hash = '#/login';
-            } else {
-              trackSessionDecision('keep');
+            if (keepHere) {
+              // User chose to keep session on THIS device and close the other
+              trackSessionDecision?.('keep');
               reclaimSession();
+              // Ensure any persisted conflict markers are cleared
+              try { clearSessionConflictFlag(); } catch {}
+            } else {
+              // User chose to close this session (allow other device to stay active)
+              trackSessionDecision?.('other');
+              try { performLocalOnlyLogout('duplicate'); } catch { try { logoutLocal(); } catch {} }
+              try { clearSessionConflictFlag(); } catch {}
+              // redirect to login screen after local-only logout
+              try { window.location.hash = '#/login'; } catch {}
             }
           } catch {
             // ignore prompt errors
