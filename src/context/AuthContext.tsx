@@ -236,6 +236,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {}
   };
 
+  // Expose safe helpers on `window` for emergency/manual recovery/debugging.
+  try {
+    (window as any).__barbadosReclaimSession = () => {
+      try { reclaimSession(); } catch (e) { console.error('reclaimSession error', e); }
+    };
+
+    (window as any).__barbadosPerformLocalOnlyLogout = () => {
+      try { performLocalOnlyLogout('duplicate'); } catch (e) { console.error('performLocalOnlyLogout error', e); }
+    };
+  } catch {}
+
   useEffect(() => {
     const handleConflict = () => {
       const currentUser = userRef.current;

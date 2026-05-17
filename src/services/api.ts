@@ -267,6 +267,16 @@ const patchGlobalFetchForSessionHeaders = () => {
       setConflictLatched(false);
     } catch {}
   });
+  // Helper exposed to the console to aggressively clear conflict markers and resume normal requests.
+  try {
+    (window as any).__barbadosClearConflict = () => {
+      try { localStorage.removeItem(SESSION_CONFLICT_FLAG_KEY); } catch {}
+      try { localStorage.removeItem(SESSION_CONFLICT_LATCH_KEY); } catch {}
+      try { conflictBroadcasted = false; } catch {}
+      try { setConflictLatched(false); } catch {}
+      try { window.dispatchEvent(new CustomEvent('barbados:session-decision', { detail: { action: 'keep' } })); } catch {}
+    };
+  } catch {}
   const showEmergencyBanner = (message: string) => {
     try {
       const id = '__barbados_emergency_banner';
