@@ -145,11 +145,7 @@ export default function Navbar() {
               {sessionExitReason && (
                 <div className="max-w-7xl mx-auto px-4 lg:px-8">
                   <div className="mt-2 p-3 rounded-md bg-amber-400 text-black flex justify-between items-center">
-                    <div className="font-medium">
-                      {sessionExitReason === 'inactive'
-                        ? 'Sesión cerrada por inactividad'
-                        : 'Sesión cerrada por inicio en otro dispositivo'}
-                    </div>
+                    <div className="font-medium">Sesión cerrada por inicio en otro dispositivo</div>
                     <div className="flex items-center gap-3">
                       <Link to="/login" className="underline font-semibold">Iniciar sesión</Link>
                       <button onClick={() => clearSessionExitReason()} className="text-sm opacity-80">Cerrar</button>

@@ -6,7 +6,7 @@ type DuplicatedSessionState = {
   secondsLeft: number;
 };
 
-type SessionExitReason = 'inactive' | 'duplicate' | null;
+type SessionExitReason = 'duplicate' | null;
 
 interface AuthContextType {
   user: User | null;
@@ -24,7 +24,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TAB_LOCAL_LOGOUT_KEY = 'barbados_tab_local_logout';
-const IDLE_TIMEOUT_SECONDS = 300;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -92,45 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-
-    let timeoutId: number | null = null;
-
-    const resetIdleTimer = () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-
-      timeoutId = window.setTimeout(() => {
-        performLocalLogout('inactive');
-      }, IDLE_TIMEOUT_SECONDS * 1000);
-    };
-
-    const activityEvents: Array<keyof WindowEventMap> = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        resetIdleTimer();
-      }
-    };
-
-    for (const eventName of activityEvents) {
-      window.addEventListener(eventName, resetIdleTimer, { passive: true });
-    }
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    resetIdleTimer();
-
-    return () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-      for (const eventName of activityEvents) {
-        window.removeEventListener(eventName, resetIdleTimer);
-      }
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-  }, [user?.id]);
+  // Inactivity-based local logout removed intentionally.
 
   useRealtimeUserEvents(user?.id, async () => {
     if (!userRef.current) return;
