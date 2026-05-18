@@ -43,7 +43,7 @@ app.use(helmet.contentSecurityPolicy({
 
 // Rate limiter (configurable via env vars)
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000; // default 15 minutes
-const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX) || 1000; // default max requests per window
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX) || 5000; // default max requests per window
 const RATE_LIMIT_WHITELIST = (process.env.RATE_LIMIT_WHITELIST || '')
   .split(',')
   .map(s => s.trim())
@@ -70,7 +70,7 @@ const limiter = rateLimit({
       if (req.path === '/' || req.path === '/health') return true;
       if (req.path && req.path.startsWith('/uploads')) return true;
       const action = String(req.query?.action || req.body?.action || '').toLowerCase();
-      if (action === 'login' || action === 'register') return true;
+      if (action === 'login' || action === 'register' || action === 'realtime') return true;
       return false;
     } catch (e) {
       return false;
@@ -91,7 +91,7 @@ const limiter = rateLimit({
 
 const authAttemptLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.ip || 'anonymous',
