@@ -76,7 +76,7 @@ export default function Store() {
           onClick={() => setCategory('food')}
           className={`px-4 py-2 rounded-lg font-semibold ${category === 'food' ? 'accent-btn text-contrast' : 'text-contrast'} focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2`}
         >
-          Lencería
+          Mercancia
         </button>
         <button
           onClick={() => setCategory('drink')}
