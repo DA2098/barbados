@@ -786,7 +786,7 @@ export default function AdminPanel() {
                   <label className="block text-sm font-medium text-contrast mb-2">Teléfono</label>
                   <input
                     type="tel"
-                    placeholder="Numero de Telefono"
+                    placeholder="Telefono"
                     value={newUserForm.phone}
                     onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
                     className="w-full p-2 form-input border border-white/20 rounded-lg"
