@@ -605,7 +605,7 @@ export default function AdminPanel() {
   const monthLosses = 0;
   const categoryLabel = (category: Product['category']) => {
     if (category === 'barber') return 'BARBERÍA';
-    if (category === 'food') return 'LANCERIA';
+    if (category === 'food') return 'MERCANCIA';
     if (category === 'drink') return 'BEBIDA';
     return 'BARBERÍA';
   };
@@ -762,7 +762,7 @@ export default function AdminPanel() {
                   <input
                     required
                     type="email"
-                    placeholder="Ej: juan@ejemplo.com"
+                    placeholder="Ingresa tu Correo"
                     value={newUserForm.email}
                     onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
                     className="w-full p-2 form-input border border-white/20 rounded-lg"
@@ -868,7 +868,7 @@ export default function AdminPanel() {
               <textarea placeholder="Descripción" value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="w-full p-2 border rounded" rows={2} />
               <select value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value as ProductForm['category'] })} className="w-full p-2 border rounded">
                 <option value="barber">Barbería (Tienda)</option>
-                <option value="food">Lanceria (Tienda)</option>
+                <option value="food">Mercancia (Tienda)</option>
                 <option value="drink">Bebida (Tienda)</option>
               </select>
               <input required type="number" step="0.01" placeholder="Precio" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} className="w-full p-2 border rounded" />
