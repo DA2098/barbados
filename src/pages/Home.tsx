@@ -87,7 +87,7 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-20 md:py-28">
           <div className="max-w-3xl fade-in-up">
-            <span className="hero-kicker">BARBADOS EXPERIENCE</span>
+            <span className="hero-kicker">BARBADOS</span>
             <h1 className="hero-title mt-4 text-contrast">Barbados: Donde el estilo encuentra la perfección</h1>
             <p className="hero-lead mt-6">
               Más que un corte. Barbados es tu destino para cortes premium, arreglo de barba experto y un ambiente donde se mezclan la tradición del barbering con la modernidad. Cada cita es una experiencia.
