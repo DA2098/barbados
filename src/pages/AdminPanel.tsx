@@ -762,7 +762,7 @@ export default function AdminPanel() {
                   <input
                     required
                     type="email"
-                    placeholder="Ingresa tu Correo"
+                    placeholder="Ingresar Correo"
                     value={newUserForm.email}
                     onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
                     className="w-full p-2 form-input border border-white/20 rounded-lg"
@@ -776,7 +776,7 @@ export default function AdminPanel() {
                   <input
                     required
                     type="password"
-                    placeholder="Ingresa tu Contraseña"
+                    placeholder="Ingresar Contraseña"
                     value={newUserForm.password}
                     onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
                     className="w-full p-2 form-input border border-white/20 rounded-lg"
@@ -786,7 +786,7 @@ export default function AdminPanel() {
                   <label className="block text-sm font-medium text-contrast mb-2">Teléfono</label>
                   <input
                     type="tel"
-                    placeholder="Ingresa tu numero"
+                    placeholder="Numero de Telefono"
                     value={newUserForm.phone}
                     onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
                     className="w-full p-2 form-input border border-white/20 rounded-lg"
