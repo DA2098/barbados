@@ -53,7 +53,7 @@ export default function Store() {
 
   const categoryLabel = (c: 'barber' | 'food' | 'drink' | 'service') => {
     if (c === 'barber') return 'Barbería';
-    if (c === 'food') return 'Lencería';
+    if (c === 'food') return 'mercancia';
     if (c === 'drink') return 'Bebidas';
     return 'Servicios';
   };
