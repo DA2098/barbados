@@ -90,12 +90,16 @@ export default function Home() {
         </div>
         <div className="hero-overlay absolute inset-0" />
         <div className="hero-grid absolute inset-0" />
+        <div className="hero-orb one" style={{ top: '10%', right: '16%' }} />
+        <div className="hero-orb two" style={{ bottom: '16%', left: '8%' }} />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-16 md:py-24">
           <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-8 items-center">
             <div className="max-w-3xl fade-in-up">
               <span className="hero-kicker">BARBADOS PREMIUM STUDIO</span>
-              <h1 className="hero-title mt-4 text-contrast">Diseño serio, datos útiles y una barbería con presencia real</h1>
+              <h1 className="hero-title mt-4 text-contrast">
+                <span className="text-gradient">Diseño serio, datos útiles</span> y una barbería con presencia real
+              </h1>
               <p className="hero-lead mt-6">
                 Interfaz creada para vender confianza: cortes visibles, valoraciones reales y reservas claras. Aquí no hay relleno, solo información que ayuda a decidir rápido.
               </p>
@@ -132,7 +136,7 @@ export default function Home() {
             </div>
 
             <div className="fade-in-up lg:justify-self-end">
-              <div className="glass-card rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
+              <div className="glass-card surface-spark rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
                 <div className="flex items-center justify-between gap-4 mb-5">
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] muted">Data Panel</p>
