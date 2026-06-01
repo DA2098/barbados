@@ -612,21 +612,22 @@ export default function AdminPanel() {
 
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
-      <div className="mb-6 glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-6 glass-card rounded-[28px] p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 border border-white/10">
         <div className="flex items-center gap-3 min-w-0">
           {user.avatar_url ? (
-            <img src={user.avatar_url} alt="Avatar admin" className="w-12 h-12 rounded-full object-cover border" />
+            <img src={user.avatar_url} alt="Avatar admin" className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-lg" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold text-lg uppercase border border-white/20">
+            <div className="w-14 h-14 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center font-extrabold text-lg uppercase shadow-lg">
               {user.name.charAt(0)}
             </div>
           )}
           <div>
-            <p className="font-semibold text-contrast">{user.name}</p>
-            <p className="text-sm muted">Administrador</p>
+            <p className="font-semibold text-contrast text-lg">{user.name}</p>
+            <p className="text-sm muted">Luxury dashboard control room</p>
           </div>
         </div>
-        <label className="text-sm text-contrast cursor-pointer hover:opacity-80 transition-opacity sm:text-right">
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+        <label className="text-sm text-contrast cursor-pointer hover:opacity-80 transition-opacity badge-accent px-4 py-2 rounded-full">
           {uploadingAvatar ? 'Subiendo foto...' : 'Cambiar foto de perfil'}
           <input
             type="file"
@@ -644,23 +645,43 @@ export default function AdminPanel() {
           <button
             type="button"
             onClick={handleRemoveAvatar}
-            className="text-sm text-red-600 hover:underline"
+            className="text-sm btn-danger"
           >
             Quitar foto
           </button>
         )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Ingresos hoy</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">${todayTotal.toFixed(2)}</p>
+        </div>
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Ingresos mes</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">${monthTotal.toFixed(2)}</p>
+        </div>
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Usuarios</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">{users.length}</p>
+        </div>
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Citas</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">{appointments.length}</p>
+        </div>
       </div>
 
       {pendingBarbers.length > 0 && (
-        <div className="mb-6 glass-card rounded-xl p-4">
-          <p className="font-semibold text-contrast mb-2">Postulaciones Pendientes de Barberos</p>
+        <div className="mb-6 glass-card rounded-3xl p-4 border border-white/10">
+          <p className="font-semibold text-contrast mb-2 text-lg">Postulaciones Pendientes de Barberos</p>
           <div className="flex flex-wrap gap-3">
             {pendingBarbers.map((barber) => (
-                <div key={barber.id} className="flex items-center gap-2 glass-card rounded-lg p-3 border border-white/20">
+                <div key={barber.id} className="flex items-center gap-3 glass-card rounded-2xl p-3 border border-white/10">
                 {(() => {
                   const application = applicationByUserId.get(barber.id);
                   return (
-                <div className="text-sm text-contrast min-w-0">
+                <div className="text-sm text-contrast min-w-0 flex-1">
                   <div className="font-medium truncate">{barber.name}</div>
                   <div className="text-xs muted truncate">{barber.email}</div>
                   {application && (
@@ -738,7 +759,7 @@ export default function AdminPanel() {
       </div>
 
       {activeTab === 'create-user' && (
-        <div className="glass-card rounded-xl overflow-hidden max-w-2xl mx-auto">
+        <div className="glass-card rounded-3xl overflow-hidden max-w-2xl mx-auto border border-white/10">
           <div className="p-4 sm:p-6 border-b border-white/10">
             <h2 className="text-lg sm:text-xl font-bold text-contrast">Crear Nuevo Usuario</h2>
             <p className="text-sm muted mt-2">Crea barberos y clientes directamente con credenciales de acceso</p>
@@ -754,7 +775,7 @@ export default function AdminPanel() {
                     placeholder="Nombre Completo"
                     value={newUserForm.name}
                     onChange={(e) => setNewUserForm({ ...newUserForm, name: e.target.value })}
-                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                    className="w-full p-2 form-input"
                   />
                 </div>
                 <div>
@@ -765,7 +786,7 @@ export default function AdminPanel() {
                     placeholder="Ingresar Correo"
                     value={newUserForm.email}
                     onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
-                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                    className="w-full p-2 form-input"
                   />
                 </div>
               </div>
@@ -779,7 +800,7 @@ export default function AdminPanel() {
                     placeholder="Ingresar Contraseña"
                     value={newUserForm.password}
                     onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
-                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                    className="w-full p-2 form-input"
                   />
                 </div>
                 <div>
@@ -789,7 +810,7 @@ export default function AdminPanel() {
                     placeholder="Telefono"
                     value={newUserForm.phone}
                     onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
-                    className="w-full p-2 form-input border border-white/20 rounded-lg"
+                    className="w-full p-2 form-input"
                   />
                 </div>
               </div>
@@ -799,7 +820,7 @@ export default function AdminPanel() {
                 <select
                   value={newUserForm.role}
                   onChange={(e) => setNewUserForm({ ...newUserForm, role: e.target.value as 'user' | 'barber' })}
-                  className="w-full p-2 form-input border border-white/20 rounded-lg"
+                  className="w-full p-2 form-input"
                 >
                   <option value="user">Cliente</option>
                   <option value="barber">Barbero</option>
@@ -861,34 +882,34 @@ export default function AdminPanel() {
 
       {activeTab === 'products' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-1 glass-card p-4 sm:p-6 rounded-xl">
-            <h2 className="text-xl font-bold mb-4">{editingProductId ? 'Editar producto tienda' : 'Agregar producto tienda'}</h2>
+          <div className="lg:col-span-1 glass-card p-4 sm:p-6 rounded-3xl border border-white/10">
+            <h2 className="text-xl font-bold mb-4 text-contrast">{editingProductId ? 'Editar producto tienda' : 'Agregar producto tienda'}</h2>
             <form onSubmit={handleSubmitProduct} className="space-y-3">
-              <input required type="text" placeholder="Nombre" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} className="w-full p-2 border rounded" />
-              <textarea placeholder="Descripción" value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="w-full p-2 border rounded" rows={2} />
-              <select value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value as ProductForm['category'] })} className="w-full p-2 border rounded">
+              <input required type="text" placeholder="Nombre" value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} className="w-full p-2 form-input" />
+              <textarea placeholder="Descripción" value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} className="w-full p-2 form-input" rows={2} />
+              <select value={productForm.category} onChange={(e) => setProductForm({ ...productForm, category: e.target.value as ProductForm['category'] })} className="w-full p-2 form-input">
                 <option value="barber">Barbería (Tienda)</option>
                 <option value="food">Mercancia (Tienda)</option>
                 <option value="drink">Bebida (Tienda)</option>
               </select>
-              <input required type="number" step="0.01" placeholder="Precio" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} className="w-full p-2 border rounded" />
-              <input required type="number" placeholder="Stock" value={productForm.stock} onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })} className="w-full p-2 border rounded" />
-              <input type="url" placeholder="URL Imagen" value={productForm.image_url} onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })} className="w-full p-2 border rounded" />
+              <input required type="number" step="0.01" placeholder="Precio" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} className="w-full p-2 form-input" />
+              <input required type="number" placeholder="Stock" value={productForm.stock} onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })} className="w-full p-2 form-input" />
+              <input type="url" placeholder="URL Imagen" value={productForm.image_url} onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })} className="w-full p-2 form-input" />
               {productForm.image_url && (
                 <div className="space-y-2">
                   <a href={productForm.image_url} target="_blank" rel="noreferrer">
-                    <img src={productForm.image_url} alt="Vista previa" className="w-20 h-20 rounded object-cover border" />
+                    <img src={productForm.image_url} alt="Vista previa" className="w-20 h-20 rounded-2xl object-cover border border-white/20" />
                   </a>
                   <div className="flex gap-2 items-center">
-                    <input readOnly value={productForm.image_url} className="w-full p-2 text-xs truncate border rounded bg-transparent" />
+                    <input readOnly value={productForm.image_url} className="w-full p-2 text-xs truncate border rounded-2xl bg-transparent form-input" />
                     <button type="button" onClick={() => { navigator.clipboard?.writeText(productForm.image_url); }} className="px-2 py-1 text-sm nav-btn">Copiar</button>
-                    <button type="button" onClick={() => setProductForm((prev) => ({ ...prev, image_url: '' }))} className="text-sm text-red-600 hover:underline">
+                    <button type="button" onClick={() => setProductForm((prev) => ({ ...prev, image_url: '' }))} className="text-sm text-danger hover:opacity-85 transition-opacity">
                       Quitar
                     </button>
                   </div>
                 </div>
               )}
-              <label className="block text-sm text-indigo-600 cursor-pointer hover:underline">
+              <label className="block text-sm text-contrast cursor-pointer hover:opacity-80 transition-opacity">
                 {uploadingServiceImage ? 'Subiendo imagen...' : 'Subir imagen desde archivo'}
                 <input
                   type="file"
@@ -902,7 +923,7 @@ export default function AdminPanel() {
                   }}
                 />
               </label>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm text-contrast">
                 <input type="checkbox" checked={productForm.is_visible} onChange={(e) => setProductForm({ ...productForm, is_visible: e.target.checked })} />
                 Visible para usuarios
               </label>
@@ -915,7 +936,7 @@ export default function AdminPanel() {
             </form>
           </div>
 
-          <div className="lg:col-span-2 glass-card rounded-xl overflow-hidden">
+          <div className="lg:col-span-2 glass-card rounded-3xl overflow-hidden border border-white/10">
             <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left">
               <thead className="border-b border-white/10">
@@ -969,7 +990,7 @@ export default function AdminPanel() {
 
       {activeTab === 'cuts' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          <div className="lg:col-span-1 glass-card p-4 sm:p-6 rounded-xl">
+          <div className="lg:col-span-1 glass-card p-4 sm:p-6 rounded-3xl border border-white/10">
             <h2 className="text-xl font-bold mb-2 text-contrast">{editingCutId ? 'Editar corte' : 'Agregar corte'}</h2>
             <p className="text-sm muted mb-4">Este apartado se usa para los servicios que el cliente puede agendar.</p>
             <form onSubmit={handleSubmitCut} className="space-y-3">
@@ -995,10 +1016,10 @@ export default function AdminPanel() {
               {cutForm.image_url && (
                 <div className="space-y-2">
                   <a href={cutForm.image_url} target="_blank" rel="noreferrer">
-                    <img src={cutForm.image_url} alt="Vista previa corte" className="w-20 h-20 rounded object-cover border border-white/20" />
+                    <img src={cutForm.image_url} alt="Vista previa corte" className="w-20 h-20 rounded-2xl object-cover border border-white/20" />
                   </a>
                   <div className="flex gap-2 items-center">
-                    <input readOnly value={cutForm.image_url} className="w-full p-2 text-xs truncate border rounded bg-transparent" />
+                    <input readOnly value={cutForm.image_url} className="w-full p-2 text-xs truncate border rounded-2xl bg-transparent form-input" />
                     <button type="button" onClick={() => { navigator.clipboard?.writeText(cutForm.image_url); }} className="px-2 py-1 text-sm nav-btn">Copiar</button>
                     <button type="button" onClick={() => setCutForm((prev) => ({ ...prev, image_url: '' }))} className="text-sm text-danger hover:opacity-85 transition-opacity">
                       Quitar
@@ -1033,7 +1054,7 @@ export default function AdminPanel() {
             </form>
           </div>
 
-          <div className="lg:col-span-2 glass-card rounded-xl overflow-hidden">
+          <div className="lg:col-span-2 glass-card rounded-3xl overflow-hidden border border-white/10">
             <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead className="border-b border-white/10">
@@ -1087,7 +1108,7 @@ export default function AdminPanel() {
 
       {activeTab === 'chatAdmin' && (
         <div className="space-y-6">
-          <div className="glass-card rounded-xl p-4 sm:p-6">
+          <div className="glass-card rounded-3xl p-4 sm:p-6 border border-white/10">
             <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
               <h2 className="text-lg sm:text-xl font-bold">Monitor de Chats en Tiempo Real</h2>
               <p className="text-sm text-gray-500">Conversaciones activas entre barberos y clientes</p>
@@ -1095,7 +1116,7 @@ export default function AdminPanel() {
             
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-left">
-                <thead className="bg-gray-50 text-gray-500">
+                <thead className="border-b border-white/10 text-contrast">
                   <tr>
                     <th className="p-4">Barbero</th>
                     <th className="p-4">Cliente</th>
@@ -1107,7 +1128,7 @@ export default function AdminPanel() {
                 <tbody className="divide-y">
                   {chats.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-gray-400">No hay conversaciones activas aún.</td>
+                      <td colSpan={5} className="p-8 text-center muted">No hay conversaciones activas aún.</td>
                     </tr>
                   ) : (
                     chats.map((chat) => (
@@ -1115,9 +1136,9 @@ export default function AdminPanel() {
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             {chat.barber.avatar ? (
-                              <img src={chat.barber.avatar} alt={chat.barber.name} className="w-8 h-8 rounded-full object-cover border" />
+                              <img src={chat.barber.avatar} alt={chat.barber.name} className="w-8 h-8 rounded-2xl object-cover border border-white/20" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                              <div className="w-8 h-8 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center text-xs font-bold">
                                 {chat.barber.name.charAt(0)}
                               </div>
                             )}
@@ -1127,9 +1148,9 @@ export default function AdminPanel() {
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             {chat.client.avatar ? (
-                              <img src={chat.client.avatar} alt={chat.client.name} className="w-8 h-8 rounded-full object-cover border" />
+                              <img src={chat.client.avatar} alt={chat.client.name} className="w-8 h-8 rounded-2xl object-cover border border-white/20" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">
+                              <div className="w-8 h-8 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center text-xs font-bold">
                                 {chat.client.name.charAt(0)}
                               </div>
                             )}
@@ -1144,7 +1165,7 @@ export default function AdminPanel() {
                           {new Date(chat.createdAt).toLocaleString()}
                         </td>
                         <td className="p-4 text-center">
-                          <button onClick={async () => { setSelectedConversationId(chat.conversationId); await loadConversationMessages(chat.conversationId); }} className="px-3 py-1.5 rounded text-xs bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition">
+                          <button onClick={async () => { setSelectedConversationId(chat.conversationId); await loadConversationMessages(chat.conversationId); }} className="px-3 py-1.5 rounded text-xs accent-btn">
                             Ver Chat
                           </button>
                         </td>
@@ -1156,11 +1177,11 @@ export default function AdminPanel() {
             </div>
           </div>
           {selectedConversationId && (
-            <div className="glass-card rounded-xl p-4 mt-4">
+            <div className="glass-card rounded-3xl p-4 mt-4 border border-white/10">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold">Visor de Conversación (Admin)</h3>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => { setSelectedConversationId(null); setConversationMessages([]); }} className="px-3 py-1 rounded border">Cerrar</button>
+                  <button onClick={() => { setSelectedConversationId(null); setConversationMessages([]); }} className="px-3 py-1 rounded nav-btn">Cerrar</button>
                   <button onClick={async () => {
                     if (!selectedConversationId || !user) return;
                     if (!confirm('¿Eliminar TODA la conversación para todos los participantes? Esta acción no se puede deshacer.')) return;
@@ -1177,7 +1198,7 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              <div className="max-h-72 overflow-y-auto p-2 space-y-3 border rounded mb-3 bg-white/5">
+              <div className="max-h-72 overflow-y-auto p-2 space-y-3 border border-white/10 rounded-2xl mb-3 bg-white/5">
                 {conversationMessages.length === 0 ? (
                   <p className="text-sm text-gray-400 p-4">No hay mensajes en esta conversación.</p>
                 ) : (
@@ -1212,27 +1233,27 @@ export default function AdminPanel() {
               </div>
 
               <form onSubmit={sendAdminMessage} className="flex gap-2">
-                <input value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Escribe un mensaje como admin..." className="flex-1 p-2 border rounded" />
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">Enviar</button>
+                <input value={messageText} onChange={(e) => setMessageText(e.target.value)} placeholder="Escribe un mensaje como admin..." className="flex-1 p-2 form-input" />
+                <button type="submit" className="px-4 py-2 accent-btn rounded">Enviar</button>
               </form>
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="glass-card rounded-xl p-4 sm:p-5">
+            <div className="glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
               <h3 className="text-lg font-bold mb-3">Barberos Disponibles</h3>
               <div className="space-y-3">
                 {users.filter((u) => u.role === 'barber').map((barber) => (
-                  <div key={barber.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
+                  <div key={barber.id} className="border border-white/10 rounded-2xl p-3 flex items-center justify-between hover:border-white/20 transition-colors bg-white/5">
                     <div className="flex items-center gap-3 min-w-0">
                       {barber.avatar_url ? (
                         <img
                           src={barber.avatar_url}
                           alt={barber.name}
-                          className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
+                          className="w-10 h-10 rounded-2xl object-cover border border-white/20 shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20 flex">
+                        <div className="w-10 h-10 rounded-2xl avatar-accent text-accent-contrast items-center justify-center font-bold uppercase shrink-0 flex">
                           {barber.name.charAt(0)}
                         </div>
                       )}
@@ -1252,20 +1273,20 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            <div className="glass-card rounded-xl p-4 sm:p-5">
+            <div className="glass-card rounded-3xl p-4 sm:p-5 border border-white/10">
               <h3 className="text-lg font-bold mb-3">Clientes Registrados</h3>
               <div className="space-y-3">
                 {users.filter((u) => u.role === 'user').map((client) => (
-                  <div key={client.id} className="border border-white/10 rounded-lg p-3 flex items-center justify-between hover:border-white/20 transition-colors">
+                  <div key={client.id} className="border border-white/10 rounded-2xl p-3 flex items-center justify-between hover:border-white/20 transition-colors bg-white/5">
                     <div className="flex items-center gap-3 min-w-0">
                       {client.avatar_url ? (
                         <img
                           src={client.avatar_url}
                           alt={client.name}
-                          className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
+                          className="w-10 h-10 rounded-2xl object-cover border border-white/20 shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-white/10 text-contrast items-center justify-center font-bold uppercase shrink-0 border border-white/20 flex">
+                        <div className="w-10 h-10 rounded-2xl avatar-accent text-accent-contrast items-center justify-center font-bold uppercase shrink-0 flex">
                           {client.name.charAt(0)}
                         </div>
                       )}
@@ -1274,7 +1295,7 @@ export default function AdminPanel() {
                         <p className="text-xs muted truncate">{client.email}</p>
                       </div>
                     </div>
-                    <Link to={`/chat?peerId=${client.id}`} className="px-3 py-1.5 rounded bg-indigo-600 text-white text-xs font-semibold">
+                    <Link to={`/chat?peerId=${client.id}`} className="px-3 py-1.5 rounded accent-btn text-xs font-semibold">
                       Contactar
                     </Link>
                   </div>
@@ -1286,7 +1307,7 @@ export default function AdminPanel() {
       )}
 
       {activeTab === 'appointments' && (
-        <div className="glass-card rounded-xl overflow-hidden">
+        <div className="glass-card rounded-3xl overflow-hidden border border-white/10">
           <div className="p-4 sm:p-6 border-b border-white/10">
             <h2 className="text-lg sm:text-xl font-bold text-contrast">Gestión de Citas</h2>
           </div>
@@ -1329,7 +1350,7 @@ export default function AdminPanel() {
       )}
 
       {activeTab === 'reviews' && (
-        <div className="glass-card rounded-xl overflow-hidden">
+        <div className="glass-card rounded-3xl overflow-hidden border border-white/10">
           <div className="p-4 sm:p-6 border-b border-white/10">
             <h2 className="text-lg sm:text-xl font-bold text-contrast">Opiniones y Calificaciones</h2>
           </div>
@@ -1372,7 +1393,7 @@ export default function AdminPanel() {
       )}
 
       {activeTab === 'logs' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="glass-card rounded-3xl overflow-hidden border border-white/10">
           <div className="p-4 sm:p-6 border-b border-gray-100 space-y-4">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <h2 className="text-lg sm:text-xl font-bold">Actividad de Barberos</h2>

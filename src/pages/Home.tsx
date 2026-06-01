@@ -85,20 +85,77 @@ export default function Home() {
         <div className="hero-overlay absolute inset-0" />
         <div className="hero-grid absolute inset-0" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-20 md:py-28">
-          <div className="max-w-3xl fade-in-up">
-            <span className="hero-kicker">BARBADOS</span>
-            <h1 className="hero-title mt-4 text-contrast">Barbados: Donde el estilo encuentra la perfección</h1>
-            <p className="hero-lead mt-6">
-              Más que un corte. Barbados es tu destino para cortes premium, arreglo de barba experto y un ambiente donde se mezclan la tradición del barbering con la modernidad. Cada cita es una experiencia.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/appointments" className="accent-btn px-7 py-3 rounded-xl font-semibold">
-                Reservar ahora
-              </Link>
-              <Link to="/store" className="glass-card px-7 py-3 rounded-xl font-semibold text-contrast">
-                Ver servicios
-              </Link>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-16 md:py-24">
+          <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-8 items-center">
+            <div className="max-w-3xl fade-in-up">
+              <span className="hero-kicker">BARBADOS PREMIUM STUDIO</span>
+              <h1 className="hero-title mt-4 text-contrast">Barbados: el templo del estilo, el detalle y la presencia</h1>
+              <p className="hero-lead mt-6">
+                Más que un corte. Barbados es una experiencia de barbería profesional con estética de alto nivel, atención precisa y un flujo pensado para que cada visita se sienta como una sesión de estudio premium.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/appointments" className="accent-btn px-7 py-3 rounded-xl font-semibold">
+                  Reservar ahora
+                </Link>
+                <Link to="/store" className="glass-card px-7 py-3 rounded-xl font-semibold text-contrast border border-white/10">
+                  Ver servicios
+                </Link>
+              </div>
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Precisión</p>
+                  <p className="mt-2 text-lg font-bold text-contrast">Cortes de autor</p>
+                </div>
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Ambiente</p>
+                  <p className="mt-2 text-lg font-bold text-contrast">Premium y limpio</p>
+                </div>
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Agenda</p>
+                  <p className="mt-2 text-lg font-bold text-contrast">Reserva inteligente</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="fade-in-up lg:justify-self-end">
+              <div className="glass-card rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
+                <div className="flex items-center justify-between gap-4 mb-5">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] muted">Signature Experience</p>
+                    <h2 className="text-2xl font-extrabold text-contrast mt-2">Cortes que dominan la escena</h2>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl avatar-accent flex items-center justify-center text-contrast font-extrabold">B</div>
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Flow del día</p>
+                        <p className="text-lg font-bold text-contrast mt-1">Cortes, barba y detalle</p>
+                      </div>
+                      <div className="badge-accent">Pro</div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Experiencia</p>
+                        <p className="text-lg font-bold text-contrast mt-1">Diseño limpio y moderno</p>
+                      </div>
+                      <div className="badge-note">Live</div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Resultado</p>
+                        <p className="text-lg font-bold text-contrast mt-1">Barbería de presencia real</p>
+                      </div>
+                      <div className="badge-danger">HQ</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -121,21 +178,24 @@ export default function Home() {
           <Card
             key={cut.id}
             variant="cut"
-            interactive={false}
+            interactive
             title={cut.name}
             subtitle={`${cut.duration_minutes || 30} min`}
             image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
-            className="relative transition-all duration-300 w-full max-w-[320px] mx-auto"
+            className="relative w-full max-w-[320px] mx-auto"
             footer={
               <Link
                 to="/appointments"
-                className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:-translate-y-1"
+                className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg"
               >
                 Agendar corte
               </Link>
             }
           >
             <div className="mb-4 text-center">
+              <div className="inline-flex items-center gap-2 badge-accent px-3 py-1.5 rounded-full mb-3">
+                <span className="text-sm font-extrabold">Barber Premium</span>
+              </div>
               <div className="flex items-center justify-center gap-2 mb-2">
                 <span className="text-3xl font-extrabold text-accent">{`$${cut.price.toFixed(0)}`}</span>
               </div>
@@ -159,21 +219,21 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <article className="glass-card rounded-2xl p-8 transition-all hover:shadow-lg hover:-translate-y-1">
+            <article className="glass-card rounded-2xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Clock3 className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Citas Sin Espera</h3>
               <p className="muted text-sm leading-relaxed">Sistema de reservas inteligente que respeta tu tiempo. Llegabas puntual, comienza puntual. Nos organizamos para mantener tu agenda sin interrupciones.</p>
             </article>
-            <article className="glass-card rounded-2xl p-8 transition-all hover:shadow-lg hover:-translate-y-1">
+            <article className="glass-card rounded-2xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Check className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Calidad Garantizada</h3>
               <p className="muted text-sm leading-relaxed">Barberos certificados, herramientas de grado profesional y protocolos de esterilización rigurosos. Tu salud y satisfacción son nuestra prioridad número uno.</p>
             </article>
-            <article className="glass-card rounded-2xl p-8 transition-all hover:shadow-lg hover:-translate-y-1">
+            <article className="glass-card rounded-2xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <MapPin className="w-6 h-6 text-accent-contrast" />
               </div>
@@ -195,7 +255,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {reviews.slice(0, 6).map((review) => (
-                <article key={review.id} className="glass-card rounded-2xl p-6 transition-all hover:shadow-lg hover:-translate-y-1">
+                <article key={review.id} className="glass-card rounded-2xl p-6 transition-all">
                   <div className="flex items-start justify-between mb-3 gap-3">
                     <div className="flex-1">
                       <h3 className="font-bold text-contrast text-base">{review.userName}</h3>

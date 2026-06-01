@@ -263,22 +263,23 @@ export default function BarberPanel() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-      <div className="md:col-span-3 glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+      <div className="md:col-span-3 glass-card rounded-[28px] p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 border border-white/10">
         <div className="flex items-center gap-3 min-w-0">
           {user?.avatar_url ? (
-            <img src={user.avatar_url} alt="Avatar barbero" className="w-12 h-12 rounded-full object-cover border" />
+            <img src={user.avatar_url} alt="Avatar barbero" className="w-14 h-14 rounded-2xl object-cover border border-white/20 shadow-lg" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg uppercase">
+            <div className="w-14 h-14 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center font-extrabold text-lg uppercase shadow-lg">
               {user?.name?.charAt(0)}
             </div>
           )}
           <div>
-            <p className="font-semibold">{user?.name}</p>
-            <p className="text-sm text-gray-500">Panel de Barbero</p>
+            <p className="font-semibold text-contrast text-lg">{user?.name}</p>
+            <p className="text-sm muted">Studio Pro Barber Panel</p>
           </div>
         </div>
-        <label className="text-sm text-indigo-600 cursor-pointer hover:underline sm:text-right">
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+        <label className="text-sm text-contrast cursor-pointer hover:opacity-80 transition-opacity badge-accent px-4 py-2 rounded-full">
           {uploadingAvatar ? 'Subiendo foto...' : 'Cambiar foto de perfil'}
           <input
             type="file"
@@ -296,22 +297,41 @@ export default function BarberPanel() {
           <button
             type="button"
             onClick={handleRemoveAvatar}
-            className="text-sm text-red-600 hover:underline"
+            className="text-sm btn-danger"
           >
             Quitar foto
           </button>
         )}
+        </div>
+      </div>
+
+      <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Hoy</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">${todayByCategory.cortes.toFixed(2)}</p>
+          <p className="mt-2 text-sm muted">Cortes realizados hoy</p>
+        </div>
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Mes</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">${monthByCategory.cortes.toFixed(2)}</p>
+          <p className="mt-2 text-sm muted">Ritmo del estudio este mes</p>
+        </div>
+        <div className="glass-card rounded-2xl p-5 border border-white/10">
+          <p className="text-xs uppercase tracking-[0.24em] muted">Agenda</p>
+          <p className="mt-2 text-3xl font-extrabold text-contrast">{appointments.length}</p>
+          <p className="mt-2 text-sm muted">Citas asignadas activas</p>
+        </div>
       </div>
       
       <div className="md:col-span-1">
-        <h2 className="text-2xl font-bold mb-4">Registrar Servicio</h2>
-        <form onSubmit={handleSubmit} className="glass-card p-4 sm:p-6 rounded-xl">
+        <h2 className="text-2xl font-bold mb-4 text-contrast">Registrar Servicio</h2>
+        <form onSubmit={handleSubmit} className="glass-card p-4 sm:p-6 rounded-2xl border border-white/10">
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Categoría</label>
+            <label className="block text-sm font-medium mb-1 text-contrast">Categoría</label>
             <select 
               value={type} 
               onChange={(e) => setType(e.target.value as any)}
-              className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full p-2 form-input"
             >
               <option value="Cortes">Cortes</option>
               <option value="Barbería">Barbería</option>
@@ -321,34 +341,34 @@ export default function BarberPanel() {
           </div>
           
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">Servicio / Producto</label>
+            <label className="block text-sm font-medium mb-1 text-contrast">Servicio / Producto</label>
             {getProductsByType(type).length === 0 ? (
-              <p className="text-sm text-gray-500">No hay cortes, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
+              <p className="text-sm muted">No hay cortes, lancería o bebidas visibles publicados por el admin en esta categoría.</p>
             ) : (
               <>
                 <select 
                   value={selectedItemId} 
                   onChange={(e) => setSelectedItemId(e.target.value)}
-                  className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full p-2 form-input"
                 >
                   {getProductsByType(type).map((item) => (
                     <option key={item.id} value={item.id}>{item.name} - ${item.price.toFixed(2)}</option>
                   ))}
                 </select>
                 {selectedItemId && getProductsByType(type).find(p => p.id === selectedItemId) && (
-                  <div className="mt-4 p-3 border rounded bg-gray-50">
+                  <div className="mt-4 p-4 border border-white/10 rounded-2xl bg-white/5">
                     {(() => {
                       const selectedItem = getProductsByType(type).find(p => p.id === selectedItemId);
                       return selectedItem ? (
                         <div className="space-y-2">
                           {selectedItem.image_url && (
                             <div className="flex justify-center">
-                              <img src={selectedItem.image_url} alt={selectedItem.name} className="w-32 h-32 rounded object-cover border" />
+                              <img src={selectedItem.image_url} alt={selectedItem.name} className="w-32 h-32 rounded-2xl object-cover border border-white/20 shadow-lg" />
                             </div>
                           )}
-                          <p className="font-medium text-sm">{selectedItem.name}</p>
+                          <p className="font-medium text-sm text-contrast">{selectedItem.name}</p>
                           {selectedItem.description && (
-                            <p className="text-xs text-gray-600">{selectedItem.description}</p>
+                            <p className="text-xs muted">{selectedItem.description}</p>
                           )}
                           <p className="text-sm font-bold text-success">${selectedItem.price.toFixed(2)}</p>
                         </div>
@@ -362,54 +382,54 @@ export default function BarberPanel() {
 
           <button 
             disabled={loading}
-            className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition"
+            className="w-full accent-btn py-3 rounded-xl font-bold"
           >
             {loading ? 'Guardando...' : 'Registrar'}
           </button>
         </form>
 
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div className="glass-card p-4 rounded-xl border border-white/10">
-            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Cortes - Hoy</p>
+          <div className="glass-card p-4 rounded-2xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide muted font-semibold">Cortes - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.cortes.toFixed(2)}</p>
           </div>
-          <div className="glass-card p-4 rounded-xl border border-white/10">
-            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Barbería - Hoy</p>
+          <div className="glass-card p-4 rounded-2xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide muted font-semibold">Barbería - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.barberia.toFixed(2)}</p>
           </div>
-          <div className="glass-card p-4 rounded-xl border border-white/10">
-            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Lancería - Hoy</p>
+          <div className="glass-card p-4 rounded-2xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide muted font-semibold">Lancería - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.lanceria.toFixed(2)}</p>
           </div>
-          <div className="glass-card p-4 rounded-xl border border-white/10">
-            <p className="text-xs uppercase tracking-wide text-slate-600 font-semibold">Bebidas - Hoy</p>
+          <div className="glass-card p-4 rounded-2xl border border-white/10">
+            <p className="text-xs uppercase tracking-wide muted font-semibold">Bebidas - Hoy</p>
             <p className="mt-2 text-2xl font-bold text-success">${todayByCategory.bebidas.toFixed(2)}</p>
           </div>
         </div>
       </div>
 
       <div className="md:col-span-2">
-        <h2 className="text-2xl font-bold mb-4">Mis Registros Recientes</h2>
-        <div className="glass-card rounded-xl overflow-hidden">
+        <h2 className="text-2xl font-bold mb-4 text-contrast">Mis Registros Recientes</h2>
+        <div className="glass-card rounded-2xl overflow-hidden border border-white/10">
           <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left">
-            <thead className="bg-gray-50 border-b">
+            <thead className="border-b border-white/10">
               <tr>
-                <th className="p-4 font-medium text-gray-500">Fecha y Hora</th>
-                <th className="p-4 font-medium text-gray-500">Tipo</th>
-                <th className="p-4 font-medium text-gray-500">Detalle</th>
-                <th className="p-4 font-medium text-gray-500">Precio</th>
-                <th className="p-4 text-center font-medium text-gray-500">Acción</th>
+                <th className="p-4 font-medium text-contrast">Fecha y Hora</th>
+                <th className="p-4 font-medium text-contrast">Tipo</th>
+                <th className="p-4 font-medium text-contrast">Detalle</th>
+                <th className="p-4 font-medium text-contrast">Precio</th>
+                <th className="p-4 text-center font-medium text-contrast">Acción</th>
               </tr>
             </thead>
             <tbody>
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-400">No hay registros aún.</td>
+                  <td colSpan={4} className="p-8 text-center muted">No hay registros aún.</td>
                 </tr>
               ) : (
                 [...logs].reverse().map(log => (
-                  <tr key={log.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <tr key={log.id} className="border-b last:border-0 hover:bg-white/5">
                     <td className="p-4 text-sm">{new Date(log.date).toLocaleString()}</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${
@@ -446,30 +466,30 @@ export default function BarberPanel() {
       </div>
 
       <div className="md:col-span-3">
-        <h2 className="text-2xl font-bold mb-4">Clientes Registrados para Chat</h2>
-        <div className="glass-card rounded-xl p-4">
+        <h2 className="text-2xl font-bold mb-4 text-contrast">Clientes Registrados para Chat</h2>
+        <div className="glass-card rounded-2xl p-4 border border-white/10">
           {registeredUsers.length === 0 ? (
-            <p className="text-sm text-gray-500">No hay clientes registrados todavía.</p>
+            <p className="text-sm muted">No hay clientes registrados todavía.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {registeredUsers.map((client) => (
-                <div key={client.id} className="border rounded-lg p-3 flex items-center justify-between gap-3">
+                <div key={client.id} className="border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3 bg-white/5">
                   <div className="flex items-center gap-3 min-w-0">
                     {client.avatar_url ? (
-                      <img src={client.avatar_url} alt={client.name} className="w-10 h-10 rounded-full object-cover border shrink-0" />
+                      <img src={client.avatar_url} alt={client.name} className="w-10 h-10 rounded-2xl object-cover border border-white/20 shrink-0" />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold uppercase shrink-0">
+                      <div className="w-10 h-10 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center font-bold uppercase shrink-0">
                         {client.name.charAt(0)}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="font-semibold truncate">{client.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{client.email}</p>
+                      <p className="font-semibold truncate text-contrast">{client.name}</p>
+                      <p className="text-xs muted truncate">{client.email}</p>
                     </div>
                   </div>
                   <Link
                     to={`/chat?peerId=${client.id}`}
-                    className="px-3 py-1.5 rounded bg-indigo-600 text-white text-xs font-semibold"
+                    className="px-3 py-1.5 rounded accent-btn text-xs font-semibold"
                   >
                     Hablar
                   </Link>
@@ -481,37 +501,37 @@ export default function BarberPanel() {
       </div>
 
       <div className="md:col-span-3">
-        <h2 className="text-2xl font-bold mb-4">Mis Citas Asignadas</h2>
-        <div className="glass-card rounded-xl overflow-hidden">
+        <h2 className="text-2xl font-bold mb-4 text-contrast">Mis Citas Asignadas</h2>
+        <div className="glass-card rounded-2xl overflow-hidden border border-white/10">
           <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
-            <thead className="bg-gray-50 border-b">
+            <thead className="border-b border-white/10">
               <tr>
-                <th className="p-4 font-medium text-gray-500">Fecha</th>
-                <th className="p-4 font-medium text-gray-500">Cliente</th>
-                <th className="p-4 font-medium text-gray-500">Servicio</th>
-                <th className="p-4 font-medium text-gray-500">Estado</th>
-                <th className="p-4 font-medium text-gray-500 text-center">Acción</th>
+                <th className="p-4 font-medium text-contrast">Fecha</th>
+                <th className="p-4 font-medium text-contrast">Cliente</th>
+                <th className="p-4 font-medium text-contrast">Servicio</th>
+                <th className="p-4 font-medium text-contrast">Estado</th>
+                <th className="p-4 font-medium text-contrast text-center">Acción</th>
               </tr>
             </thead>
             <tbody>
               {appointments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-gray-400">No tienes citas asignadas.</td>
+                  <td colSpan={5} className="p-8 text-center muted">No tienes citas asignadas.</td>
                 </tr>
               ) : (
                 appointments.map((appointment) => (
-                  <tr key={appointment.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <tr key={appointment.id} className="border-b last:border-0 hover:bg-white/5">
                     <td className="p-4 text-sm">{new Date(appointment.appointmentDate).toLocaleString()}</td>
-                    <td className="p-4 font-medium">{appointment.clientName}</td>
+                    <td className="p-4 font-medium text-contrast">{appointment.clientName}</td>
                     <td className="p-4">
                       <div>
-                        <p className="font-medium">{appointment.serviceName}</p>
-                        <p className="text-xs text-gray-500">{appointment.serviceDescription || 'Sin información'}</p>
+                        <p className="font-medium text-contrast">{appointment.serviceName}</p>
+                        <p className="text-xs muted">{appointment.serviceDescription || 'Sin información'}</p>
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="px-2 py-1 rounded text-xs font-semibold uppercase bg-slate-100 text-slate-700">{appointment.status}</span>
+                      <span className="px-2 py-1 rounded text-xs font-semibold uppercase badge-note">{appointment.status}</span>
                     </td>
                     <td className="p-4 text-center">
                       <button onClick={() => handleDeleteAppointment(appointment.id)} className="px-3 py-2 rounded btn-danger text-xs font-semibold">
