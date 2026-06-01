@@ -144,7 +144,7 @@ export default function Home() {
                     <h2 className="text-2xl font-extrabold text-contrast mt-2">Resumen operativo</h2>
                   </div>
                   <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 glow-ring bg-white/5 flex items-center justify-center">
-                    <img src="/logo-barbados.svg" alt="Barbados" className="w-full h-full object-contain p-2" />
+                    <img src="/logitobarbados.png" alt="Barbados" className="w-full h-full object-contain p-1.5" />
                   </div>
                 </div>
                 <div className="space-y-4">
