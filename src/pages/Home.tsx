@@ -68,12 +68,13 @@ export default function Home() {
     }
   }, !!user && !duplicatedSession);
 
-  const featuredCuts = useMemo(() => cuts.slice(0, 4), [cuts]);
+  const featuredCuts = useMemo(() => cuts.slice(0, 5), [cuts]);
   const serviceCount = cuts.length;
   const reviewCount = reviews.length;
   const averageRating = reviewCount > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount : 0;
   const averageCutPrice = serviceCount > 0 ? cuts.reduce((sum, cut) => sum + Number(cut.price || 0), 0) / serviceCount : 0;
   const visibleCuts = cuts.filter((cut) => cut.is_visible).length;
+  const coverage = serviceCount > 0 ? Math.round((visibleCuts / serviceCount) * 100) : 0;
   const topReview = reviews[0];
 
   return (
@@ -142,7 +143,9 @@ export default function Home() {
                     <p className="text-xs uppercase tracking-[0.24em] muted">Data Panel</p>
                     <h2 className="text-2xl font-extrabold text-contrast mt-2">Resumen operativo</h2>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl avatar-accent flex items-center justify-center text-contrast font-extrabold">B</div>
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 glow-ring bg-white/5 flex items-center justify-center">
+                    <img src="/logo-barbados.svg" alt="Barbados" className="w-full h-full object-contain p-2" />
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -153,6 +156,10 @@ export default function Home() {
                       </div>
                       <div className="badge-accent">Live</div>
                     </div>
+                    <div className="mt-3 h-2 rounded-full bg-white/8 overflow-hidden">
+                      <div className="h-full rounded-full bg-linear-to-r from-(--accent-1) via-(--accent-2) to-(--accent-3)" style={{ width: `${coverage}%` }} />
+                    </div>
+                    <p className="text-xs muted mt-2">Cobertura visible {coverage}%</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-4">
@@ -204,12 +211,12 @@ export default function Home() {
         {featuredCuts.map((cut) => (
           <Card
             key={cut.id}
-            variant="cut"
-            interactive
+            variant="default"
+            interactive={false}
             title={cut.name}
             subtitle={`${cut.duration_minutes || 30} min`}
             image={cut.image_url || 'https://via.placeholder.com/320x320?text=Corte'}
-            className="relative w-full max-w-[320px] mx-auto"
+            className="service-showcase-card relative w-full max-w-[340px] mx-auto"
             footer={
               <Link
                 to="/appointments"
@@ -219,17 +226,16 @@ export default function Home() {
               </Link>
             }
           >
-            <div className="mb-4 text-center">
+            <div className="mb-4">
               <div className="inline-flex items-center gap-2 badge-accent px-3 py-1.5 rounded-full mb-3">
                 <span className="text-sm font-extrabold">Barber Premium</span>
               </div>
-              <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="flex items-end justify-between gap-3 mb-2">
                 <span className="text-3xl font-extrabold text-accent">{`$${cut.price.toFixed(0)}`}</span>
+                <span className="text-xs text-muted font-semibold uppercase tracking-wider">{cut.duration_minutes || 30} min</span>
               </div>
-              <p className="text-xs text-muted font-semibold uppercase tracking-wider">USD</p>
+              <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
             </div>
-
-            <p className="text-sm leading-relaxed text-muted line-clamp-3 mb-3">{cut.description || 'Corte profesional personalizado.'}</p>
           </Card>
         ))}
       </div>

@@ -675,6 +675,32 @@ tr:hover td {
   filter: none !important;
 }
 
+.service-showcase-card .card-inner {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.service-showcase-card:hover .card-inner {
+  transform: translateY(-4px);
+}
+
+.service-showcase-card .aspect-4\/3 {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+}
+
+.service-showcase-card .aspect-4\/3 img {
+  object-fit: cover;
+  padding: 0.65rem;
+  border-radius: 22px;
+}
+
+.service-showcase-card .card-body {
+  min-height: 160px;
+}
+
+.service-showcase-card .card-title {
+  font-size: 1.45rem;
+}
+
 .cuts-grid > .card-3d .card-inner {
   transform: none;
 }
