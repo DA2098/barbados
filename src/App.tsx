@@ -32,9 +32,9 @@ function AppShell() {
   }, [sessionExitReason, navigate, clearSessionExitReason]);
 
   return (
-    <div style={{ backgroundColor: 'var(--bg)' }} className="min-h-screen text-contrast font-sans">
+    <div style={{ backgroundColor: 'var(--bg)' }} className="app-shell min-h-screen text-contrast font-sans">
       <Navbar />
-      <main>
+      <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

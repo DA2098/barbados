@@ -80,7 +80,7 @@ export default function Navbar() {
   );
 
   return (
-    <nav style={{ backgroundColor: 'var(--surface)' }} className="text-contrast sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
+    <nav style={{ backgroundColor: 'var(--surface)' }} className="app-nav text-contrast sticky top-0 z-50 border-b border-white/10 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex justify-between items-center h-20">
           
