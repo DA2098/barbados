@@ -41,12 +41,35 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg)' }}>
-      <div className="max-w-md w-full">
-        <div className="glass-card rounded-2xl p-8">
+      <div className="max-w-6xl w-full grid lg:grid-cols-[1fr_0.9fr] gap-6 items-stretch">
+        <div className="glass-card rounded-3xl p-8 md:p-10 border border-white/10 overflow-hidden relative">
+          <span className="hero-kicker">NUEVA CUENTA</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-contrast mt-4 leading-tight">Crea tu acceso y entra al ecosistema Barbados</h1>
+          <p className="muted mt-4 max-w-xl leading-relaxed">
+            Un registro limpio para clientes y barberos. Sin ruido, sin pasos innecesarios.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] muted">Cliente</p>
+              <p className="mt-2 text-2xl font-extrabold text-contrast">Rápido</p>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] muted">Barbero</p>
+              <p className="mt-2 text-2xl font-extrabold text-contrast">Requiere</p>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] muted">Panel</p>
+              <p className="mt-2 text-2xl font-extrabold text-contrast">Único</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-card rounded-3xl p-8 md:p-10 border border-white/10">
           <h1 className="text-3xl font-bold text-center text-contrast mb-2">Crear Cuenta</h1>
           <p className="text-center muted text-sm mb-6">Únete a Barbados hoy</p>
           
-          <div className="p-4 rounded-lg mb-6 text-sm bg-blue-500/10 text-contrast/80 flex gap-3 items-start border border-blue-500/20">
+          <div className="p-4 rounded-2xl mb-6 text-sm bg-blue-500/10 text-contrast/80 flex gap-3 items-start border border-blue-500/20">
             <Info className="w-5 h-5 shrink-0 text-blue-400 mt-0.5" />
             <p className="leading-5">Si eliges barbero, necesitarás aprobación del administrador para activar tu cuenta.</p>
           </div>
@@ -65,7 +88,7 @@ export default function Register() {
                   required 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pr-4 py-3 form-input icon-left" 
+                  className="w-full pr-4 py-3 form-input icon-left rounded-2xl" 
                   placeholder="Tu nombre"
                 />
               </div>
@@ -80,7 +103,7 @@ export default function Register() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pr-4 py-3 form-input icon-left" 
+                  className="w-full pr-4 py-3 form-input icon-left rounded-2xl" 
                   placeholder="tu@email.com"
                 />
               </div>
@@ -91,7 +114,7 @@ export default function Register() {
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as 'user' | 'barber')}
-                className="w-full form-input"
+                className="w-full form-input rounded-2xl"
               >
                 <option value="user">👤 Cliente</option>
                 <option value="barber">✂️ Barbero (requiere aprobación)</option>
@@ -107,7 +130,7 @@ export default function Register() {
                   required 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pr-4 py-3 form-input icon-left" 
+                  className="w-full pr-4 py-3 form-input icon-left rounded-2xl" 
                   placeholder="••••••••"
                 />
               </div>
@@ -115,7 +138,7 @@ export default function Register() {
 
             <button 
               disabled={loading}
-              className="w-full accent-btn font-bold py-3 rounded-lg disabled:opacity-60 transition-all"
+              className="w-full accent-btn font-bold py-3 rounded-2xl disabled:opacity-60"
             >
               {loading ? 'Creando cuenta...' : 'Registrarse'}
             </button>

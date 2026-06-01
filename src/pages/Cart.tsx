@@ -15,13 +15,15 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <div className="max-w-3xl mx-auto p-12 text-center" style={{ backgroundColor: 'var(--bg)' }}>
-        <h2 className="text-2xl font-bold text-contrast mb-4">Tu carrito está vacío</h2>
+        <div className="glass-card rounded-3xl p-10 border border-white/10">
+          <h2 className="text-2xl font-bold text-contrast mb-4">Tu carrito está vacío</h2>
         <button
           onClick={() => navigate('/store')}
-          className="text-contrast font-semibold hover:opacity-80 transition-opacity"
+          className="accent-btn px-5 py-2.5 rounded-2xl font-semibold"
         >
           Ir a la tienda
         </button>
+        </div>
       </div>
     );
   }
@@ -59,18 +61,23 @@ export default function Cart() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6" style={{ backgroundColor: 'var(--bg)' }}>
-      <h1 className="text-3xl font-bold mb-8 text-contrast">Carrito de Compras</h1>
-      
-      <div className="glass-card rounded-xl p-6 mb-6">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className="glass-card rounded-3xl p-6 md:p-8 mb-6 border border-white/10">
+        <span className="hero-kicker">CHECKOUT</span>
+        <h1 className="text-3xl font-extrabold mb-3 text-contrast mt-4">Carrito de Compras</h1>
+        <p className="muted text-sm max-w-2xl">Resumen claro de lo que vas a pagar, con métodos de pago visibles y sin ruido.</p>
+      </div>
+
+      <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-6">
+      <div className="glass-card rounded-3xl p-6 border border-white/10">
         <ul className="divide-y divide-white/10">
           {items.map((item) => (
-            <li key={item.product.id} className="py-4 flex justify-between items-center">
+            <li key={item.product.id} className="py-4 flex justify-between items-center gap-4">
               <div className="flex gap-4 items-center">
                 <img
                   src={item.product.image_url || 'https://via.placeholder.com/100'}
                   alt={item.product.name}
-                  className="w-16 h-16 object-cover rounded"
+                  className="w-16 h-16 object-cover rounded-2xl border border-white/10"
                 />
                 <div>
                   <h3 className="font-semibold text-contrast">{item.product.name}</h3>
@@ -91,39 +98,38 @@ export default function Cart() {
         </ul>
       </div>
 
-      <div className="glass-card rounded-xl p-6 flex justify-between items-center" style={{ backgroundColor: 'var(--surface)' }}>
-        <div className="space-y-3 w-full">
-          <div className="flex items-end justify-between gap-4 flex-wrap">
-            <div>
-              <p className="muted text-sm">Total a pagar</p>
-              <p className="text-3xl font-bold text-contrast">${total.toFixed(2)}</p>
-              {!user && <p className="text-xs muted mt-1">Debes iniciar sesión para pagar y generar factura.</p>}
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('card')}
-                className={`px-4 py-2 rounded-lg font-semibold ${paymentMethod === 'card' ? 'accent-btn' : 'glass-card border border-white/10 text-contrast'}`}
-              >
-                Tarjeta
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('paypal')}
-                className={`px-4 py-2 rounded-lg font-semibold ${paymentMethod === 'paypal' ? 'accent-btn' : 'glass-card border border-white/10 text-contrast'}`}
-              >
-                PayPal
-              </button>
-            </div>
+      <div className="glass-card rounded-3xl p-6 border border-white/10" style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="space-y-5 w-full">
+          <div>
+            <p className="muted text-sm">Total a pagar</p>
+            <p className="text-4xl font-extrabold text-contrast mt-1">${total.toFixed(2)}</p>
+            {!user && <p className="text-xs muted mt-1">Debes iniciar sesión para pagar y generar factura.</p>}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('card')}
+              className={`px-4 py-3 rounded-2xl font-semibold ${paymentMethod === 'card' ? 'accent-btn' : 'nav-btn'}`}
+            >
+              Tarjeta
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('paypal')}
+              className={`px-4 py-3 rounded-2xl font-semibold ${paymentMethod === 'paypal' ? 'accent-btn' : 'nav-btn'}`}
+            >
+              PayPal
+            </button>
           </div>
           <button
             onClick={handleCheckout}
             disabled={processing}
-            className="accent-btn px-8 py-3 rounded-lg font-bold text-lg disabled:opacity-60"
+            className="w-full accent-btn px-8 py-3 rounded-2xl font-bold text-lg disabled:opacity-60"
           >
             {processing ? 'Redirigiendo al pago...' : paymentMethod === 'card' ? 'Pagar con tarjeta' : 'Pagar con PayPal'}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -37,34 +37,54 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg)' }}>
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex mb-4">
-            <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center overflow-hidden">
-              <img src="/logitobarbados.png" alt="Barbados" className="w-10 h-10 object-cover" />
+      <div className="w-full max-w-6xl grid lg:grid-cols-[0.92fr_1.08fr] gap-6 items-stretch">
+        <div className="glass-card rounded-3xl p-8 md:p-10 flex flex-col justify-between border border-white/10 overflow-hidden relative">
+          <div>
+            <div className="inline-flex mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-black flex items-center justify-center overflow-hidden border border-white/10 shadow-lg">
+                <img src="/logitobarbados.png" alt="Barbados" className="w-11 h-11 object-contain" />
+              </div>
             </div>
-          </div>
-          <h1 className="text-xl font-extrabold text-contrast tracking-wide">BARBADOS</h1>
-        </div>
-
-        {/* Main Card */}
-        <div className="glass-card rounded-2xl p-8 shadow-2xl mb-6">
-          <div className="mb-6 text-center">
-            <h2 className="text-xl font-bold text-contrast mb-1 text-center">Iniciar Sesión</h2>
-            <div className="h-1 w-12 avatar-accent rounded-full mx-auto"></div>
-          </div>
-
-          <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-contrast">
-            <p className="font-semibold">Acceso para clientes</p>
-            <p className="mt-2 muted">
-              Usa esta pantalla para entrar como cliente o registrar una nueva cuenta.
+            <span className="hero-kicker">ACCESO CLIENTES</span>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-contrast mt-4 leading-tight">Reserva, compra y sigue tu cuenta en un solo panel</h1>
+            <p className="muted mt-4 max-w-lg leading-relaxed">
+              Entrar aquí te conecta con citas, tienda, facturas y chat. Interfaz limpia, rápida y pensada para clientes.
             </p>
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] muted">Citas</p>
+              <p className="mt-2 text-2xl font-extrabold text-contrast">Directas</p>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] muted">Pagos</p>
+              <p className="mt-2 text-2xl font-extrabold text-contrast">Seguros</p>
+            </div>
+            <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+              <p className="text-xs uppercase tracking-[0.24em] muted">Soporte</p>
+              <p className="mt-2 text-2xl font-extrabold text-contrast">Chat</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="glass-card rounded-3xl p-8 md:p-10 shadow-2xl border border-white/10">
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-contrast mb-2 text-center">Iniciar Sesión</h2>
+              <p className="muted text-sm">Acceso para clientes</p>
+            </div>
+
+            <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-contrast">
+              <p className="font-semibold">Lo importante primero</p>
+              <p className="mt-2 muted">
+                Entra para ver tus reservas, compras, facturas y mensajes.
+              </p>
+            </div>
+
           {error && (
             <div className="alert-danger mb-6 text-sm flex items-center gap-3">
-              <div className="w-5 h-5 rounded-full" style={{ background: 'var(--danger, #ef4444,)', opacity: 0.2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</div>
+              <div className="w-5 h-5 rounded-full" style={{ background: 'var(--danger)', opacity: 0.2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</div>
               <span>{error}</span>
             </div>
           )}
@@ -77,7 +97,7 @@ export default function Login() {
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 form-input text-sm rounded-xl transition-all"
+                className="w-full px-4 py-3 form-input text-sm rounded-2xl"
                 placeholder="Ingresa tu usuario o correo"
               />
             </div>
@@ -89,14 +109,14 @@ export default function Login() {
                 required 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 form-input text-sm rounded-xl transition-all" 
+                className="w-full px-4 py-3 form-input text-sm rounded-2xl" 
                 placeholder="••••••••"
               />
             </div>
 
             <button 
               disabled={loading}
-              className="w-full accent-btn font-bold py-3 rounded-xl disabled:opacity-60 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full accent-btn font-bold py-3 rounded-2xl disabled:opacity-60"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -112,16 +132,17 @@ export default function Login() {
           <div className="mt-6 pt-6 border-t border-white/10">
             <p className="text-sm text-center text-muted">
               ¿No tienes cuenta?{' '}
-              <Link to="/register" className="font-semibold text-contrast hover:text-accent transition-colors">
+              <Link to="/register" className="font-semibold text-contrast hover:opacity-80 transition-opacity">
                 Regístrate aquí
               </Link>
             </p>
             <p className="mt-3 text-xs text-center text-muted">
               ¿Eres admin o barbero?{' '}
-              <Link to="/acceso-privado" className="font-semibold text-contrast hover:text-accent transition-colors">
+              <Link to="/acceso-privado" className="font-semibold text-contrast hover:opacity-80 transition-opacity">
                 Acceso privado
               </Link>
             </p>
+          </div>
           </div>
         </div>
 

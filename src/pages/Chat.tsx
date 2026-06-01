@@ -184,27 +184,31 @@ export default function Chat() {
 
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-6" style={{ backgroundColor: 'var(--bg)' }}>
-      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-contrast">{title}</h1>
+      <div className="glass-card rounded-3xl p-6 md:p-8 border border-white/10 mb-4 sm:mb-6">
+        <span className="hero-kicker">MENSAJERÍA</span>
+        <h1 className="text-2xl sm:text-4xl font-extrabold mt-4 text-contrast">{title}</h1>
+        <p className="muted mt-3 max-w-2xl text-sm leading-relaxed">Canal directo entre cliente, barbero y admin. Mensajes visibles, contacto claro y acciones precisas.</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-        <aside className="glass-card rounded-xl p-4 h-[42vh] md:h-[70vh] overflow-y-auto">
-          <h2 className="font-semibold mb-3">Contactos</h2>
+        <aside className="glass-card rounded-3xl p-4 h-[42vh] md:h-[70vh] overflow-y-auto border border-white/10">
+          <h2 className="font-semibold mb-3 text-contrast">Contactos</h2>
           {contacts.length === 0 && <p className="text-sm muted">No hay contactos disponibles.</p>}
           <div className="space-y-2">
             {contacts.map((contact) => (
               <button
                 key={contact.id}
                 onClick={() => setSelectedContact(contact)}
-                className={`w-full text-left p-3 rounded-lg border transition ${
-                  selectedContact?.id === contact.id ? 'border-white/20 bg-white/5 text-contrast' : 'border-white/10 hover:border-white/20'
+                className={`w-full text-left p-3 rounded-2xl border transition ${
+                  selectedContact?.id === contact.id ? 'border-white/20 bg-white/5 text-contrast' : 'border-white/10 hover:border-white/20 bg-white/5'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   {contact.avatar_url ? (
-                    <img src={contact.avatar_url} alt={contact.name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-10 h-10 rounded-full object-cover border border-white/40 shrink-0" />
+                    <img src={contact.avatar_url} alt={contact.name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-10 h-10 rounded-2xl object-cover border border-white/20 shrink-0" />
                   ) : null}
                   {!contact.avatar_url || (contact.avatar_url && !contact.avatar_url) ? (
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${selectedContact?.id === contact.id ? 'bg-white/20 text-contrast' : 'bg-white/10 text-contrast'}`}>
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shrink-0 ${selectedContact?.id === contact.id ? 'avatar-accent text-accent-contrast' : 'bg-white/10 text-contrast'}`}>
                       {avatarFallback(contact.name)}
                     </div>
                   ) : null}
@@ -218,16 +222,16 @@ export default function Chat() {
           </div>
         </aside>
 
-        <section className="md:col-span-2 glass-card rounded-xl h-[58vh] md:h-[70vh] flex flex-col overflow-hidden">
+        <section className="md:col-span-2 glass-card rounded-3xl h-[58vh] md:h-[70vh] flex flex-col overflow-hidden border border-white/10">
           <header className="p-3 sm:p-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               {selectedContact ? (
                 selectedContact.avatar_url ? (
-                  <img src={selectedContact.avatar_url} alt={selectedContact.name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-10 h-10 rounded-full object-cover border" />
+                  <img src={selectedContact.avatar_url} alt={selectedContact.name} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-10 h-10 rounded-2xl object-cover border border-white/20" />
                 ) : null
               ) : null}
               {!selectedContact || (selectedContact && !selectedContact.avatar_url) ? (
-                <div className="w-10 h-10 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold uppercase">
+                <div className="w-10 h-10 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center font-bold uppercase">
                   {selectedContact ? avatarFallback(selectedContact.name) : '?'}
                 </div>
               ) : null}
@@ -240,7 +244,7 @@ export default function Chat() {
               <button
                 type="button"
                 onClick={clearConversation}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded badge-danger text-xs font-semibold w-full sm:w-auto transition"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-2xl btn-danger text-xs font-semibold w-full sm:w-auto transition"
               >
                 <Trash2 className="w-4 h-4" />
                 Borrar historial
@@ -255,18 +259,18 @@ export default function Chat() {
                 <div key={message.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                   <div className={`flex items-end gap-2 max-w-[85%] ${isMine ? 'flex-row-reverse' : 'flex-row'}`}>
                     {message.senderAvatar ? (
-                      <img src={message.senderAvatar} alt={message.senderName} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0" />
+                      <img src={message.senderAvatar} alt={message.senderName} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-9 h-9 rounded-2xl object-cover border border-white/20 shrink-0" />
                     ) : null}
                     {!message.senderAvatar || (message.senderAvatar && !message.senderAvatar) ? (
-                      <div className="w-9 h-9 rounded-full bg-white/10 text-contrast flex items-center justify-center font-bold shrink-0">
+                      <div className="w-9 h-9 rounded-2xl avatar-accent text-accent-contrast flex items-center justify-center font-bold shrink-0">
                         {avatarFallback(message.senderName)}
                       </div>
                     ) : null}
-                    <div className={`rounded-xl p-3 ${isMine ? 'bg-white/15 text-contrast border border-white/20' : 'bg-white/5 border border-white/10'}`}>
+                    <div className={`rounded-2xl p-3 ${isMine ? 'bg-white/15 text-contrast border border-white/20' : 'bg-white/5 border border-white/10'}`}>
                       <p className={`text-xs font-semibold mb-1 ${isMine ? 'text-contrast' : 'muted'}`}>{message.senderName}</p>
                       {message.messageType === 'image' && message.imageUrl && (
                         <a href={message.imageUrl} target="_blank" rel="noreferrer">
-                          <img src={message.imageUrl} alt="Referencia" className="max-h-60 rounded-lg mb-2" />
+                          <img src={message.imageUrl} alt="Referencia" className="max-h-60 rounded-2xl mb-2" />
                         </a>
                       )}
                       {message.body && <p className="wrap-break-word">{message.body}</p>}
@@ -301,11 +305,11 @@ export default function Chat() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Escribe un mensaje..."
-                className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 min-w-0"
+                className="flex-1 border border-white/10 rounded-2xl px-3 py-2 outline-none form-input min-w-0"
               />
               <button
                 disabled={sending || !conversation}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 w-full sm:w-auto"
+                className="accent-btn px-4 py-2 rounded-2xl font-semibold disabled:opacity-50 w-full sm:w-auto"
               >
                 {sending ? 'Enviando...' : 'Enviar'}
               </button>

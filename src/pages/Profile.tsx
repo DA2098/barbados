@@ -188,25 +188,30 @@ export default function Profile() {
   const displayOrPlaceholder = (value?: string, placeholder = 'Sin especificar') => (value && value.trim() !== '' ? value : placeholder);
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-6">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-contrast">Mi Perfil</h1>
-      <div className="glass-card panel-dynamic p-4 sm:p-6">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6">
+      <div className="glass-card rounded-3xl p-6 md:p-8 border border-white/10 mb-6 sm:mb-8">
+        <span className="hero-kicker">MI CUENTA</span>
+        <h1 className="text-2xl sm:text-4xl font-extrabold mt-4 text-contrast">Perfil, seguridad y postulación en un solo espacio</h1>
+        <p className="muted mt-3 max-w-2xl text-sm leading-relaxed">Configura tu identidad, contraseña y si eres cliente, postúlate como barbero desde aquí.</p>
+      </div>
+
+      <div className="glass-card panel-dynamic p-4 sm:p-6 rounded-3xl border border-white/10">
         <div className="mb-6 flex flex-col sm:flex-row gap-4 sm:items-start">
           {user.avatar_url ? (
-            <img src={user.avatar_url} alt="Avatar" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-16 h-16 rounded-full object-cover border self-start" />
+            <img src={user.avatar_url} alt="Avatar" onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-16 h-16 rounded-2xl object-cover border border-white/20 self-start" />
           ) : null}
           {!user.avatar_url ? (
-            <div style={{ backgroundColor: 'var(--card)' }} className="w-16 h-16 text-contrast rounded-full flex items-center justify-center text-2xl font-bold uppercase self-start border border-white/6">
+            <div style={{ backgroundColor: 'var(--card)' }} className="w-16 h-16 text-contrast rounded-2xl flex items-center justify-center text-2xl font-bold uppercase self-start border border-white/6">
               {(user.name || ' ').charAt(0) || 'U'}
             </div>
           ) : null}
           <div className="min-w-0">
             <h2 className="text-xl font-semibold">{displayOrPlaceholder(user.name, 'Usuario')}</h2>
             <p className="text-gray-300">{displayOrPlaceholder(user.email, 'Sin email')}</p>
-            <span style={{ backgroundColor: 'var(--glass)' }} className="inline-block px-2 py-1 text-sm rounded mt-1 capitalize text-muted font-medium">
+            <span style={{ backgroundColor: 'var(--glass)' }} className="inline-block px-2 py-1 text-sm rounded-2xl mt-1 capitalize text-muted font-medium border border-white/10">
               Rol: {user.role}
             </span>
-            <label className="block mt-2 text-sm text-contrast hover:underline cursor-pointer">
+            <label className="block mt-2 text-sm text-contrast hover:opacity-80 cursor-pointer">
               {uploadingAvatar ? 'Subiendo foto...' : 'Cambiar foto de perfil'}
               <input
                 type="file"
@@ -224,7 +229,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={handleRemoveAvatar}
-                className="block mt-1 text-sm text-red-600 hover:underline"
+                className="block mt-1 text-sm text-danger hover:opacity-85"
               >
                 Quitar foto
               </button>
@@ -232,7 +237,7 @@ export default function Profile() {
           </div>
         </div>
 
-        {success && <div className="bg-green-600/10 text-green-300 p-3 rounded mb-6" role="status">{success}</div>}
+        {success && <div className="bg-green-600/10 text-green-300 p-3 rounded-2xl mb-6 border border-green-500/20" role="status">{success}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -257,7 +262,7 @@ export default function Profile() {
           </div>
           <button
             disabled={loading}
-            className="w-full sm:w-auto accent-btn font-medium py-2 px-6 disabled:opacity-60 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
+            className="w-full sm:w-auto accent-btn font-medium py-2 px-6 rounded-2xl disabled:opacity-60"
           >
             {loading ? 'Guardando...' : 'Guardar Cambios'}
           </button>
@@ -265,7 +270,7 @@ export default function Profile() {
 
         <div className="mt-8 border-t border-white/10 pt-6">
           <h3 className="text-lg font-semibold mb-4">Cambiar contraseña</h3>
-          {passwordSuccess && <div className="bg-green-600/10 text-green-300 p-3 rounded mb-4" role="status">{passwordSuccess}</div>}
+          {passwordSuccess && <div className="bg-green-600/10 text-green-300 p-3 rounded-2xl mb-4 border border-green-500/20" role="status">{passwordSuccess}</div>}
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Contraseña actual</label>
@@ -305,7 +310,7 @@ export default function Profile() {
             <button
               type="submit"
               disabled={passwordLoading}
-              className="w-full sm:w-auto accent-btn font-medium py-2 px-6 disabled:opacity-60 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
+              className="w-full sm:w-auto accent-btn font-medium py-2 px-6 rounded-2xl disabled:opacity-60"
             >
               {passwordLoading ? 'Actualizando...' : 'Actualizar contraseña'}
             </button>
@@ -314,8 +319,8 @@ export default function Profile() {
       </div>
 
       {user.role === 'user' && (
-        <div className="glass-card rounded-xl shadow-md p-4 sm:p-6 mt-6">
-          <h2 className="text-xl font-bold mb-2">Postúlate a Barbero</h2>
+        <div className="glass-card rounded-3xl shadow-md p-4 sm:p-6 mt-6 border border-white/10">
+          <h2 className="text-xl font-bold mb-2 text-contrast">Postúlate a Barbero</h2>
           <p className="text-sm text-muted mb-4">Completa este formulario para que el administrador evalúe tu postulación.</p>
 
           {applicationLoading ? (
@@ -323,12 +328,12 @@ export default function Profile() {
           ) : null}
 
           {application ? (
-            <div style={{ backgroundColor: 'var(--glass)' }} className="mb-4 p-3 rounded border text-sm">
+            <div style={{ backgroundColor: 'var(--glass)' }} className="mb-4 p-3 rounded-2xl border border-white/10 text-sm">
               Estado actual: <span className="font-semibold uppercase">{application.status}</span>
               <div className="text-xs muted mt-1">Enviada: {new Date(application.submittedAt).toLocaleString()}</div>
             </div>
           ) : (
-            <div style={{ backgroundColor: 'var(--glass)' }} className="mb-4 p-3 rounded border text-sm muted">No hay postulación activa.</div>
+            <div style={{ backgroundColor: 'var(--glass)' }} className="mb-4 p-3 rounded-2xl border border-white/10 text-sm muted">No hay postulación activa.</div>
           )}
 
           <form onSubmit={handleSubmitApplication} className="space-y-4">
@@ -400,7 +405,7 @@ export default function Profile() {
             <button
               type="submit"
               disabled={submittingApplication}
-              className="w-full sm:w-auto accent-btn text-contrast px-5 py-2 rounded font-semibold disabled:opacity-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
+              className="w-full sm:w-auto accent-btn text-contrast px-5 py-2 rounded-2xl font-semibold disabled:opacity-50"
             >
               {submittingApplication ? 'Enviando...' : application ? 'Actualizar postulación' : 'Enviar postulación'}
             </button>

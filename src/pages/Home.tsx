@@ -69,6 +69,12 @@ export default function Home() {
   }, !!user && !duplicatedSession);
 
   const featuredCuts = useMemo(() => cuts.slice(0, 4), [cuts]);
+  const serviceCount = cuts.length;
+  const reviewCount = reviews.length;
+  const averageRating = reviewCount > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount : 0;
+  const averageCutPrice = serviceCount > 0 ? cuts.reduce((sum, cut) => sum + Number(cut.price || 0), 0) / serviceCount : 0;
+  const visibleCuts = cuts.filter((cut) => cut.is_visible).length;
+  const topReview = reviews[0];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -89,9 +95,9 @@ export default function Home() {
           <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-8 items-center">
             <div className="max-w-3xl fade-in-up">
               <span className="hero-kicker">BARBADOS PREMIUM STUDIO</span>
-              <h1 className="hero-title mt-4 text-contrast">Barbados: el templo del estilo, el detalle y la presencia</h1>
+              <h1 className="hero-title mt-4 text-contrast">Diseño serio, datos útiles y una barbería con presencia real</h1>
               <p className="hero-lead mt-6">
-                Más que un corte. Barbados es una experiencia de barbería profesional con estética de alto nivel, atención precisa y un flujo pensado para que cada visita se sienta como una sesión de estudio premium.
+                Interfaz creada para vender confianza: cortes visibles, valoraciones reales y reservas claras. Aquí no hay relleno, solo información que ayuda a decidir rápido.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/appointments" className="accent-btn px-7 py-3 rounded-xl font-semibold">
@@ -101,18 +107,26 @@ export default function Home() {
                   Ver servicios
                 </Link>
               </div>
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+              <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl">
                 <div className="glass-card p-4 rounded-2xl">
-                  <p className="text-xs uppercase tracking-[0.24em] muted">Precisión</p>
-                  <p className="mt-2 text-lg font-bold text-contrast">Cortes de autor</p>
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Servicios</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">{serviceCount}</p>
+                  <p className="text-xs muted mt-1">publicados</p>
                 </div>
                 <div className="glass-card p-4 rounded-2xl">
-                  <p className="text-xs uppercase tracking-[0.24em] muted">Ambiente</p>
-                  <p className="mt-2 text-lg font-bold text-contrast">Premium y limpio</p>
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Valoración</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">{averageRating.toFixed(1)}</p>
+                  <p className="text-xs muted mt-1">promedio real</p>
                 </div>
                 <div className="glass-card p-4 rounded-2xl">
-                  <p className="text-xs uppercase tracking-[0.24em] muted">Agenda</p>
-                  <p className="mt-2 text-lg font-bold text-contrast">Reserva inteligente</p>
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Visible</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">{visibleCuts}</p>
+                  <p className="text-xs muted mt-1">cortes listos</p>
+                </div>
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Precio medio</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">${averageCutPrice.toFixed(0)}</p>
+                  <p className="text-xs muted mt-1">por corte</p>
                 </div>
               </div>
             </div>
@@ -121,8 +135,8 @@ export default function Home() {
               <div className="glass-card rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
                 <div className="flex items-center justify-between gap-4 mb-5">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.24em] muted">Signature Experience</p>
-                    <h2 className="text-2xl font-extrabold text-contrast mt-2">Cortes que dominan la escena</h2>
+                    <p className="text-xs uppercase tracking-[0.24em] muted">Data Panel</p>
+                    <h2 className="text-2xl font-extrabold text-contrast mt-2">Resumen operativo</h2>
                   </div>
                   <div className="w-14 h-14 rounded-2xl avatar-accent flex items-center justify-center text-contrast font-extrabold">B</div>
                 </div>
@@ -130,28 +144,37 @@ export default function Home() {
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm muted">Flow del día</p>
-                        <p className="text-lg font-bold text-contrast mt-1">Cortes, barba y detalle</p>
+                        <p className="text-sm muted">Cortes visibles</p>
+                        <p className="text-lg font-bold text-contrast mt-1">{visibleCuts} disponibles</p>
                       </div>
-                      <div className="badge-accent">Pro</div>
+                      <div className="badge-accent">Live</div>
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm muted">Experiencia</p>
-                        <p className="text-lg font-bold text-contrast mt-1">Diseño limpio y moderno</p>
+                        <p className="text-sm muted">Valoración</p>
+                        <p className="text-lg font-bold text-contrast mt-1">{reviewCount} reseñas publicadas</p>
                       </div>
-                      <div className="badge-note">Live</div>
+                      <div className="badge-note">{averageRating.toFixed(1)}/5</div>
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm muted">Resultado</p>
-                        <p className="text-lg font-bold text-contrast mt-1">Barbería de presencia real</p>
+                        <p className="text-sm muted">Precio medio</p>
+                        <p className="text-lg font-bold text-contrast mt-1">${averageCutPrice.toFixed(0)} por corte</p>
                       </div>
-                      <div className="badge-danger">HQ</div>
+                      <div className="badge-danger">UX</div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Mejor reseña</p>
+                        <p className="text-lg font-bold text-contrast mt-1 line-clamp-2">{topReview?.comment || 'Aun no hay reseñas publicadas.'}</p>
+                      </div>
+                      <div className="badge-accent">Top</div>
                     </div>
                   </div>
                 </div>
@@ -165,11 +188,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12">
             <div className="flex-1">
-              <p className="text-xs font-bold tracking-[0.2em] muted uppercase mb-2">Servicios Destacados</p>
-              <h2 className="text-4xl md:text-5xl font-extrabold text-contrast leading-tight">Cortes Profesionales</h2>
+              <p className="text-xs font-bold tracking-[0.2em] muted uppercase mb-2">Cortes destacados</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-contrast leading-tight">Servicios con valor real</h2>
             </div>
             <p className="muted max-w-md text-sm leading-relaxed flex-1">
-              Cada corte es diseñado con precisión, adaptado a tu estilo de vida. Barberos certificados, herramientas profesionales y protocolos de esterilización rigurosos garantizados.
+              Selección reducida, más clara y más útil. Lo importante aparece primero: precio, duración, disponibilidad y una imagen limpia para decidir sin perder tiempo.
             </p>
           </div>
 
@@ -223,22 +246,22 @@ export default function Home() {
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Clock3 className="w-6 h-6 text-accent-contrast" />
               </div>
-              <h3 className="text-lg font-bold text-contrast mb-3">Citas Sin Espera</h3>
-              <p className="muted text-sm leading-relaxed">Sistema de reservas inteligente que respeta tu tiempo. Llegabas puntual, comienza puntual. Nos organizamos para mantener tu agenda sin interrupciones.</p>
+              <h3 className="text-lg font-bold text-contrast mb-3">Reservas claras</h3>
+              <p className="muted text-sm leading-relaxed">Agenda directa, sin pantallas sobrantes ni pasos confusos.</p>
             </article>
             <article className="glass-card rounded-2xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Check className="w-6 h-6 text-accent-contrast" />
               </div>
-              <h3 className="text-lg font-bold text-contrast mb-3">Calidad Garantizada</h3>
-              <p className="muted text-sm leading-relaxed">Barberos certificados, herramientas de grado profesional y protocolos de esterilización rigurosos. Tu salud y satisfacción son nuestra prioridad número uno.</p>
+              <h3 className="text-lg font-bold text-contrast mb-3">Datos confiables</h3>
+              <p className="muted text-sm leading-relaxed">Servicios, reseñas y precios presentados con jerarquía real.</p>
             </article>
             <article className="glass-card rounded-2xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <MapPin className="w-6 h-6 text-accent-contrast" />
               </div>
-              <h3 className="text-lg font-bold text-contrast mb-3">Ubicación Premium</h3>
-              <p className="muted text-sm leading-relaxed">Plaza Tineca, San Martín. Acceso fácil desde cualquier parte de la ciudad. Estacionamiento disponible y ambiente exclusivo para ti.</p>
+              <h3 className="text-lg font-bold text-contrast mb-3">Presencia física</h3>
+              <p className="muted text-sm leading-relaxed">Ubicación, contacto y horario siempre accesibles.</p>
             </article>
           </div>
         </div>
@@ -247,8 +270,8 @@ export default function Home() {
       <section style={{ backgroundColor: 'var(--bg)' }} className="py-20 md:py-28 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12">
-            <p className="text-xs font-bold tracking-[0.2em] muted uppercase mb-3">Testimonios</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-contrast">Lo que Dicen Nuestros Clientes</h2>
+            <p className="text-xs font-bold tracking-[0.2em] muted uppercase mb-3">Reseñas</p>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-contrast">Opiniones publicadas</h2>
           </div>
           {reviews.length === 0 ? (
             <div className="glass-card rounded-2xl p-6 muted">Aun no hay opiniones publicadas por el administrador.</div>
