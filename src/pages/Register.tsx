@@ -69,8 +69,8 @@ export default function Register() {
           <h1 className="text-3xl font-bold text-center text-contrast mb-2">Crear Cuenta</h1>
           <p className="text-center muted text-sm mb-6">Únete a Barbados hoy</p>
           
-          <div className="p-4 rounded-2xl mb-6 text-sm bg-blue-500/10 text-contrast/80 flex gap-3 items-start border border-blue-500/20">
-            <Info className="w-5 h-5 shrink-0 text-blue-400 mt-0.5" />
+          <div className="p-4 rounded-2xl mb-6 text-sm bg-amber-500/10 text-contrast/80 flex gap-3 items-start border border-amber-500/20">
+            <Info className="w-5 h-5 shrink-0 text-amber-400 mt-0.5" />
             <p className="leading-5">Si eliges barbero, necesitarás aprobación del administrador para activar tu cuenta.</p>
           </div>
           

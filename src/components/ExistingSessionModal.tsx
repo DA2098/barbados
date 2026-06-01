@@ -22,7 +22,7 @@ export default function ExistingSessionModal({
 
         <div className="flex gap-3 justify-end">
           <button onClick={onCancel} className="px-4 py-2 rounded border bg-transparent">Cancelar</button>
-          <button onClick={onLogout as any} className="px-4 py-2 rounded bg-blue-600 text-white font-semibold">Cerrar sesión</button>
+          <button onClick={onLogout as any} className="px-4 py-2 rounded accent-btn text-contrast font-semibold">Cerrar sesión</button>
         </div>
       </div>
     </div>
