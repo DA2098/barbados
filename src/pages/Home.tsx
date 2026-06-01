@@ -196,7 +196,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center cuts-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-stretch cuts-grid">
         {featuredCuts.map((cut) => (
           <Card
             key={cut.id}
@@ -209,7 +209,7 @@ export default function Home() {
             footer={
               <Link
                 to="/appointments"
-                className="w-full inline-block text-center accent-btn font-bold py-3 rounded-lg"
+                className="w-full inline-block text-center accent-btn font-bold py-3 rounded-2xl"
               >
                 Agendar corte
               </Link>
@@ -242,21 +242,21 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <article className="glass-card rounded-2xl p-8 transition-all">
+            <article className="glass-card rounded-3xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Clock3 className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Reservas claras</h3>
               <p className="muted text-sm leading-relaxed">Agenda directa, sin pantallas sobrantes ni pasos confusos.</p>
             </article>
-            <article className="glass-card rounded-2xl p-8 transition-all">
+            <article className="glass-card rounded-3xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <Check className="w-6 h-6 text-accent-contrast" />
               </div>
               <h3 className="text-lg font-bold text-contrast mb-3">Datos confiables</h3>
               <p className="muted text-sm leading-relaxed">Servicios, reseñas y precios presentados con jerarquía real.</p>
             </article>
-            <article className="glass-card rounded-2xl p-8 transition-all">
+            <article className="glass-card rounded-3xl p-8 transition-all">
               <div className="w-12 h-12 avatar-accent rounded-xl flex items-center justify-center mb-5">
                 <MapPin className="w-6 h-6 text-accent-contrast" />
               </div>
@@ -274,11 +274,11 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-extrabold text-contrast">Opiniones publicadas</h2>
           </div>
           {reviews.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 muted">Aun no hay opiniones publicadas por el administrador.</div>
+              <div className="glass-card rounded-3xl p-6 muted">Aun no hay opiniones publicadas por el administrador.</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {reviews.slice(0, 6).map((review) => (
-                <article key={review.id} className="glass-card rounded-2xl p-6 transition-all">
+                <article key={review.id} className="glass-card rounded-3xl p-6 transition-all">
                   <div className="flex items-start justify-between mb-3 gap-3">
                     <div className="flex-1">
                       <h3 className="font-bold text-contrast text-base">{review.userName}</h3>
