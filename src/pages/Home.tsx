@@ -112,7 +112,7 @@ export default function Home() {
                   Ver servicios
                 </Link>
               </div>
-              //cuadritos de home 
+              
               <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl">
                 <div className="glass-card p-4 rounded-2xl">
                   <p className="text-xs uppercase tracking-[0.24em] muted">Servicios</p>
