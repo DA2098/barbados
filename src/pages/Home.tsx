@@ -112,25 +112,26 @@ export default function Home() {
                   Ver servicios
                 </Link>
               </div>
+              //cuadritos de home 
               <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl">
                 <div className="glass-card p-4 rounded-2xl">
                   <p className="text-xs uppercase tracking-[0.24em] muted">Servicios</p>
-                  <p className="mt-2 text-3xl font-extrabold text-contrast">{serviceCount}</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast bg-red-500">{serviceCount}</p>
                   <p className="text-xs muted mt-1">publicados</p>
                 </div>
                 <div className="glass-card p-4 rounded-2xl">
                   <p className="text-xs uppercase tracking-[0.24em] muted">Valoración</p>
-                  <p className="mt-2 text-3xl font-extrabold text-contrast">{averageRating.toFixed(1)}</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast to-sky-500">{averageRating.toFixed(1)}</p>
                   <p className="text-xs muted mt-1">promedio real</p>
                 </div>
                 <div className="glass-card p-4 rounded-2xl">
                   <p className="text-xs uppercase tracking-[0.24em] muted">Visible</p>
-                  <p className="mt-2 text-3xl font-extrabold text-contrast">{visibleCuts}</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast bg-teal-500">{visibleCuts}</p>
                   <p className="text-xs muted mt-1">cortes listos</p>
                 </div>
                 <div className="glass-card p-4 rounded-2xl">
                   <p className="text-xs uppercase tracking-[0.24em] muted">Precio medio</p>
-                  <p className="mt-2 text-3xl font-extrabold text-contrast">${averageCutPrice.toFixed(0)}</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast bg-gray-500">${averageCutPrice.toFixed(0)}</p>
                   <p className="text-xs muted mt-1">por corte</p>
                 </div>
               </div>
