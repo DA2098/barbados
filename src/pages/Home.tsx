@@ -102,7 +102,7 @@ export default function Home() {
                 <span className="text-gradient">Diseño serio, datos útiles</span> y una barbería con presencia real
               </h1>
               <p className="hero-lead mt-6">
-                Interfaz creada para vender confianza: cortes visibles, valoraciones reales y reservas claras. Aquí no hay relleno, solo información que ayuda a decidir rápido.
+                DONDE ERES EL LORD QUE MERECES
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/appointments" className="accent-btn px-7 py-3 rounded-xl font-semibold">
