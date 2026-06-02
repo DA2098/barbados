@@ -97,7 +97,7 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-16 md:py-24">
           <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-8 items-center">
             <div className="max-w-3xl fade-in-up">
-              <span className="hero-kicker">BARBADOS PREMIUM STUDIO</span>
+              <span className="hero-kicker">BARBADOS</span>
               <h1 className="hero-title mt-4 text-contrast">
                 <span className="text-gradient">Diseño serio, datos útiles</span> y una barbería con presencia real
               </h1>
