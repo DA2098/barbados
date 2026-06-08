@@ -74,6 +74,8 @@ export default function Home() {
   const averageRating = reviewCount > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount : 0;
   const averageCutPrice = serviceCount > 0 ? cuts.reduce((sum, cut) => sum + Number(cut.price || 0), 0) / serviceCount : 0;
   const visibleCuts = cuts.filter((cut) => cut.is_visible).length;
+  const coverage = serviceCount > 0 ? Math.round((visibleCuts / serviceCount) * 100) : 0;
+  const topReview = reviews[0];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -93,90 +95,106 @@ export default function Home() {
         <div className="hero-orb two" style={{ bottom: '16%', left: '8%' }} />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-16 md:py-24">
-  <div className="max-w-3xl mx-auto">
-    <div className="fade-in-up">
-      <span className="hero-kicker">BARBADOS</span>
+          <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-8 items-center">
+            <div className="max-w-3xl fade-in-up">
+              <span className="hero-kicker">BARBADOS</span>
+              <h1 className="hero-title mt-4 text-contrast">
+                <span className="text-gradient">Diseño serio, datos útiles</span> y una barbería con presencia real
+              </h1>
+              <p className="hero-lead mt-6">
+                DONDE ERES EL LORD QUE MERECES
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link to="/appointments" className="accent-btn px-7 py-3 rounded-xl font-semibold">
+                  Reservar ahora
+                </Link>
+                <Link to="/store" className="glass-card px-7 py-3 rounded-xl font-semibold text-contrast border border-white/10">
+                  Ver servicios
+                </Link>
+              </div>
+              
+              <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl">
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Servicios</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">{serviceCount}</p>
+                  <p className="text-xs muted mt-1">publicados</p>
+                </div>
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Valoración</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">{averageRating.toFixed(1)}</p>
+                  <p className="text-xs muted mt-1">promedio real</p>
+                </div>
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Visible</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">{visibleCuts}</p>
+                  <p className="text-xs muted mt-1">cortes listos</p>
+                </div>
+                <div className="glass-card p-4 rounded-2xl">
+                  <p className="text-xs uppercase tracking-[0.24em] muted">Precio medio</p>
+                  <p className="mt-2 text-3xl font-extrabold text-contrast">${averageCutPrice.toFixed(0)}</p>
+                  <p className="text-xs muted mt-1">por corte</p>
+                </div>
+              </div>
+            </div>
 
-      <h1 className="hero-title mt-4 text-contrast">
-        <span className="text-gradient">
-          Diseño serio, datos útiles
-        </span>{" "}
-        y una barbería con presencia real
-      </h1>
-
-      <p className="hero-lead mt-6">
-        DONDE ERES EL LORD QUE MERECES
-      </p>
-
-      <div className="mt-8 flex flex-wrap gap-3">
-        <Link
-          to="/appointments"
-          className="accent-btn px-7 py-3 rounded-xl font-semibold"
-        >
-          Reservar ahora
-        </Link>
-
-        <Link
-          to="/store"
-          className="glass-card px-7 py-3 rounded-xl font-semibold text-contrast border border-white/10"
-        >
-          Ver servicios
-        </Link>
-      </div>
-
-      <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl">
-        <div className="glass-card p-4 rounded-2xl">
-          <p className="text-xs uppercase tracking-[0.24em] muted">
-            Servicios
-          </p>
-          <p className="mt-2 text-3xl font-extrabold text-contrast">
-            {serviceCount}
-          </p>
-          <p className="text-xs muted mt-1">
-            publicados
-          </p>
+            <div className="fade-in-up lg:justify-self-end">
+              <div className="glass-card rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
+                <div className="flex items-center justify-between gap-4 mb-5">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] muted">Data Panel</p>
+                    <h2 className="text-2xl font-extrabold text-contrast mt-2">Resumen operativo</h2>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 glow-ring bg-white/5 flex items-center justify-center">
+                    <img src="/logitobarbados.png" alt="Barbados" className="w-full h-full object-contain p-1.5" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Cortes visibles</p>
+                        <p className="text-lg font-bold text-contrast mt-1">{visibleCuts} disponibles</p>
+                      </div>
+                      <div className="badge-accent">Live</div>
+                    </div>
+                    <div className="mt-3 h-2 rounded-full bg-white/8 overflow-hidden">
+                      <div className="h-full rounded-full bg-linear-to-r from-(--accent-1) via-(--accent-2) to-(--accent-3)" style={{ width: `${coverage}%` }} />
+                    </div>
+                    <p className="text-xs muted mt-2">Cobertura visible {coverage}%</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Valoración</p>
+                        <p className="text-lg font-bold text-contrast mt-1">{reviewCount} reseñas publicadas</p>
+                      </div>
+                      <div className="badge-note">{averageRating.toFixed(1)}/5</div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Precio medio</p>
+                        <p className="text-lg font-bold text-contrast mt-1">${averageCutPrice.toFixed(0)} por corte</p>
+                      </div>
+                      <div className="badge-danger">UX</div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm muted">Mejor reseña</p>
+                        <p className="text-lg font-bold text-contrast mt-1 line-clamp-2">{topReview?.comment || 'Aun no hay reseñas publicadas.'}</p>
+                      </div>
+                      <div className="badge-accent">Top</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div className="glass-card p-4 rounded-2xl">
-          <p className="text-xs uppercase tracking-[0.24em] muted">
-            Valoración
-          </p>
-          <p className="mt-2 text-3xl font-extrabold text-contrast">
-            {averageRating.toFixed(1)}
-          </p>
-          <p className="text-xs muted mt-1">
-            promedio real
-          </p>
-        </div>
-
-        <div className="glass-card p-4 rounded-2xl">
-          <p className="text-xs uppercase tracking-[0.24em] muted">
-            Visible
-          </p>
-          <p className="mt-2 text-3xl font-extrabold text-contrast">
-            {visibleCuts}
-          </p>
-          <p className="text-xs muted mt-1">
-            cortes listos
-          </p>
-        </div>
-
-        <div className="glass-card p-4 rounded-2xl">
-          <p className="text-xs uppercase tracking-[0.24em] muted">
-            Precio medio
-          </p>
-          <p className="mt-2 text-3xl font-extrabold text-contrast">
-            ${averageCutPrice.toFixed(0)}
-          </p>
-          <p className="text-xs muted mt-1">
-            por corte
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</section>
+      </section>
 
       <section className="py-20 md:py-28 px-4" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="max-w-7xl mx-auto">
