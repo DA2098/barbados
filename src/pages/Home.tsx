@@ -111,31 +111,31 @@ export default function Home() {
               
             </div>
             
-            <div className="fade-in-up lg:justify-self-end">
-              <div className="glass-card rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
-                <div className="flex items-center justify-between gap-4 mb-5">
+            <div>
+              <div >
+                <div >
                   <div>
                     
                   </div>
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 glow-ring bg-white/5 flex items-center justify-center">
+                  <div >
                     
                   </div>
                 </div>
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-4">
+                <div >
+                  <div >
+                    <div >
                       <div>
                        
                       </div>
                     
                     </div>
-                    <div className="mt-3 h-2 rounded-full bg-white/8 overflow-hidden">
+                    <div>
                       
                     </div>
                    
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div>
                       <div>
                        
                         
@@ -143,8 +143,8 @@ export default function Home() {
                      
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <div >
+                    <div >
                       <div>
                         
                        
@@ -152,8 +152,8 @@ export default function Home() {
                    
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div >
                       <div>
                        
                         
