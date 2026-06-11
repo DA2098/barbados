@@ -69,13 +69,6 @@ export default function Home() {
   }, !!user && !duplicatedSession);
 
   const featuredCuts = useMemo(() => cuts.slice(0, 5), [cuts]);
-
-
-
-
-
-
-
   return (
     <div className="flex flex-col min-h-screen">
       <section className="hero-stage relative overflow-hidden">
@@ -106,62 +99,6 @@ export default function Home() {
                 <Link to="/store" className="glass-card px-7 py-3 rounded-xl font-semibold text-contrast border border-white/10">
                   Ver servicios
                 </Link>
-              </div>
-              
-              
-            </div>
-            
-            <div>
-              <div >
-                <div >
-                  <div>
-                    
-                  </div>
-                  <div >
-                    
-                  </div>
-                </div>
-                <div >
-                  <div >
-                    <div >
-                      <div>
-                       
-                      </div>
-                    
-                    </div>
-                    <div>
-                      
-                    </div>
-                   
-                  </div>
-                  <div>
-                    <div>
-                      <div>
-                       
-                        
-                      </div>
-                     
-                    </div>
-                  </div>
-                  <div >
-                    <div >
-                      <div>
-                        
-                       
-                      </div>
-                   
-                    </div>
-                  </div>
-                  <div>
-                    <div >
-                      <div>
-                       
-                        
-                      </div>
-                  
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
