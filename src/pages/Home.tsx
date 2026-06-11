@@ -69,13 +69,12 @@ export default function Home() {
   }, !!user && !duplicatedSession);
 
   const featuredCuts = useMemo(() => cuts.slice(0, 5), [cuts]);
-  const serviceCount = cuts.length;
-  const reviewCount = reviews.length;
-  const averageRating = reviewCount > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount : 0;
- 
-  const visibleCuts = cuts.filter((cut) => cut.is_visible).length;
-  const coverage = serviceCount > 0 ? Math.round((visibleCuts / serviceCount) * 100) : 0;
-  
+
+
+
+
+
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -111,7 +110,7 @@ export default function Home() {
               
               
             </div>
-
+            
             <div className="fade-in-up lg:justify-self-end">
               <div className="glass-card rounded-[28px] p-5 md:p-6 border border-white/10 max-w-xl ml-auto">
                 <div className="flex items-center justify-between gap-4 mb-5">
@@ -128,35 +127,38 @@ export default function Home() {
                       <div>
                        
                       </div>
-                      <div className="badge-accent">Live</div>
+                    
                     </div>
                     <div className="mt-3 h-2 rounded-full bg-white/8 overflow-hidden">
-                   
+                      
                     </div>
-                    <p className="text-xs muted mt-2">Cobertura visible {coverage}%</p>
+                   
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                       
+                        
+                      </div>
+                     
+                    </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         
+                       
                       </div>
-                      <div className="badge-note">{averageRating.toFixed(1)}/5</div>
+                   
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                        
-                      </div>
-                      <div className="badge-danger">UX</div>
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
                         
                       </div>
-                      <div className="badge-accent">Top</div>
+                  
                     </div>
                   </div>
                 </div>
