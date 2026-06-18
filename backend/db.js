@@ -4,7 +4,7 @@ import pg from 'pg';
 const { Pool } = pg;
 
 function createPool() {
-  const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/barbados';
+  const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:6x679zDDNaXTtX3RGbSwuyCTI6JmIMam@dpg-d8pv36cm0tmc73b95ccg-a.ohio-postgres.render.com:5432/barbados_s6oc';
 
   // Enable SSL in production or when explicitly requested. Many managed Postgres
   // providers (Render, Heroku) require SSL and may use self-signed certs.
