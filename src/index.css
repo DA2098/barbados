@@ -1089,96 +1089,41 @@ h1.hero-title.text-contrast {
 }
 
 
-/* =========================
-BARBER PREMIUM 2026 OVERRIDES
-Safe visual redesign
-========================= */
-
-:root{
- --accent-1:#d4af37;
- --accent-2:#f3d67a;
- --accent-3:#8b5e34;
- --bg:#090909;
- --surface:#141414;
- --card:#1b1b1b;
-}
-
-body{
- background:
- radial-gradient(circle at top left,#2a1b08 0%,transparent 30%),
- radial-gradient(circle at bottom right,#3b2a10 0%,transparent 30%),
- linear-gradient(180deg,#050505,#111,#050505)!important;
-}
-
+/* ===== PREMIUM ENHANCEMENTS (SAFE OVERRIDES) ===== */
 .glass-card,.panel-dynamic{
- border-radius:32px!important;
- backdrop-filter:blur(22px)!important;
- overflow:hidden;
+ transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease,filter .35s ease!important;
 }
-
-.glass-card::after,.panel-dynamic::after{
- content:"";
- position:absolute;
- inset:0;
- background:linear-gradient(120deg,transparent,rgba(255,255,255,.05),transparent);
- transform:translateX(-120%);
- transition:.8s;
-}
-.glass-card:hover::after,.panel-dynamic:hover::after{
- transform:translateX(120%);
-}
-
 .glass-card:hover,.panel-dynamic:hover{
- transform:translateY(-10px) scale(1.02)!important;
+ transform:translateY(-8px) scale(1.01)!important;
+ box-shadow:0 30px 80px rgba(0,0,0,.35)!important;
 }
-
-.accent-btn{
- border-radius:18px!important;
- background:linear-gradient(135deg,#d4af37,#f5deb3,#d4af37)!important;
- background-size:300%;
- animation:goldFlow 8s linear infinite;
+.accent-btn,.nav-btn,.nav-icon-btn{
+ transition:all .35s ease!important;
 }
-@keyframes goldFlow{
+.accent-btn:hover,.nav-btn:hover,.nav-icon-btn:hover{
+ filter:brightness(1.08);
+}
+@keyframes premiumFade{
+from{opacity:0;transform:translateY(25px)}
+to{opacity:1;transform:translateY(0)}
+}
+section{
+animation:premiumFade .8s ease;
+}
+body{
+background-size:200% 200%;
+animation:bgmove 18s ease infinite;
+}
+@keyframes bgmove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+.text-gradient{
+background-size:300%;
+animation:shine 8s linear infinite;
+}
+@keyframes shine{
 0%{background-position:0%}
 100%{background-position:300%}
 }
-
-.nav-btn,.nav-icon-btn{
- border-radius:18px!important;
-}
-.nav-btn:hover,.nav-icon-btn:hover{
- box-shadow:0 0 25px rgba(212,175,55,.35)!important;
-}
-
-img{
- transition:.5s;
-}
-img:hover{
- transform:scale(1.05);
- filter:contrast(1.08) saturate(1.1);
-}
-
-section{
- animation:fadeLuxury .8s ease;
-}
-@keyframes fadeLuxury{
- from{opacity:0;transform:translateY(35px)}
- to{opacity:1;transform:none}
-}
-
-.hero-title{
- letter-spacing:.03em;
- text-shadow:0 8px 30px rgba(0,0,0,.7)!important;
-}
-
-table tr{
- transition:.3s;
-}
-table tr:hover{
- transform:scale(1.01);
-}
-
-::-webkit-scrollbar-thumb{
- background:linear-gradient(#d4af37,#8b5e34)!important;
-}
-
