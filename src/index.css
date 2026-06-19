@@ -1127,3 +1127,6 @@ animation:shine 8s linear infinite;
 0%{background-position:0%}
 100%{background-position:300%}
 }
+
+/*SAFE LUXURY*/
+body{background:linear-gradient(180deg,#050505,#111,#050505)!important}.glass-card,.panel-dynamic{border-radius:30px!important;box-shadow:0 20px 50px rgba(0,0,0,.3)!important}.glass-card:hover,.panel-dynamic:hover{transform:translateY(-8px) scale(1.02)!important}.accent-btn{border-radius:18px!important;background:linear-gradient(135deg,#b98a44,#f2d18b,#b98a44)!important;background-size:250%;animation:g 8s linear infinite}@keyframes g{from{background-position:0%}to{background-position:250%}}
